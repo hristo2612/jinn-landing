@@ -1,10 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { assertValidLinkScan } from "../../scripts/check-links";
+import {
+  assertValidLinkScan,
+  previewProcessSpec,
+} from "../../scripts/check-links";
 
 const requiredUrls = ["http://127.0.0.1:4322/", "http://127.0.0.1:4322/docs/"];
 
 describe("link gate", () => {
+  it("launches the preview directly without a package-manager child", () => {
+    const spec = previewProcessSpec("127.0.0.1", 4322);
+    expect(spec.command).toBe(process.execPath);
+    expect(spec.args).toContain("--import");
+    expect(spec.args).toContain("tsx");
+    expect(spec.args.some((argument) => argument.endsWith("preview.ts"))).toBe(
+      true,
+    );
+    expect(spec.args).not.toContain("pnpm");
+  });
+
   it("rejects a scan that discovers no internal URLs", () => {
     expect(() => assertValidLinkScan([], requiredUrls)).toThrow(
       /zero internal URLs/i,

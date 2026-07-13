@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { LinkChecker } from "linkinator";
@@ -18,6 +19,25 @@ const REQUIRED_URLS = [
   `${ORIGIN}/agents.md`,
   `${ORIGIN}/llms.txt`,
 ];
+
+export function previewProcessSpec(
+  host: string,
+  port: number,
+  cwd = process.cwd(),
+): { args: string[]; command: string } {
+  return {
+    command: process.execPath,
+    args: [
+      "--import",
+      "tsx",
+      resolve(cwd, "scripts/preview.ts"),
+      "--host",
+      host,
+      "--port",
+      String(port),
+    ],
+  };
+}
 
 function normalizeUrl(url: string): string {
   return new URL(url).href;
@@ -98,15 +118,12 @@ async function stopPreview(process: ChildProcess): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const preview = spawn(
-    "pnpm",
-    ["preview", "--host", HOST, "--port", String(PORT)],
-    {
-      cwd: process.cwd(),
-      env: process.env,
-      stdio: ["ignore", "pipe", "pipe"],
-    },
-  );
+  const spec = previewProcessSpec(HOST, PORT);
+  const preview = spawn(spec.command, spec.args, {
+    cwd: process.cwd(),
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
   let output = "";
   preview.stdout?.on("data", (chunk) => (output += chunk.toString()));
   preview.stderr?.on("data", (chunk) => (output += chunk.toString()));
