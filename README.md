@@ -82,7 +82,7 @@ pnpm check
 
 `pnpm check` verifies Ledger token provenance against that checkout, then runs types, formatting, unit tests, the production build, public safety, internal links, and the documentation contract.
 
-GitHub Actions runs `pnpm check:public`. That source-independent gate validates the structure and recorded provenance of the checked-in Ledger snapshot, while still executing documentation contracts against the public Jinn source pin. This keeps public CI reproducible when the website is previewing Ledger tokens from Jinn work that has not reached the product repository's public `main` branch yet.
+GitHub Actions runs `pnpm check:public`. That fast, source-independent gate validates the checked-in Ledger snapshot, types, formatting, unit tests, build, public safety, and links. The full `pnpm check` remains the maintainer release gate because it source-builds Jinn and executes every documentation contract against a real isolated gateway. This keeps ordinary website CI deterministic when the site previews Jinn work that has not reached the product repository's public `main` branch yet.
 
 ## Deploying to Vercel
 

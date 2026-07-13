@@ -37,7 +37,7 @@
     "tokens:validate": "tsx scripts/sync-ledger-tokens.ts --validate-snapshot",
     "safety:check": "tsx scripts/check-public-safety.ts",
     "check": "pnpm tokens:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built && pnpm docs:contract",
-    "check:public": "pnpm tokens:validate && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built && pnpm docs:contract"
+    "check:public": "pnpm tokens:validate && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.3",

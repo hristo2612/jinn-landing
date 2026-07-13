@@ -257,7 +257,7 @@ Marketing extensions live in `site-tokens.css` and may only reference generated 
 ### Drift prevention
 
 - The full maintainer release gate checks the Ledger snapshot byte for byte against the selected Jinn checkout with `pnpm tokens:check`.
-- Public CI runs `pnpm tokens:validate` to validate the committed snapshot contract and provenance header when the matching Jinn token source has not reached the product repository's public `main` branch yet. It still checks out public Jinn source for the pinned documentation contract.
+- Public CI runs `pnpm tokens:validate` plus the deterministic static-site gates. The source-build documentation contract remains in the explicit maintainer release gate because it installs and runs a full isolated Jinn gateway.
 - The Jinn release skill runs token sync when the dashboard token source changed and includes the generated website diff in the release's website update.
 - A unit test asserts that every extracted theme token exists in both explicit themes and that no disallowed app selector entered the generated file.
 - Reviewers reject hand edits to `generated/ledger-tokens.css` and hardcoded theme colors in site components.
