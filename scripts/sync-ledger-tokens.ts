@@ -119,6 +119,28 @@ export interface TokenProvenance {
   contentHash: string;
 }
 
+export function validateLedgerTokenSnapshot(snapshot: string): TokenProvenance {
+  const sourcePath = snapshot.match(/^ \* Source: (.+)$/mu)?.[1];
+  const sourceCommit = snapshot.match(
+    /^ \* Source commit: ([0-9a-f]{40})$/mu,
+  )?.[1];
+  const contentHash = snapshot.match(
+    /^ \* Content SHA-256: ([0-9a-f]{64})$/mu,
+  )?.[1];
+
+  if (!sourcePath || !sourceCommit || !contentHash) {
+    throw new Error("Ledger token snapshot provenance is missing or invalid.");
+  }
+  if (sourcePath !== PUBLIC_SOURCE_PATH) {
+    throw new Error(
+      `Ledger token snapshot must name the canonical Jinn Ledger source path: ${PUBLIC_SOURCE_PATH}.`,
+    );
+  }
+
+  extractLedgerTokens(snapshot);
+  return { sourcePath, sourceCommit, contentHash };
+}
+
 function collectAllowedDeclarations(
   container: postcss.Container,
   allowlist: readonly string[],
@@ -288,11 +310,23 @@ export function generateFromCanonicalSource(
 
 function main(): void {
   const args = process.argv.slice(2);
-  const mode = args.find((arg) => arg === "--write" || arg === "--check");
+  const mode = args.find(
+    (arg) =>
+      arg === "--write" || arg === "--check" || arg === "--validate-snapshot",
+  );
   const rootIndex = args.indexOf("--jinn-root");
   const rootValue = rootIndex === -1 ? undefined : args[rootIndex + 1];
   if (rootIndex !== -1 && (!rootValue || rootValue.startsWith("--"))) {
     throw new Error("--jinn-root requires a path");
+  }
+  if (mode === "--validate-snapshot") {
+    const provenance = validateLedgerTokenSnapshot(
+      readFileSync(OUTPUT_PATH, "utf8"),
+    );
+    console.log(
+      `Ledger token snapshot is structurally valid (${provenance.sourceCommit}).`,
+    );
+    return;
   }
   const jinnRoot = resolve(
     rootValue ?? process.env.JINN_SOURCE_ROOT ?? DEFAULT_JINN_ROOT,
@@ -323,7 +357,7 @@ function main(): void {
   }
 
   throw new Error(
-    "Usage: sync-ledger-tokens.ts --write | --check [--jinn-root <path>]",
+    "Usage: sync-ledger-tokens.ts --write | --check [--jinn-root <path>] | --validate-snapshot",
   );
 }
 

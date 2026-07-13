@@ -50,9 +50,9 @@ jobs:
         working-directory: jinn-source
         run: pnpm --filter jinn-cli install --frozen-lockfile
 
-      - name: Run release-grade checks
+      - name: Run public release checks
         working-directory: site
         env:
           JINN_SOURCE_ROOT: ${{ github.workspace }}/jinn-source
           JINN_SOURCE_REPO: ${{ github.workspace }}/jinn-source
-        run: pnpm check
+        run: pnpm check:public

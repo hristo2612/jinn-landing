@@ -34,8 +34,10 @@
     "release:sync": "tsx scripts/sync-release-docs.ts",
     "tokens:sync": "tsx scripts/sync-ledger-tokens.ts --write",
     "tokens:check": "tsx scripts/sync-ledger-tokens.ts --check",
+    "tokens:validate": "tsx scripts/sync-ledger-tokens.ts --validate-snapshot",
     "safety:check": "tsx scripts/check-public-safety.ts",
-    "check": "pnpm tokens:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built && pnpm docs:contract"
+    "check": "pnpm tokens:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built && pnpm docs:contract",
+    "check:public": "pnpm tokens:validate && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built && pnpm docs:contract"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.3",

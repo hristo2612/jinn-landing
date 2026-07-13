@@ -18,6 +18,7 @@ import {
   generateFromCanonicalSource,
   getThemeTokenKeys,
   renderLedgerTokens,
+  validateLedgerTokenSnapshot,
   writeTokenSnapshot,
 } from "../../scripts/sync-ledger-tokens";
 
@@ -71,6 +72,46 @@ ${light}
 }
 
 describe("Ledger token extraction", () => {
+  it("validates a complete checked-in snapshot without a Jinn checkout", () => {
+    const contract = extractLedgerTokens(completeSource());
+    const provenance = {
+      sourcePath: "../jinn/packages/web/src/routes/globals.css",
+      sourceCommit: "a".repeat(40),
+      contentHash: "b".repeat(64),
+    };
+    const snapshot = renderLedgerTokens(contract, provenance);
+
+    expect(validateLedgerTokenSnapshot(snapshot)).toEqual(provenance);
+  });
+
+  it("rejects snapshot provenance from a different source path", () => {
+    const contract = extractLedgerTokens(completeSource());
+    const snapshot = renderLedgerTokens(contract, {
+      sourcePath: "../other/packages/web/src/routes/globals.css",
+      sourceCommit: "a".repeat(40),
+      contentHash: "b".repeat(64),
+    });
+
+    expect(() => validateLedgerTokenSnapshot(snapshot)).toThrow(
+      /canonical Jinn Ledger source path/i,
+    );
+  });
+
+  it("offers a source-independent CLI gate for the committed snapshot", () => {
+    const output = execFileSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        join(process.cwd(), "scripts/sync-ledger-tokens.ts"),
+        "--validate-snapshot",
+      ],
+      { encoding: "utf8" },
+    );
+
+    expect(output).toMatch(/Ledger token snapshot is structurally valid/i);
+  });
+
   it("generates from an explicit Jinn source root", () => {
     const directory = mkdtempSync(join(tmpdir(), "ledger-source-root-"));
     temporaryDirectories.push(directory);

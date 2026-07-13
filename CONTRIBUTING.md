@@ -42,6 +42,8 @@ pnpm check
 
 The contract runner uses an isolated temporary home and gateway port. Never point it at a live Jinn instance.
 
+`pnpm check` also verifies the Ledger token snapshot byte for byte against that checkout. The source-independent `pnpm check:public` gate validates the committed snapshot and is what GitHub Actions runs when the matching Jinn token source is not public yet.
+
 ## Pull requests
 
 Keep pull requests focused and explain:
