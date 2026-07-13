@@ -1,0 +1,29 @@
+.scene-debug {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 100;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 17rem;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  background: var(--pill-bg);
+  box-shadow: var(--shadow-overlay);
+  backdrop-filter: blur(24px) saturate(160%);
+  font-family: var(--font-code);
+  font-size: var(--text-caption2);
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-debug button,
+.scene-debug input {
+  min-height: 40px;
+}
+
+.scene-debug input {
+  grid-column: 1 / -1;
+}

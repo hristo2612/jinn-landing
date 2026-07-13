@@ -1,0 +1,172 @@
+---
+/**
+ * Install-command pill with copy-to-clipboard.
+ *
+ * The command text is real, selectable content so the page communicates the
+ * install step with no JavaScript. `src/lib/command-pill.ts` progressively
+ * enhances the copy button (clipboard write + "Copied" feedback).
+ */
+interface Props {
+  /** Clipboard payload written on copy. */
+  copy: string;
+  /** Visible command shown after the `$` prompt. Defaults to `copy`. */
+  display?: string;
+  /** Accessible label for the copy button. */
+  label?: string;
+  /** Extra class on the root for size variants. */
+  class?: string;
+}
+
+const {
+  copy,
+  display = copy,
+  label = "Copy install command",
+  class: className,
+} = Astro.props;
+---
+
+<span class:list={["command-pill", className]} data-command-pill>
+  <code class="command-pill__cmd">
+    <span class="command-pill__prompt" aria-hidden="true">$</span>
+    {display}
+  </code>
+  <span class="command-pill__status" role="status" aria-live="polite"></span>
+  <button
+    type="button"
+    class="command-pill__copy"
+    data-command-pill-copy
+    data-command={copy}
+    aria-label={label}
+  >
+    <svg
+      class="command-pill__ic command-pill__ic--copy"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <rect x="8" y="8" width="14" height="14" rx="2"></rect>
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+    </svg>
+    <svg
+      class="command-pill__ic command-pill__ic--check"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+  </button>
+</span>
+
+<style>
+  .command-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0 var(--space-1) 0 var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--fill-tertiary);
+    box-shadow: var(--inset-shine);
+    font-family: var(--font-code);
+  }
+
+  @media (max-width: 640px) {
+    .command-pill {
+      min-height: 48px;
+    }
+  }
+
+  .command-pill__cmd {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-code);
+    font-size: var(--text-footnote);
+    letter-spacing: 0;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .command-pill__prompt {
+    color: var(--text-tertiary);
+  }
+
+  .command-pill__status {
+    overflow: hidden;
+    width: 0;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption1);
+    font-weight: var(--weight-semibold);
+    color: var(--accent);
+    white-space: nowrap;
+    opacity: 0;
+    transition:
+      width 220ms var(--ease-smooth),
+      opacity 220ms var(--ease-smooth);
+  }
+
+  .command-pill[data-copied] .command-pill__status {
+    width: 3.25rem;
+    opacity: 1;
+  }
+
+  /* The whole button is the tap target (>=44x44); the icon stays small. */
+  .command-pill__copy {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    padding: 0;
+    color: var(--text-tertiary);
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition:
+      color 160ms var(--ease-smooth),
+      background-color 160ms var(--ease-smooth);
+  }
+
+  .command-pill__copy:hover {
+    color: var(--text-primary);
+    background: var(--fill-secondary);
+  }
+
+  .command-pill__ic {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition:
+      opacity 200ms var(--ease-smooth),
+      transform 200ms var(--ease-spring);
+  }
+
+  .command-pill__ic--check {
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .command-pill[data-copied] .command-pill__ic--copy {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .command-pill[data-copied] .command-pill__ic--check {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .command-pill__status,
+    .command-pill__ic {
+      transition: none;
+    }
+  }
+</style>

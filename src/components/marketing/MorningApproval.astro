@@ -1,0 +1,104 @@
+---
+/**
+ * Section 7. The approval card and run #142's rail tail resolve inside the
+ * same stable Ledger theme as the rest of the landing page.
+ */
+import MorningSurface from "../scenes/surfaces/MorningSurface.astro";
+
+const caption =
+  "An approval card from the COO holds the digest. You approve, the gate clears, the post step runs and completes, and run #142 finishes because you said so.";
+---
+
+<section class="morning-section" aria-label="Morning">
+  <header class="morning-section__head">
+    <p class="morning-section__kicker">Morning</p>
+    <h2 class="morning-section__title">You approve what matters.</h2>
+    <p class="morning-section__body">
+      The COO reviews everything and parks the important calls at your door. One
+      tap, and it ships.
+    </p>
+  </header>
+
+  <figure
+    class="morning-section__window"
+    data-scene-window
+    data-scene-id="morning-approval"
+  >
+    <figcaption class="visually-hidden" data-scene-caption>
+      {caption}
+    </figcaption>
+    <div class="morning-section__frame" data-scene-frame aria-hidden="true">
+      <MorningSurface />
+    </div>
+    <div class="morning-section__controls" data-scene-controls></div>
+  </figure>
+</section>
+
+<style>
+  .morning-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding: var(--site-section-space-theatrical) var(--site-page-gutter);
+  }
+
+  .morning-section__head {
+    width: min(48rem, 100%);
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* One kicker voice page-wide (quiet mono secondary, both themes). */
+  .morning-section__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .morning-section__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--site-display-md);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+  }
+
+  .morning-section__body {
+    max-width: 34rem;
+    margin: var(--space-4) auto 0;
+    font-size: clamp(0.98rem, 1.35vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .morning-section__window {
+    margin: clamp(var(--space-10), 7vh, 5rem) 0 0;
+  }
+
+  /* Reserve the resolved card + rail-tail footprint (see NightShift). */
+  .morning-section__frame {
+    min-height: 20.75rem;
+  }
+
+  .morning-section__controls:empty {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    .morning-section {
+      min-height: 0;
+      /* The theatre keeps MORE silence than any other mobile section
+         (guardrail #7), matching the night section before it. */
+      padding-block: calc(var(--space-16) + var(--space-16));
+    }
+
+    .morning-section__frame {
+      min-height: 25rem;
+    }
+  }
+</style>

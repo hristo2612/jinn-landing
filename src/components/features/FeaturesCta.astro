@@ -1,0 +1,105 @@
+---
+/**
+ * §12 Final CTA - the landing's quiet-close layout (FinalCta.astro): the
+ * command is the object. Deck: "All of it." / "One command." (amber period).
+ */
+import CommandPill from "../chrome/CommandPill.astro";
+import { FEATURES_CTA } from "../../lib/scenes/features";
+---
+
+<section class="fcta" id="install" aria-label="All of it. One command.">
+  <h2 class="fcta__title">
+    <span class="fcta__line fcta__line--thin">{FEATURES_CTA.h2Thin}</span>
+    <span class="fcta__line fcta__line--bold"
+      >{FEATURES_CTA.h2Bold}<span class="fcta__period">.</span></span
+    >
+  </h2>
+
+  <div class="fcta__pill">
+    <CommandPill copy={FEATURES_CTA.command} />
+  </div>
+
+  <p class="fcta__links">
+    {
+      FEATURES_CTA.links.map((link) => (
+        <a class="fcta__link" href={link.href}>
+          {link.label} <span aria-hidden="true">→</span>
+        </a>
+      ))
+    }
+  </p>
+</section>
+
+<style>
+  .fcta {
+    padding: var(--site-section-space) var(--site-page-gutter);
+    text-align: center;
+  }
+
+  .fcta__title {
+    margin: 0;
+    font-size: var(--site-display-lg);
+    line-height: 1.06;
+    color: var(--text-primary);
+  }
+
+  .fcta__line {
+    display: block;
+  }
+
+  .fcta__line--thin {
+    font-weight: 250;
+    font-variation-settings: "wght" 250;
+    letter-spacing: -0.012em;
+  }
+
+  .fcta__line--bold {
+    font-weight: 640;
+    font-variation-settings: "wght" 640;
+    letter-spacing: -0.042em;
+  }
+
+  .fcta__period {
+    color: var(--accent);
+  }
+
+  .fcta__pill {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-8);
+  }
+
+  .fcta__links {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-6);
+    margin: var(--space-6) 0 0;
+  }
+
+  .fcta__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    font-size: var(--text-footnote);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 160ms var(--ease-smooth);
+  }
+
+  .fcta__link:hover {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .fcta__title {
+      font-size: clamp(2.125rem, 9.5vw, 2.375rem);
+    }
+
+    .fcta__pill :global(.command-pill) {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>

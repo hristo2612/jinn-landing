@@ -1,0 +1,13 @@
+---
+import DefaultPageFrame from "@astrojs/starlight/components/PageFrame.astro";
+---
+
+<DefaultPageFrame>
+  <Fragment slot="header"><slot name="header" /></Fragment>
+  <Fragment slot="sidebar"><slot name="sidebar" /></Fragment>
+  <slot />
+</DefaultPageFrame>
+
+<script>
+  import "../../scripts/docs-shell";
+</script>

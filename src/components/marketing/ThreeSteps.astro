@@ -1,0 +1,186 @@
+---
+/**
+ * Section 9 - Three steps (STORYBOARD §Section 9), `id="install"` (the nav
+ * Install pill anchors here). Three equal `--bg-secondary` cards, no
+ * borders. Entrance is a simple rise stagger on viewport entry - plain CSS
+ * + one IntersectionObserver, deliberately no scene machinery - keyed on
+ * html[data-motion="ok"] so no-JS and reduced motion ship the settled
+ * state.
+ */
+import CommandPill from "../chrome/CommandPill.astro";
+
+const steps = [
+  {
+    number: "01",
+    title: "Install",
+    body: "One command. The gateway runs on your machine - your keys, your data, nothing leaves home.",
+  },
+  {
+    number: "02",
+    title: "Hire your team",
+    body: "Describe a role in chat. Jinn drafts the persona, picks a model - Opus 4.8, GPT-5.6 Sol, Fable 5, and more - and seats them in the org.",
+  },
+  {
+    number: "03",
+    title: "Let it run",
+    body: "Triggers wake the company. Workflows advance the work. The COO reports back - you approve what matters.",
+  },
+];
+---
+
+<section class="steps" id="install" aria-label="From zero to company">
+  <header class="steps__head">
+    <p class="steps__kicker">From zero to company</p>
+    <h2 class="steps__title">Three steps. Then it runs.</h2>
+  </header>
+
+  <div class="steps__grid" data-steps-grid>
+    {
+      steps.map((step, index) => (
+        <article class="steps__card" style={`--step-index: ${index}`}>
+          {/* Serializes exactly as the deck's `01 · Install` form. */}
+          <p class="steps__label">
+            <span class="steps__number">{step.number}</span>
+            <span class="steps__sep">{" · "}</span>
+            {step.title}
+          </p>
+          <p class="steps__body">{step.body}</p>
+          {index === 0 && (
+            <div class="steps__pill">
+              <CommandPill
+                copy="npm install -g jinn-cli"
+                display="npm i -g jinn-cli"
+              />
+            </div>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  // Rise-stagger the step cards once, when the grid enters the viewport.
+  // Not scene machinery - a one-shot reveal, motion-gated, page-local.
+  if (document.documentElement.dataset.motion === "ok") {
+    const grid = document.querySelector("[data-steps-grid]");
+    if (grid) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return;
+          grid.setAttribute("data-revealed", "");
+          observer.disconnect();
+        },
+        { threshold: 0.25 },
+      );
+      observer.observe(grid);
+    }
+  }
+</script>
+
+<style>
+  .steps {
+    padding: var(--site-section-space) var(--site-page-gutter);
+  }
+
+  .steps__head {
+    width: min(48rem, 100%);
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .steps__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .steps__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--site-display-md);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+  }
+
+  .steps__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    width: min(var(--site-content-wide), 100%);
+    margin: clamp(var(--space-10), 6vh, 4.5rem) auto 0;
+  }
+
+  .steps__card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
+
+  .steps__label {
+    margin: 0;
+    font-size: var(--text-body);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+  }
+
+  .steps__number {
+    font-family: var(--font-code);
+    font-size: var(--text-caption1);
+    font-weight: var(--weight-semibold);
+    color: var(--accent);
+  }
+
+  .steps__sep {
+    color: var(--text-tertiary);
+    font-weight: var(--weight-regular);
+  }
+
+  .steps__body {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-subheadline);
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .steps__pill {
+    display: flex;
+    margin-top: var(--space-5);
+  }
+
+  /* Rise stagger - cards hold a settled-from state only under motion+JS,
+     then release together with a per-card delay. */
+  :global(html[data-motion="ok"]) .steps__card {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 450ms var(--ease-smooth),
+      transform 500ms var(--ease-smooth);
+    transition-delay: calc(var(--step-index) * 110ms);
+  }
+
+  :global(html[data-motion="ok"]) .steps__grid[data-revealed] .steps__card {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 899px) {
+    .steps__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    .steps__pill :global(.command-pill) {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>

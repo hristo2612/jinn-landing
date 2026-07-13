@@ -1,0 +1,148 @@
+---
+/**
+ * §07 slack-approve - the authorized `connector-card` surface
+ * (STORYBOARD-FEATURES §7.1): a generic messenger thread card with no
+ * third-party trade dress. QuietCard base; channel caption row (mono), one
+ * message block (sender line + body), a reaction chip, and one threaded
+ * reply row on the app's 2px fill-primary thread-rail quote idiom.
+ */
+import { SLACK_APPROVE_CARD } from "../../../lib/scenes/features";
+---
+
+<div class="ccard-wrap" data-surface="connector-card">
+  <div class="ccard" data-target="connector-card">
+    <p class="ccard__channel" data-field="channel">
+      {SLACK_APPROVE_CARD.channel}
+    </p>
+
+    <div class="ccard__message">
+      <p class="ccard__sender">
+        <span class="ccard__avatar" aria-hidden="true"
+          >{SLACK_APPROVE_CARD.senderEmoji}</span
+        >
+        <span data-field="sender">{SLACK_APPROVE_CARD.sender}</span>
+      </p>
+      <p class="ccard__body" data-field="message">
+        {SLACK_APPROVE_CARD.message}
+      </p>
+
+      <span
+        class="ccard__reaction"
+        data-target="reaction-check"
+        data-field="reaction"
+      >
+        {SLACK_APPROVE_CARD.reaction}
+      </span>
+
+      <p class="ccard__reply" data-target="reply-row" data-field="reply">
+        {SLACK_APPROVE_CARD.reply}
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ccard-wrap {
+    display: flex;
+    height: 100%;
+    align-items: flex-start;
+    padding: var(--space-6);
+    background: var(--bg);
+  }
+
+  .ccard {
+    width: min(30rem, 100%);
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-6);
+    background: var(--fill-tertiary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* AA (B2 review finding 8): small in-window text keeps secondary ink. */
+  .ccard__channel {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-code);
+    font-size: var(--text-caption2);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .ccard__message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .ccard__sender {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+  }
+
+  /* EmployeeChip attribution - 22px emoji on a fill-secondary circle. */
+  .ccard__avatar {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .ccard__body {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-primary);
+  }
+
+  /* The reaction chip - a small acknowledgment (≥32px visual). */
+  .ccard__reaction {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--fill-secondary);
+    box-shadow: var(--shadow-subtle);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+
+  /* The threaded reply - the app's 2px fill-primary thread-rail quote. */
+  .ccard__reply {
+    margin: var(--space-1) 0 0;
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--fill-primary);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 899px) {
+    .ccard-wrap {
+      padding: var(--space-4);
+    }
+
+    .ccard {
+      width: 100%;
+      padding: var(--space-4) var(--space-5);
+    }
+
+    .ccard__body {
+      font-size: 15px;
+    }
+  }
+</style>

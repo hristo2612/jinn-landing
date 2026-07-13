@@ -1,0 +1,256 @@
+---
+/**
+ * §01 engine-switch chat surface - the shipped chat-pane anatomy
+ * (surfaces/ChatSurface.astro: 22px composer card, full-width thread, no
+ * avatars in rows) rendered from the engineSwitchResolved canonical state.
+ *
+ * The header pill splits its model token out as a text target so the scene
+ * can crossfade between concrete model names. The pill swap is the entire
+ * depiction of the switch (STORYBOARD-FEATURES §4.2). The token uses the established
+ * motion/static split: the motion span ships the INITIAL engine (the player
+ * replaces it), the static span ships the resolved engine for no-JS and
+ * reduced motion.
+ */
+import {
+  ENGINE_PILL,
+  engineSwitchResolved,
+} from "../../../lib/scenes/features";
+
+const { pill, thread, composerPlaceholder } = engineSwitchResolved;
+---
+
+<div class="echat" data-surface="engine-chat">
+  <div class="echat__pill" data-target="pill-box">
+    <span class="echat__pill-dot" aria-hidden="true"></span>
+    {pill.name}<span class="echat__pill-sub"
+      >{`${ENGINE_PILL.role} `}<span
+        class="echat__engine-motion"
+        data-target="pill-engine">{ENGINE_PILL.initialEngine}</span
+      ><span class="echat__engine-static">{ENGINE_PILL.engine}</span></span
+    >
+  </div>
+
+  <div class="echat__thread">
+    {
+      thread.map((item) => {
+        if (item.kind === "typing") {
+          return (
+            <div
+              class="echat__typing"
+              data-target={item.target}
+              hidden={item.hidden}
+              aria-hidden="true"
+            >
+              <>
+                <i />
+                <i />
+                <i />
+              </>
+            </div>
+          );
+        }
+        if (item.kind === "chips") return null;
+        return (
+          <p
+            class:list={[
+              "echat__msg",
+              item.role === "user" ? "echat__msg--user" : "echat__msg--ai",
+            ]}
+            data-target={item.target}
+          >
+            {item.body.map((segment) =>
+              segment.strong ? <b>{segment.text}</b> : segment.text,
+            )}
+          </p>
+        );
+      })
+    }
+  </div>
+
+  <div class="echat__composer">
+    <p class="echat__placeholder" data-target="composer-input">
+      {composerPlaceholder}
+    </p>
+    <div class="echat__composer-row" aria-hidden="true">
+      <span class="echat__cbtn">
+        <svg class="echat__ic"><use href="#i-plus"></use></svg>
+      </span>
+      <span class="echat__cspacer"></span>
+      <span class="echat__cbtn">
+        <svg class="echat__ic"><use href="#i-mic"></use></svg>
+      </span>
+      <span class="echat__csend">
+        <svg class="echat__ic"><use href="#i-up"></use></svg>
+      </span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .echat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: var(--bg);
+  }
+
+  .echat__pill {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-4);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 32px;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    background: var(--pill-bg);
+    box-shadow: var(--shadow-overlay);
+    backdrop-filter: blur(24px) saturate(160%);
+    font-size: var(--text-caption1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .echat__pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--system-green);
+  }
+
+  /* AA (B2 review finding 8): small in-window text keeps secondary ink. */
+  .echat__pill-sub {
+    margin-left: 4px;
+    color: var(--text-secondary);
+    font-weight: var(--weight-medium);
+  }
+
+  /* The model token: the motion span ships the initial model and is replaced
+     by the player; the static span ships the resolved model for no-JS/reduced
+     motion (the established exec-motion/exec-static split). */
+  .echat__engine-motion,
+  :global(html[data-motion="ok"]) .echat__engine-static {
+    display: none;
+  }
+
+  :global(html[data-motion="ok"]) .echat__engine-motion {
+    display: inline;
+  }
+
+  .echat__thread {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: 60px var(--space-6) var(--space-2);
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+  }
+
+  .echat__msg {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .echat__msg--user {
+    align-self: flex-end;
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm)
+      var(--radius-lg);
+    background: var(--accent-fill);
+    font-weight: var(--weight-medium);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .echat__msg--ai {
+    max-width: 96%;
+    color: var(--text-primary);
+  }
+
+  .echat__typing {
+    display: none;
+    gap: 4px;
+    padding: 6px 2px;
+  }
+
+  .echat__typing:not([hidden]) {
+    display: inline-flex;
+  }
+
+  .echat__typing i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+
+  /* The bottom band stays clear for the window's pause control - the send
+     button and the control are both circles and must never overlap. */
+  .echat__composer {
+    margin: var(--space-2) var(--space-4) 64px;
+    padding: 12px 14px 10px;
+    border-radius: 22px;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .echat__placeholder {
+    margin: 0;
+    padding: 2px 4px 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .echat__composer-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .echat__cbtn,
+  .echat__csend {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border-radius: var(--radius-md);
+  }
+
+  .echat__cbtn {
+    color: var(--text-tertiary);
+  }
+
+  .echat__cspacer {
+    flex: 1;
+  }
+
+  .echat__csend {
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+
+  .echat__ic {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .echat__csend .echat__ic {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2.4;
+  }
+</style>

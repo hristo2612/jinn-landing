@@ -1,0 +1,158 @@
+---
+/**
+ * Shared pill nav. The Features text link ships on both pages, left of
+ * GitHub (STORYBOARD-FEATURES §4.0): the current page's link renders
+ * text-primary, the other page's text-secondary. Install anchors to the
+ * current page's final CTA. Mobile: brand + Features + Install -
+ * GitHub/npm stay in the footer.
+ */
+const githubUrl = "https://github.com/hristo2612/jinn";
+const npmUrl = "https://www.npmjs.com/package/jinn-cli";
+
+interface Props {
+  /** Which page hosts the nav - controls the Features link + Install anchor. */
+  currentPage?: "home" | "features";
+}
+
+const { currentPage = "home" } = Astro.props;
+const onFeatures = currentPage === "features";
+---
+
+<nav class="site-nav" aria-label="jinn">
+  <a class="site-nav__brand" href="/" aria-label="jinn">
+    <span class="site-nav__mark" aria-hidden="true">🧞</span>
+    <span>jinn</span>
+  </a>
+
+  <div class="site-nav__actions">
+    <a
+      class="site-nav__text-link site-nav__text-link--features"
+      href="/features/"
+      aria-current={onFeatures ? "page" : undefined}>Features</a
+    >
+    <a class="site-nav__text-link site-nav__text-link--docs" href="/docs/"
+      >Docs</a
+    >
+    <a class="site-nav__text-link" href={githubUrl}>GitHub</a>
+    <a class="site-nav__text-link" href={npmUrl}>npm</a>
+    <a class="site-nav__install" href={onFeatures ? "#install" : "/#install"}
+      >Install</a
+    >
+  </div>
+</nav>
+
+<style>
+  .site-nav {
+    position: fixed;
+    z-index: 100;
+    top: max(var(--safe-top), var(--space-4));
+    left: 50%;
+    display: flex;
+    width: min(calc(100% - (2 * var(--site-page-gutter))), 49rem);
+    min-height: var(--site-nav-height);
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    color: var(--text-primary);
+    background: var(--pill-bg);
+    border-radius: 999px;
+    box-shadow: var(--shadow-overlay);
+    backdrop-filter: var(--sidebar-backdrop);
+    transform: translateX(-50%);
+  }
+
+  .site-nav__brand,
+  .site-nav__actions,
+  .site-nav__text-link,
+  .site-nav__install {
+    display: flex;
+    align-items: center;
+  }
+
+  .site-nav__brand {
+    min-height: 44px;
+    gap: var(--space-2);
+    padding-inline: var(--space-2) var(--space-3);
+    color: var(--text-primary);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    text-decoration: none;
+  }
+
+  /* The product's own mark, typographic - the platform's emoji glyph on
+     the page, no plate, no background (AMENDMENT §3). The translate is the
+     optical baseline nudge beside the wordmark; verified per themes in the
+     brand checkpoint shots. */
+  .site-nav__mark {
+    flex: 0 0 auto;
+    font-size: 20px;
+    line-height: 1;
+    transform: translateY(1px);
+  }
+
+  .site-nav__actions {
+    gap: 2px;
+  }
+
+  .site-nav__text-link,
+  .site-nav__install {
+    min-height: 44px;
+    justify-content: center;
+    padding-inline: var(--space-4);
+    border-radius: 999px;
+    font-size: var(--text-subheadline);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    transition-property: color, background-color, transform;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-snappy);
+  }
+
+  .site-nav__text-link {
+    color: var(--text-secondary);
+  }
+
+  .site-nav__text-link:hover {
+    color: var(--text-primary);
+    background: var(--fill-secondary);
+  }
+
+  /* The current page's link reads primary (STORYBOARD-FEATURES §4.0). */
+  .site-nav__text-link[aria-current="page"] {
+    color: var(--text-primary);
+  }
+
+  .site-nav__install {
+    min-width: 5.25rem;
+    color: var(--accent-contrast);
+    background: var(--accent);
+    box-shadow: var(--inset-shine), var(--shadow-key);
+  }
+
+  .site-nav__install:active {
+    transform: scale(0.96);
+  }
+
+  @media (max-width: 640px) {
+    .site-nav {
+      width: calc(100% - (2 * var(--site-page-gutter)));
+    }
+
+    /* Mobile keeps brand + Features + Install; GitHub/npm live in the
+       footer (STORYBOARD-FEATURES §4.0/§6). */
+    .site-nav__text-link {
+      display: none;
+    }
+
+    .site-nav__text-link--features,
+    .site-nav__text-link--docs {
+      display: flex;
+    }
+
+    .site-nav__text-link--features,
+    .site-nav__text-link--docs,
+    .site-nav__install {
+      padding-inline: var(--space-3);
+    }
+  }
+</style>

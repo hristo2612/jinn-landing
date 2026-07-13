@@ -1,0 +1,40 @@
+---
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import Hero from "../components/marketing/Hero.astro";
+import ProductStories from "../components/marketing/ProductStories.astro";
+import NightShift from "../components/marketing/NightShift.astro";
+import MorningApproval from "../components/marketing/MorningApproval.astro";
+import McpStatement from "../components/marketing/McpStatement.astro";
+import ThreeSteps from "../components/marketing/ThreeSteps.astro";
+import FinalCta from "../components/marketing/FinalCta.astro";
+import SiteFooter from "../components/chrome/SiteFooter.astro";
+import SceneIconSprite from "../components/scenes/SceneIconSprite.astro";
+---
+
+<MarketingLayout>
+  <SceneIconSprite />
+  <main class="marketing-main">
+    <Hero />
+    <ProductStories />
+    <NightShift />
+    <MorningApproval />
+    <McpStatement />
+    <ThreeSteps />
+    <FinalCta />
+    <SiteFooter />
+  </main>
+</MarketingLayout>
+
+<script>
+  import { installCommandPills } from "../lib/command-pill";
+  import { installMotionScenes } from "../lib/scenes/install-motion-scenes";
+
+  installCommandPills();
+  installMotionScenes({
+    load: async () => {
+      const { installSceneSystem } =
+        await import("../lib/scenes/install-scene-system");
+      return () => installSceneSystem();
+    },
+  });
+</script>

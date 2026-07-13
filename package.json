@@ -1,0 +1,71 @@
+{
+  "name": "jinn-landing",
+  "version": "0.0.0",
+  "description": "The open-source website and documentation for Jinn.",
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://jinn.run",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hristo2612/jinn-landing.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hristo2612/jinn-landing/issues"
+  },
+  "type": "module",
+  "packageManager": "pnpm@10.6.4",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": "10.6.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "tsx scripts/preview.ts",
+    "typecheck": "astro check && tsc --noEmit",
+    "lint": "eslint . && prettier --check \"src/**/*.{astro,css,md,ts}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"docs/**/*.md\" \"PLAN.md\" \"BRIEF*.md\" \"*.{js,mjs,json,ts}\"",
+    "test": "vitest run",
+    "test:e2e": "pnpm build && playwright test",
+    "test:visual": "tsx scripts/run-visual.ts",
+    "test:links": "pnpm build && pnpm test:links:built",
+    "test:links:built": "tsx scripts/check-links.ts",
+    "test:lighthouse": "pnpm build && tsx scripts/run-lighthouse.ts",
+    "docs:contract": "tsx scripts/check-docs-release-contract.ts",
+    "release:sync": "tsx scripts/sync-release-docs.ts",
+    "tokens:sync": "tsx scripts/sync-ledger-tokens.ts --write",
+    "tokens:check": "tsx scripts/sync-ledger-tokens.ts --check",
+    "safety:check": "tsx scripts/check-public-safety.ts",
+    "check": "pnpm tokens:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm safety:check && pnpm test:links:built && pnpm docs:contract"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.3",
+    "@astrojs/starlight": "0.41.3",
+    "@fontsource-variable/hanken-grotesk": "5.2.8",
+    "@fontsource/ibm-plex-mono": "5.2.7",
+    "astro": "7.0.7",
+    "gsap": "3.15.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "@axe-core/playwright": "4.12.1",
+    "@eslint/js": "9.39.4",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.58.2",
+    "@types/node": "24.10.1",
+    "eslint": "9.39.4",
+    "eslint-plugin-astro": "1.5.0",
+    "linkinator": "7.6.1",
+    "postcss": "8.5.16",
+    "prettier": "3.9.0",
+    "prettier-plugin-astro": "0.14.1",
+    "tsx": "4.23.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.54.0",
+    "vitest": "4.1.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

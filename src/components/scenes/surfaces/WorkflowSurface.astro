@@ -1,0 +1,583 @@
+---
+/**
+ * Workflow run surface - one semantic trigger and step rail rendered from
+ * WORKFLOW_PANE. Real-app references mirrored:
+ * packages/web/src/routes/workflow/node-card.tsx
+ * packages/web/src/routes/workflow/run-view.tsx
+ */
+import { BACKUP_PANE, WORKFLOW_PANE } from "../../../lib/scenes/dashboard";
+---
+
+<div
+  class="workflow"
+  data-surface="flows"
+  data-target="flow-variant"
+  data-state="digest"
+>
+  <div class="workflow__variant workflow__variant--digest">
+    <header class="workflow__head">
+      <span class="workflow__title" data-field="header">
+        {WORKFLOW_PANE.header}
+      </span>
+      <span
+        class="workflow__badge"
+        data-field="badge"
+        data-target="run-badge"
+        data-state="running">{WORKFLOW_PANE.badge}</span
+      >
+    </header>
+
+    <div class="workflow__body">
+      <div class="workflow__trigger-anchor">
+        <span class="workflow__trigger" data-target="flow-trigger">
+          <svg class="workflow__icon"><use href="#i-zap"></use></svg>
+          {WORKFLOW_PANE.trigger}
+        </span>
+        <span class="workflow__stub" aria-hidden="true"></span>
+      </div>
+
+      <div class="workflow__rail-host" data-target="flow-rail">
+        <span
+          class="workflow__rail"
+          data-target="rail"
+          data-progress={WORKFLOW_PANE.progress}
+          aria-hidden="true"></span>
+        <div class="workflow__steps">
+          {
+            WORKFLOW_PANE.steps.map((step) => (
+              <article
+                class="workflow__step"
+                data-target={step.target}
+                data-state={step.status}
+              >
+                <span class="workflow__disc" aria-hidden="true">
+                  <svg class="workflow__icon workflow__icon--queued">
+                    <use href="#i-clock" />
+                  </svg>
+                  <svg class="workflow__icon workflow__icon--running">
+                    <use href="#i-loader" />
+                  </svg>
+                  <svg class="workflow__icon workflow__icon--done">
+                    <use href="#i-check" />
+                  </svg>
+                  <svg class="workflow__icon workflow__icon--approval">
+                    <use href="#i-bell" />
+                  </svg>
+                </span>
+                <span class="workflow__meta">
+                  <span class="workflow__name" data-field="title">
+                    {step.title}
+                  </span>
+                  {step.target === "step-draft" ? (
+                    <>
+                      <span
+                        class="workflow__status workflow__status--motion"
+                        data-target="step-draft-status"
+                      >
+                        {step.initialDetail}
+                      </span>
+                      <span
+                        class="workflow__status workflow__status--static"
+                        data-field="status"
+                      >
+                        {step.detail}
+                      </span>
+                    </>
+                  ) : step.target === "step-gate" ? (
+                    <>
+                      <span
+                        class="workflow__status workflow__status--motion"
+                        data-target="step-gate-status"
+                      >
+                        {step.initialDetail}
+                      </span>
+                      <span
+                        class="workflow__status workflow__status--static"
+                        data-field="status"
+                      >
+                        {step.detail}
+                      </span>
+                    </>
+                  ) : (
+                    <span class="workflow__status" data-field="status">
+                      {step.detail}
+                    </span>
+                  )}
+                </span>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="workflow__variant workflow__variant--backup">
+    <header class="workflow__head">
+      <span class="workflow__title" data-field="bk-header">
+        {BACKUP_PANE.header}
+      </span>
+      <span class="workflow__badge" data-target="bk-badge" data-state="running">
+        <span class="workflow__badge-label workflow__badge-label--running">
+          {BACKUP_PANE.initialBadge}
+        </span>
+        <span class="workflow__badge-label workflow__badge-label--completed">
+          {BACKUP_PANE.badge}
+        </span>
+      </span>
+    </header>
+
+    <div class="workflow__body">
+      <div class="workflow__trigger-anchor">
+        <span class="workflow__trigger" data-target="bk-trigger">
+          <svg class="workflow__icon"><use href="#i-zap"></use></svg>
+          {BACKUP_PANE.trigger}
+        </span>
+        <span class="workflow__stub" aria-hidden="true"></span>
+      </div>
+
+      <div
+        class="workflow__rail-host workflow__rail-host--backup"
+        data-target="bk-rail"
+      >
+        <span
+          class="workflow__rail"
+          data-target="bk-fill"
+          data-progress={BACKUP_PANE.initialProgress}
+          aria-hidden="true"></span>
+        <div class="workflow__steps workflow__steps--backup">
+          {
+            BACKUP_PANE.steps.map((step) => (
+              <article
+                class="workflow__step"
+                data-target={step.target}
+                data-state={step.initialStatus}
+              >
+                <span class="workflow__disc" aria-hidden="true">
+                  <svg class="workflow__icon workflow__icon--queued">
+                    <use href="#i-clock" />
+                  </svg>
+                  <svg class="workflow__icon workflow__icon--running">
+                    <use href="#i-loader" />
+                  </svg>
+                  <svg class="workflow__icon workflow__icon--done">
+                    <use href="#i-check" />
+                  </svg>
+                  <svg class="workflow__icon workflow__icon--approval">
+                    <use href="#i-bell" />
+                  </svg>
+                </span>
+                <span class="workflow__meta">
+                  <span class="workflow__name" data-field="title">
+                    {step.title}
+                  </span>
+                  <span
+                    class="workflow__status"
+                    data-target={`${step.target}-status`}
+                  >
+                    {step.initialDetail}
+                  </span>
+                </span>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .workflow {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  /* Variant host (amendment §2.4) - the scene system flips data-state on the
+     surface root; only the selected run's chrome renders. display: contents
+     keeps both variants transparent to the flex column. */
+  .workflow__variant {
+    display: contents;
+  }
+
+  .workflow[data-state="digest"] .workflow__variant--backup,
+  .workflow[data-state="backup"] .workflow__variant--digest {
+    display: none;
+  }
+
+  .workflow__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .workflow__title {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workflow__badge {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--system-blue) 16%, transparent);
+    color: var(--system-blue);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .workflow__badge::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+  }
+
+  /* The backup run's badge honestly completes: blue Running → green
+     Completed, one state flip carrying color and label together. */
+  .workflow__badge[data-target="bk-badge"] {
+    transition:
+      background-color 250ms var(--ease-smooth),
+      color 250ms var(--ease-smooth);
+  }
+
+  .workflow__badge[data-state="completed"] {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .workflow__badge-label {
+    display: none;
+  }
+
+  .workflow__badge[data-state="running"] .workflow__badge-label--running,
+  .workflow__badge[data-state="completed"] .workflow__badge-label--completed {
+    display: inline;
+  }
+
+  /* Top-anchored like the other panes; the extra offset clears the floating
+     workflow switcher pill (window controls layer, top 56px). */
+  .workflow__body {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: var(--space-16);
+  }
+
+  /* The trigger feeds the run's first step - chip + stub anchor over step
+     1's column center instead of floating mid-rail. Transform lives on the
+     wrapper so the player's enter animation on the chip is untouched. */
+  .workflow__trigger-anchor {
+    position: relative;
+    left: calc(12.5% - 8.25px); /* (100% - 3*22px gaps) / 8 = col 1 center */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: flex-start;
+    transform: translateX(-50%);
+  }
+
+  .workflow__trigger {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 15px;
+    border-radius: 999px;
+    background: var(--accent-fill);
+    box-shadow: var(--inset-shine);
+    color: var(--accent);
+    font-size: 12.5px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .workflow__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .workflow__trigger .workflow__icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .workflow__stub {
+    width: 1.5px;
+    height: 24px;
+    background: var(--separator-opaque);
+  }
+
+  .workflow__rail-host {
+    position: relative;
+    width: 100%;
+  }
+
+  .workflow__steps {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .workflow__rail-host::before,
+  .workflow__rail {
+    position: absolute;
+    top: 50%;
+    right: calc(12.5% - 1px);
+    left: calc(12.5% - 1px);
+    height: 2px;
+    translate: 0 -50%;
+    content: "";
+  }
+
+  .workflow__rail-host::before {
+    background: var(--separator-opaque);
+  }
+
+  .workflow__rail {
+    --scene-progress: 0.666667;
+
+    right: auto;
+    z-index: 2;
+    width: 75%;
+    max-width: 75%;
+    background: var(--system-green);
+    transform-origin: left center;
+    transform: scaleX(var(--scene-progress));
+  }
+
+  /* The backup run has three steps - its rail spans three step centers. */
+  .workflow__steps--backup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workflow__rail-host--backup .workflow__rail {
+    --scene-progress: 0;
+  }
+
+  @media (min-width: 900px) {
+    .workflow__rail-host--backup::before {
+      right: calc(16.6667% - 1px);
+      left: calc(16.6667% - 1px);
+    }
+
+    .workflow__rail-host--backup .workflow__rail {
+      right: auto;
+      left: calc(16.6667% - 1px);
+      width: 66.6667%;
+      max-width: 66.6667%;
+    }
+  }
+
+  .workflow__step {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    min-width: 0;
+    min-height: 72px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .workflow__disc {
+    position: relative;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-tertiary);
+    color: var(--text-tertiary);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .workflow__step[data-state="running"] .workflow__disc {
+    background: color-mix(in srgb, var(--system-blue) 16%, transparent);
+    color: var(--system-blue);
+  }
+
+  .workflow__step[data-state="done"] .workflow__disc {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .workflow__step[data-state="awaiting-approval"] .workflow__disc {
+    background: color-mix(in srgb, var(--system-yellow) 16%, transparent);
+    color: var(--system-yellow);
+  }
+
+  .workflow__disc .workflow__icon {
+    position: absolute;
+    opacity: 0;
+    scale: 0.25;
+    transition-property: opacity, scale, filter;
+    transition-duration: 300ms;
+    transition-timing-function: var(--ease-snappy);
+    filter: blur(4px);
+  }
+
+  .workflow__step[data-state="queued"] .workflow__icon--queued,
+  .workflow__step[data-state="running"] .workflow__icon--running,
+  .workflow__step[data-state="done"] .workflow__icon--done,
+  .workflow__step[data-state="awaiting-approval"] .workflow__icon--approval {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+
+  .workflow__step[data-state="running"] .workflow__icon--running {
+    animation: workflow-spin 1s linear infinite;
+  }
+
+  /* Motion governance: the spinner runs only while this window's player is
+     playing - pause control, offscreen, visibility, and channel yields all
+     freeze it through the machinery-owned player-state attribute. */
+  :global([data-scene-window]:not([data-scene-player-state="playing"]))
+    .workflow__step[data-state="running"]
+    .workflow__icon--running {
+    animation-play-state: paused;
+  }
+
+  .workflow__meta {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .workflow__name,
+  .workflow__status {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workflow__name {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.25;
+  }
+
+  .workflow__status {
+    margin-top: 2px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+
+  .workflow__step[data-state="awaiting-approval"] .workflow__status {
+    color: var(--text-secondary);
+    font-weight: var(--weight-semibold);
+  }
+
+  .workflow__status--motion,
+  :global(html[data-motion="ok"]) .workflow__status--static {
+    display: none;
+  }
+
+  :global(html[data-motion="ok"]) .workflow__status--motion {
+    display: block;
+  }
+
+  @keyframes workflow-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workflow__disc .workflow__icon {
+      animation: none;
+      transition-duration: 0ms;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .workflow {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .workflow__title {
+      font-size: 15px;
+    }
+
+    .workflow__body {
+      align-items: stretch;
+      justify-content: flex-start;
+      /* Clears the real workflow switcher overlaid by SceneWindow's
+         controls layer on the stacked flows window. */
+      padding-top: calc(var(--space-4) + 56px);
+    }
+
+    .workflow__trigger-anchor {
+      left: 15px; /* the vertical rail line's x - the run's spine */
+      align-items: flex-start;
+      align-self: flex-start;
+      transform: none;
+    }
+
+    .workflow__stub {
+      height: 14px;
+    }
+
+    .workflow__steps {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .workflow__rail-host::before,
+    .workflow__rail {
+      top: 36px;
+      bottom: 36px;
+      left: 15px;
+      width: 2px;
+      height: auto;
+      translate: -50% 0;
+    }
+
+    .workflow__rail {
+      bottom: auto;
+      max-width: none;
+      height: calc(100% - 72px);
+      max-height: calc(100% - 72px);
+      transform: scaleY(var(--scene-progress));
+      transform-origin: center top;
+    }
+
+    .workflow__step {
+      min-height: 62px;
+      margin-left: 0;
+    }
+  }
+</style>

@@ -1,0 +1,13 @@
+variants/*/shots/
+node_modules/
+dist/
+.astro/
+.playwright/
+.lighthouseci/
+playwright-report/
+test-results/
+.DS_Store
+.vercel/
+.env
+.env.*
+!.env.example

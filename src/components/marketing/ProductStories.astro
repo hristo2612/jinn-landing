@@ -1,0 +1,185 @@
+---
+import SceneWindow from "../scenes/SceneWindow.astro";
+import OrgSurface from "../scenes/surfaces/OrgSurface.astro";
+import TodosSurface from "../scenes/surfaces/TodosSurface.astro";
+import WorkflowSurface from "../scenes/surfaces/WorkflowSurface.astro";
+import TriggersSurface from "../scenes/surfaces/TriggersSurface.astro";
+
+const stories = [
+  {
+    id: "employees",
+    pane: "org" as const,
+    kicker: "01 / Employees",
+    title: "An engine wearing a role.",
+    body: "Opus 4.8, GPT-5.6 Sol, Fable 5, and more. Each model wears a persona, holds a rank, and takes a seat in the org chart. They delegate, review, and escalate like a real team.",
+    caption:
+      "The org chart settles: a COO running Opus 4.8 over Platform and Growth departments, while the two employees who took delegated work light up as active.",
+  },
+  {
+    id: "todos",
+    pane: "todos" as const,
+    kicker: "02 / Todos",
+    title: "The live work ledger.",
+    body: "Everything the company touches - queued, executing, blocked, or waiting on you. Shared memory for the whole company.",
+    caption:
+      "The ledger shows four todos in honest states. The writer's pricing fix finishes executing and flips to done - reviewed by the COO, with its session and cost on the card.",
+  },
+  {
+    id: "workflow-approval",
+    pane: "flows" as const,
+    kicker: "03 / Workflows",
+    title: "How we do things, written down.",
+    body: "Reusable SOPs. A run advances step by step - and parks for approval when a human should look.",
+    caption:
+      "The Morning digest workflow finishes drafting, and the run parks at an approval gate - waiting for your review. The final step stays queued until a human says so.",
+  },
+  {
+    id: "trigger-fire",
+    pane: "triggers" as const,
+    kicker: "04 / Triggers",
+    title: "How the company wakes up.",
+    body: "Cron schedules, todo changes, webhooks from the outside world. Work starts without you asking.",
+    caption:
+      "Three trigger bindings - a cron schedule, a todo-status watcher, a webhook. The 09:00 cron fires and starts run #142, the Morning digest you just watched.",
+  },
+];
+---
+
+<section
+  class="product-stories"
+  data-product-stories
+  aria-label="Jinn in action"
+>
+  {
+    stories.map((story, index) => (
+      <section
+        class:list={["product-story", index % 2 === 1 && "product-story--flip"]}
+        data-product-story={story.id}
+      >
+        <header class="product-story__copy">
+          <p class="product-story__kicker">{story.kicker}</p>
+          <h2>{story.title}</h2>
+          <p class="product-story__body">{story.body}</p>
+        </header>
+
+        <div class="product-story__stage">
+          <SceneWindow
+            caption={story.caption}
+            activePane={story.pane}
+            sceneId={story.id}
+            chrome="focused"
+          >
+            {story.pane === "org" && <OrgSurface slot="org" />}
+            {story.pane === "todos" && <TodosSurface slot="todos" />}
+            {story.pane === "flows" && <WorkflowSurface slot="flows" />}
+            {story.pane === "triggers" && <TriggersSurface slot="triggers" />}
+          </SceneWindow>
+          <p class="product-story__caption">{story.caption}</p>
+        </div>
+      </section>
+    ))
+  }
+</section>
+
+<style>
+  .product-stories {
+    display: grid;
+    gap: clamp(8rem, 14vw, 13rem);
+    padding: var(--site-section-space-theatrical) var(--site-page-gutter);
+  }
+
+  .product-story {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(15rem, 5fr) minmax(0, 7fr);
+    align-items: center;
+    gap: clamp(var(--space-8), 5vw, var(--space-16));
+    width: min(100%, 82rem);
+    margin-inline: auto;
+    scroll-margin-top: calc(var(--site-nav-height) + var(--space-8));
+  }
+
+  .product-story--flip .product-story__copy {
+    order: 2;
+  }
+
+  .product-story--flip .product-story__stage {
+    order: 1;
+  }
+
+  .product-story__copy {
+    min-width: 0;
+  }
+
+  .product-story__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  h2 {
+    margin: var(--space-3) 0 0;
+    font-size: clamp(2.25rem, 4vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+    text-wrap: balance;
+  }
+
+  .product-story__body {
+    margin: var(--space-4) 0 0;
+    font-size: clamp(0.98rem, 1.35vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--text-secondary);
+    text-wrap: pretty;
+  }
+
+  .product-story__stage {
+    min-width: 0;
+  }
+
+  .product-story__stage :global(.scene-window__frame) {
+    height: clamp(30rem, 44vw, 38rem);
+  }
+
+  .product-story__caption {
+    margin: var(--space-4) 0 0;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 899px) {
+    .product-stories {
+      gap: calc(var(--space-16) + var(--space-16));
+      padding-block: calc(var(--space-16) + var(--space-8));
+    }
+
+    .product-story {
+      grid-template-columns: 1fr;
+      gap: var(--space-8);
+    }
+
+    .product-story--flip .product-story__copy,
+    .product-story--flip .product-story__stage {
+      order: initial;
+    }
+
+    .product-story__copy {
+      text-align: left;
+    }
+
+    h2 {
+      font-size: clamp(2.25rem, 11vw, 3rem);
+    }
+
+    .product-story__stage :global(.scene-window__frame) {
+      height: 60svh;
+    }
+  }
+</style>

@@ -1,0 +1,368 @@
+---
+/**
+ * Org surface - semantic employee presence and reporting lines rendered from
+ * ORG_PANE. Real-app references mirrored:
+ * packages/web/src/components/org/employee-node.tsx
+ * packages/web/src/components/org/org-map.tsx
+ */
+import { ORG_PANE } from "../../../lib/scenes/dashboard";
+
+const byTarget = new Map(
+  ORG_PANE.employees.map((employee) => [employee.target, employee]),
+);
+const executive = ORG_PANE.employees.find((employee) => employee.executive)!;
+---
+
+<div class="org" data-surface="org">
+  <header class="org__head" data-field="header">{ORG_PANE.header}</header>
+  <div class="org__chart">
+    <article
+      class="org__node org__node--executive"
+      data-target={executive.target}
+      data-state={executive.presence}
+    >
+      <span class="org__avatar">{executive.emoji}</span>
+      <span class="org__identity">
+        <span class="org__name" data-field="name">{executive.name}</span>
+        <span class="org__role" data-field="role">{executive.role}</span>
+      </span>
+      <span class="org__presence" aria-hidden="true"></span>
+      <span class="org__engine" data-field="engine">{executive.engine}</span>
+    </article>
+
+    <span class="org__stub" aria-hidden="true"></span>
+    <div class="org__branch" data-target="org-branch" aria-hidden="true">
+      <i></i><i></i>
+    </div>
+
+    <div class="org__departments">
+      {
+        ORG_PANE.departments.map((department) => (
+          <section
+            class="org__department"
+            data-target={department.target}
+            data-tone={department.tone}
+          >
+            <div class="org__department-label">
+              <i aria-hidden="true" />
+              <span data-field="label">{department.label}</span>
+            </div>
+            {department.employeeTargets.map((target) => {
+              const employee = byTarget.get(target)!;
+              return (
+                <article
+                  class="org__node"
+                  data-target={employee.target}
+                  data-state={employee.presence}
+                >
+                  <span class="org__avatar">{employee.emoji}</span>
+                  <span class="org__identity">
+                    <span class="org__name" data-field="name">
+                      {employee.name}
+                    </span>
+                    <span class="org__role" data-field="role">
+                      {employee.role}
+                    </span>
+                  </span>
+                  <span class="org__presence" aria-hidden="true" />
+                  <span class="org__engine" data-field="engine">
+                    {employee.engine}
+                  </span>
+                </article>
+              );
+            })}
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<style>
+  .org {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  .org__head {
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+  }
+
+  .org__chart {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .org__node {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 62px;
+    align-items: center;
+    gap: var(--space-3);
+    overflow: hidden;
+    padding: 0 13px;
+    border-radius: var(--radius-md);
+    background: var(--material-regular);
+    box-shadow: var(--shadow-card);
+  }
+
+  .org__node--executive {
+    width: 244px;
+  }
+
+  .org__node--executive::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--accent);
+    content: "";
+  }
+
+  /* EmployeeAvatar parity: emoji glyph on a fill-secondary circle. */
+  .org__avatar {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .org__node--executive .org__avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--accent-fill);
+    font-size: 15px;
+  }
+
+  .org__identity {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .org__name,
+  .org__role {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .org__name {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+  }
+
+  .org__node--executive .org__name {
+    font-weight: var(--weight-bold);
+  }
+
+  .org__role {
+    margin-top: 1px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+
+  .org__engine {
+    flex: none;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--accent-fill);
+    color: var(--accent);
+    font-size: 10.5px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .org__presence {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--system-green);
+    opacity: 0;
+    scale: 0.25;
+    transition-property: opacity, scale;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .org__node[data-state="active"] .org__presence {
+    opacity: 1;
+    scale: 1;
+  }
+
+  .org__stub {
+    width: 1.5px;
+    height: 20px;
+    flex: none;
+    background: var(--separator-opaque);
+  }
+
+  .org__branch {
+    position: relative;
+    width: min(700px, 92%);
+    height: 20px;
+    flex: none;
+  }
+
+  .org__branch::before {
+    position: absolute;
+    top: 0;
+    right: 24%;
+    left: 24%;
+    height: 1.5px;
+    background: var(--separator-opaque);
+    content: "";
+  }
+
+  .org__branch i {
+    position: absolute;
+    top: 0;
+    width: 1.5px;
+    height: 100%;
+    background: var(--separator-opaque);
+  }
+
+  .org__branch i:first-child {
+    left: 24%;
+  }
+
+  .org__branch i:last-child {
+    right: 24%;
+  }
+
+  .org__departments {
+    display: flex;
+    width: min(700px, 94%);
+    justify-content: center;
+    gap: var(--space-6);
+  }
+
+  .org__department {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+    padding: 34px 14px 14px;
+    border-radius: var(--radius-lg);
+    background: var(--fill-quaternary);
+  }
+
+  .org__department::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--department-tone);
+    content: "";
+    opacity: 0.7;
+  }
+
+  .org__department[data-tone="blue"] {
+    --department-tone: var(--system-blue);
+  }
+
+  .org__department[data-tone="green"] {
+    --department-tone: var(--system-green);
+  }
+
+  .org__department-label {
+    position: absolute;
+    top: 11px;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--text-tertiary);
+    font-size: 10.5px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .org__department-label i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--department-tone);
+  }
+
+  @media (max-width: 899px) {
+    .org {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .org__head {
+      font-size: var(--text-body);
+    }
+
+    .org__chart {
+      justify-content: flex-start;
+      overflow: hidden;
+      padding-top: var(--space-4);
+    }
+
+    .org__node--executive,
+    .org__departments,
+    .org__department {
+      width: 100%;
+      min-width: 244px;
+    }
+
+    .org__node--executive {
+      min-height: 62px;
+      flex: none;
+    }
+
+    .org__stub {
+      height: 14px;
+    }
+
+    .org__branch {
+      width: 1.5px;
+      height: 14px;
+      background: var(--separator-opaque);
+    }
+
+    .org__branch::before,
+    .org__branch i {
+      display: none;
+    }
+
+    .org__departments {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .org__department {
+      flex: none;
+      padding: 32px 10px 10px;
+    }
+
+    .org__department .org__node {
+      height: 54px;
+    }
+  }
+</style>

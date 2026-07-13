@@ -1,0 +1,800 @@
+---
+/**
+ * §04 canvas-mini - the authorized fixed-geometry miniature of the workflow
+ * canvas (STORYBOARD-FEATURES §7.2). No React Flow, no pan/zoom, no layout
+ * engine: two hand-authored arrangements - horizontal ≥900px (780×320) and a
+ * vertical spine below (326×420) - with SVG wires whose coordinates are set
+ * by hand against the node boxes (declared box = rendered box).
+ *
+ * Spatial-canvas rules honored (jinn-design): visible 8px port dots with a
+ * 2px bg halo exactly on walls; left-in/right-out (top-in/bottom-out in the
+ * vertical arrangement); the switch's two out-ports sit on the CARD wall at
+ * the lane centers; the trigger's labels sit outside its box, out of the
+ * wire path; wire bends are horizontal/vertical + one 8px radius.
+ *
+ * Node chrome mirrors the app's node cards (glyph + label + one status line,
+ * status-line.ts vocabulary verbatim). The refund lane's wire fill is the
+ * `edge-route-refund` progress target: both arrangements' fill paths consume
+ * the inherited --scene-progress custom property (pathLength-normalized
+ * dashoffset), so one target drives whichever arrangement is visible.
+ */
+import {
+  CANVAS_STATUS_LINES,
+  TRIAGE_RUN_PANE,
+} from "../../../lib/scenes/features";
+
+const nodeByTarget = new Map(
+  TRIAGE_RUN_PANE.nodes.map((node) => [node.target, node]),
+);
+const trigger = nodeByTarget.get("node-trigger")!;
+const cards = TRIAGE_RUN_PANE.nodes.filter(({ kind }) => kind !== "trigger");
+
+const cardIcon: Record<string, string> = {
+  step: "i-list",
+  switch: "i-flow",
+};
+---
+
+<div class="cmini" data-surface="canvas-mini">
+  <header class="cmini__head">
+    <span class="cmini__title" data-field="title">{TRIAGE_RUN_PANE.title}</span>
+    <span class="cmini__lens" data-field="lens">
+      {
+        TRIAGE_RUN_PANE.lenses.map((lens) => (
+          <span
+            class="cmini__lens-seg"
+            data-active={lens === TRIAGE_RUN_PANE.activeLens ? "" : undefined}
+          >
+            {lens}
+          </span>
+        ))
+      }
+    </span>
+    <span class="cmini__chip" data-target="chip-run" data-state="waiting">
+      <i class="cmini__chip-dot" aria-hidden="true"></i>
+      <span data-field="run">{TRIAGE_RUN_PANE.chip.run}</span>
+      <span class="cmini__chip-sep" aria-hidden="true">·</span>
+      <span class="cmini__chip-s cmini__chip-s--running" data-field="running"
+        >{TRIAGE_RUN_PANE.chip.running}</span
+      >
+      <span class="cmini__chip-s cmini__chip-s--waiting" data-field="waiting"
+        >{TRIAGE_RUN_PANE.chip.waiting}</span
+      >
+    </span>
+  </header>
+
+  <div class="cmini__stage">
+    <div class="cmini__wires" data-target="canvas-wires">
+      <svg
+        class="cmini__svg cmini__svg--h"
+        viewBox="0 0 780 320"
+        aria-hidden="true"
+      >
+        <path class="cmini__wire" d="M56 160 H108"></path>
+        <path class="cmini__wire" d="M256 160 H308"></path>
+        <path
+          class="cmini__wire"
+          d="M416 145 H428 Q436 145 436 137 V78 Q436 70 444 70 H500"></path>
+        <path
+          class="cmini__wire"
+          d="M416 175 H428 Q436 175 436 183 V242 Q436 250 444 250 H460"></path>
+        <path class="cmini__wire" d="M620 250 H656"></path>
+      </svg>
+      <svg
+        class="cmini__svg cmini__svg--v"
+        viewBox="0 0 326 420"
+        aria-hidden="true"
+      >
+        <path class="cmini__wire" d="M46 44 V76"></path>
+        <path class="cmini__wire" d="M46 134 V166"></path>
+        <path class="cmini__wire" d="M78 224 V264"></path>
+        <path class="cmini__wire" d="M248 224 V264"></path>
+        <path class="cmini__wire" d="M248 322 V362"></path>
+      </svg>
+    </div>
+
+    <div
+      class="cmini__fillwrap"
+      data-target="edge-route-refund"
+      data-progress="1"
+      style="--scene-progress: 1"
+      aria-hidden="true"
+    >
+      <svg class="cmini__svg cmini__svg--h" viewBox="0 0 780 320">
+        <path
+          class="cmini__wire cmini__wire--fill"
+          pathLength="1"
+          d="M416 175 H428 Q436 175 436 183 V242 Q436 250 444 250 H460"></path>
+      </svg>
+      <svg class="cmini__svg cmini__svg--v" viewBox="0 0 326 420">
+        <path
+          class="cmini__wire cmini__wire--fill"
+          pathLength="1"
+          d="M248 224 V264"></path>
+      </svg>
+    </div>
+
+    <div
+      class="cmini__node cmini__node--trigger"
+      data-target={trigger.target}
+      data-state={trigger.status}
+    >
+      <span class="cmini__tglyph">
+        <svg class="cmini__ic"><use href="#i-zap"></use></svg>
+        <i class="cmini__port cmini__port--tout"></i>
+      </span>
+      <span class="cmini__tmeta">
+        <span class="cmini__ntitle" data-field="node-title"
+          >{trigger.title}</span
+        >
+        <span class="cmini__sub" data-field="node-sub">{trigger.sub}</span>
+        <span class="cmini__status">
+          <span class="cmini__s cmini__s--pending"
+            >{CANVAS_STATUS_LINES.pending}</span
+          >
+          <span class="cmini__s cmini__s--done">
+            <svg class="cmini__sic"><use href="#i-check"></use></svg>
+            {CANVAS_STATUS_LINES.done}
+          </span>
+        </span>
+        <span class="cmini__fired" data-field="node-fired">{trigger.fired}</span
+        >
+      </span>
+    </div>
+
+    {
+      cards.map((node) => (
+        <div
+          class:list={[
+            "cmini__node",
+            "cmini__card",
+            `cmini__card--${node.target.slice(5)}`,
+          ]}
+          data-target={node.target}
+          data-state={node.status}
+          data-kind={node.kind}
+        >
+          <span class="cmini__row">
+            <span class="cmini__glyph">
+              {node.kind === "gate" ? (
+                <>
+                  <svg class="cmini__ic cmini__ic--clock">
+                    <use href="#i-clock" />
+                  </svg>
+                  <svg class="cmini__ic cmini__ic--bell">
+                    <use href="#i-bell" />
+                  </svg>
+                </>
+              ) : (
+                <svg class="cmini__ic">
+                  <use href={`#${cardIcon[node.kind]}`} />
+                </svg>
+              )}
+            </span>
+            <span class="cmini__ntitle" data-field="node-title">
+              {node.title}
+            </span>
+          </span>
+          <span class="cmini__status">
+            <span class="cmini__s cmini__s--pending">
+              {CANVAS_STATUS_LINES.pending}
+            </span>
+            <span class="cmini__s cmini__s--running">
+              <svg class="cmini__sic cmini__sic--spin">
+                <use href="#i-loader" />
+              </svg>
+              {CANVAS_STATUS_LINES.running}
+            </span>
+            <span class="cmini__s cmini__s--done">
+              <svg class="cmini__sic">
+                <use href="#i-check" />
+              </svg>
+              {CANVAS_STATUS_LINES.done}
+            </span>
+            <span class="cmini__s cmini__s--awaiting">
+              <svg class="cmini__sic">
+                <use href="#i-bell" />
+              </svg>
+              {CANVAS_STATUS_LINES["awaiting-approval"]}
+            </span>
+          </span>
+          <i class="cmini__port cmini__port--in" />
+          {node.target === "node-route" ? (
+            <>
+              <i class="cmini__port cmini__port--outa" />
+              <i class="cmini__port cmini__port--outb" />
+            </>
+          ) : node.target === "node-triage" || node.target === "node-gate" ? (
+            <i class="cmini__port cmini__port--out" />
+          ) : null}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .cmini {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-5) var(--space-6);
+    background: var(--bg);
+  }
+
+  .cmini__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+  }
+
+  .cmini__title {
+    color: var(--text-primary);
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* Lens control - static chrome, decorative (the Executions lens is the
+     scene's framing, not an interactive control here). */
+  .cmini__lens {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--fill-quaternary);
+  }
+
+  /* AA (B2 review finding 8): small in-window text keeps secondary ink;
+     status colors mix toward text-primary to clear 4.5:1 at 10px. */
+  .cmini__lens-seg {
+    padding: 4px 12px;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .cmini__lens-seg[data-active] {
+    background: var(--bg-tertiary);
+    box-shadow: var(--shadow-subtle);
+    color: var(--text-primary);
+  }
+
+  /* Run chip - honest run state: blue while running, amber once it waits on
+     you. The two status strings are state-switched spans. */
+  .cmini__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: var(--fill-tertiary);
+    color: var(--text-secondary);
+    font-family: var(--font-code);
+    font-size: 10.5px;
+    font-weight: var(--weight-medium);
+  }
+
+  .cmini__chip-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--system-blue);
+    transition: background-color 250ms var(--ease-smooth);
+  }
+
+  .cmini__chip[data-state="waiting"] .cmini__chip-dot {
+    background: var(--accent);
+  }
+
+  .cmini__chip-sep {
+    color: var(--text-quaternary);
+  }
+
+  .cmini__chip-s {
+    display: none;
+  }
+
+  .cmini__chip[data-state="running"] .cmini__chip-s--running,
+  .cmini__chip[data-state="waiting"] .cmini__chip-s--waiting {
+    display: inline;
+  }
+
+  /* ── Stage ───────────────────────────────────────────────────────────── */
+
+  .cmini__stage {
+    position: relative;
+    width: 780px;
+    height: 320px;
+    flex: none;
+    margin: var(--space-5) auto 0;
+  }
+
+  .cmini__wires,
+  .cmini__fillwrap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cmini__svg {
+    position: absolute;
+    inset: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .cmini__svg--h {
+    display: block;
+  }
+
+  .cmini__wire {
+    fill: none;
+    stroke: var(--separator-opaque);
+    stroke-width: 1.5;
+  }
+
+  /* The taken lane - the run's own path takes the live-work blue, drawn
+     port-to-gate by the tweened progress (direction is meaning). */
+  .cmini__wire--fill {
+    stroke: var(--system-blue);
+    stroke-width: 2;
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--scene-progress, 0));
+  }
+
+  /* ── Nodes ───────────────────────────────────────────────────────────── */
+
+  .cmini__node {
+    position: absolute;
+  }
+
+  /* Trigger - glyph node; labels below the shape, outside the box, out of
+     the wire path. */
+  .cmini__node--trigger {
+    top: 136px;
+    left: 8px;
+    display: flex;
+    width: 132px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cmini__tglyph {
+    position: relative;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    flex: none;
+    place-items: center;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+    color: var(--text-secondary);
+    transition: background-color 300ms var(--ease-smooth);
+  }
+
+  /* Fired: one amber wash that decays (transient accent, ~1.2s), leaving the
+     amber fired label as the lasting record. Governed by the player clock
+     (B2 review finding 4): it runs ONLY while this window's player is
+     playing - channel loss, user pause, offscreen, reduced motion, and
+     no-JS all settle it instantly to the decayed base. */
+  :global([data-scene-window][data-scene-player-state="playing"])
+    .cmini__node--trigger[data-state="done"]
+    .cmini__tglyph {
+    animation: cmini-wash 1200ms var(--ease-smooth) both;
+  }
+
+  .cmini__tglyph .cmini__ic {
+    width: 19px;
+    height: 19px;
+  }
+
+  .cmini__tmeta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .cmini__ntitle {
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cmini__sub {
+    color: var(--text-secondary);
+    font-family: var(--font-code);
+    font-size: 9.5px;
+  }
+
+  .cmini__fired {
+    display: none;
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+    font-family: var(--font-code);
+    font-size: 9.5px;
+    font-weight: var(--weight-medium);
+  }
+
+  .cmini__node--trigger[data-state="done"] .cmini__fired {
+    display: block;
+  }
+
+  /* Cards - glyph + one clamped title line + one status line. Declared box
+     equals rendered box: fixed width AND height per arrangement. */
+  .cmini__card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    height: 58px;
+    padding: 0 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .cmini__row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .cmini__glyph {
+    position: relative;
+    display: grid;
+    width: 18px;
+    height: 18px;
+    flex: none;
+    place-items: center;
+    color: var(--text-tertiary);
+  }
+
+  .cmini__ic {
+    display: block;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Gate glyph: clock at rest → bell once it waits on you. */
+  .cmini__ic--clock,
+  .cmini__ic--bell {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+  }
+
+  .cmini__ic--bell,
+  .cmini__card[data-state="awaiting-approval"] .cmini__ic--clock {
+    opacity: 0;
+    transition: opacity 250ms var(--ease-smooth);
+  }
+
+  .cmini__card[data-state="awaiting-approval"] .cmini__ic--bell {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  /* Status line - the app's status-line.ts vocabulary, state-switched. */
+  .cmini__status {
+    display: block;
+    min-width: 0;
+    padding-left: 24px;
+    color: var(--text-secondary);
+    font-size: 10px;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .cmini__node--trigger .cmini__status {
+    padding-left: 0;
+  }
+
+  .cmini__s {
+    display: none;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .cmini__sic {
+    width: 10px;
+    height: 10px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  [data-state="pending"] .cmini__s--pending,
+  [data-state="running"] .cmini__s--running,
+  [data-state="done"] .cmini__s--done,
+  [data-state="awaiting-approval"] .cmini__s--awaiting {
+    display: inline-flex;
+  }
+
+  .cmini__s--running {
+    color: color-mix(in srgb, var(--system-blue) 70%, var(--text-primary));
+    font-weight: var(--weight-medium);
+  }
+
+  .cmini__s--done {
+    color: color-mix(in srgb, var(--system-green) 60%, var(--text-primary));
+    font-weight: var(--weight-medium);
+  }
+
+  .cmini__s--awaiting {
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+    font-weight: var(--weight-medium);
+  }
+
+  .cmini__sic--spin {
+    animation: cmini-spin 1s linear infinite;
+  }
+
+  /* Motion governance: spinners freeze whenever this window's player is not
+     playing (HANDOFF-A05 §10). */
+  :global([data-scene-window]:not([data-scene-player-state="playing"]))
+    .cmini__sic--spin {
+    animation-play-state: paused;
+  }
+
+  /* The gate's bounded pulse is the player's scale tween; the awaiting state
+     itself holds the quiet amber bell - nothing blinks forever. */
+
+  /* Ports - 8px dots exactly on walls, halo'd so wires visibly terminate. */
+  .cmini__port {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--separator-opaque);
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+
+  /* ── Horizontal arrangement (≥900px): hand-set coordinates ───────────── */
+
+  .cmini__card--triage {
+    top: 131px;
+    left: 108px;
+    width: 148px;
+  }
+
+  .cmini__card--route {
+    top: 131px;
+    left: 308px;
+    width: 108px;
+  }
+
+  .cmini__card--reply {
+    top: 41px;
+    left: 500px;
+    width: 156px;
+  }
+
+  .cmini__card--gate {
+    top: 221px;
+    left: 460px;
+    width: 160px;
+  }
+
+  .cmini__card--refund {
+    top: 221px;
+    left: 656px;
+    width: 124px;
+  }
+
+  .cmini__port--tout {
+    top: 20px;
+    right: -4px;
+  }
+
+  .cmini__card .cmini__port--in {
+    top: 25px;
+    left: -4px;
+  }
+
+  .cmini__card .cmini__port--out {
+    top: 25px;
+    right: -4px;
+  }
+
+  /* Switch out-ports on the card wall at the lane wire centers (y145/y175
+     against the card's 131px top). */
+  .cmini__card--route .cmini__port--outa {
+    top: 10px;
+    right: -4px;
+  }
+
+  .cmini__card--route .cmini__port--outb {
+    top: 40px;
+    right: -4px;
+  }
+
+  @keyframes cmini-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @keyframes cmini-wash {
+    0% {
+      background-color: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+    25% {
+      background-color: var(--accent-fill);
+      color: var(--accent);
+    }
+    100% {
+      background-color: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cmini__sic--spin,
+    :global([data-scene-window][data-scene-player-state="playing"])
+      .cmini__node--trigger[data-state="done"]
+      .cmini__tglyph {
+      animation: none;
+    }
+  }
+
+  /* ── Vertical arrangement (<900px): the second hand-set geometry ─────── */
+
+  @media (max-width: 899px) {
+    .cmini {
+      padding: var(--space-4);
+    }
+
+    .cmini__title {
+      font-size: var(--text-body);
+    }
+
+    .cmini__stage {
+      width: 326px;
+      height: 420px;
+      margin-top: var(--space-4);
+    }
+
+    .cmini__svg--h {
+      display: none;
+    }
+
+    .cmini__svg--v {
+      display: block;
+    }
+
+    /* Lane titles may clamp to two lines in the narrow arrangement
+       (STORYBOARD-FEATURES §6) - the box stays declared-size. */
+    .cmini__card--reply .cmini__ntitle,
+    .cmini__card--gate .cmini__ntitle,
+    .cmini__card--refund .cmini__ntitle {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      white-space: normal;
+      line-height: 1.15;
+    }
+
+    /* Trigger becomes a row group: glyph left (the spine's origin), labels
+       beside it - outside the box and out of the falling wire's path. */
+    .cmini__node--trigger {
+      top: 0;
+      left: 24px;
+      width: 278px;
+      flex-direction: row;
+      gap: 12px;
+    }
+
+    .cmini__tglyph {
+      width: 44px;
+      height: 44px;
+    }
+
+    .cmini__port--tout {
+      top: auto;
+      right: auto;
+      bottom: -4px;
+      left: 18px;
+    }
+
+    .cmini__card--triage {
+      top: 76px;
+      left: 0;
+      width: 210px;
+    }
+
+    .cmini__card--route {
+      top: 166px;
+      left: 0;
+      width: 326px;
+    }
+
+    .cmini__card--reply {
+      top: 264px;
+      left: 0;
+      width: 156px;
+    }
+
+    .cmini__card--gate {
+      top: 264px;
+      left: 170px;
+      width: 156px;
+    }
+
+    .cmini__card--refund {
+      top: 362px;
+      left: 170px;
+      width: 156px;
+    }
+
+    /* Top-in / bottom-out port discipline for the vertical flow. */
+    .cmini__card .cmini__port--in {
+      top: -4px;
+      left: 42px;
+    }
+
+    .cmini__card--reply .cmini__port--in,
+    .cmini__card--gate .cmini__port--in,
+    .cmini__card--refund .cmini__port--in {
+      left: 74px;
+    }
+
+    .cmini__card--triage .cmini__port--out {
+      top: auto;
+      right: auto;
+      bottom: -4px;
+      left: 42px;
+    }
+
+    .cmini__card--gate .cmini__port--out {
+      top: auto;
+      right: auto;
+      bottom: -4px;
+      left: 74px;
+    }
+
+    .cmini__card--route .cmini__port--outa {
+      top: auto;
+      right: auto;
+      bottom: -4px;
+      left: 74px;
+    }
+
+    .cmini__card--route .cmini__port--outb {
+      top: auto;
+      bottom: -4px;
+      right: 74px;
+    }
+  }
+
+  /* Below 360px the fixed 326px arrangement scales as one unit (a uniform
+     transform, not a third geometry) so the page never pans horizontally. */
+  @media (max-width: 359px) {
+    .cmini__stage {
+      transform: scale(0.78);
+      transform-origin: top center;
+    }
+  }
+</style>

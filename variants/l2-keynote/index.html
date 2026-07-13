@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Jinn — Run your own AI company</title>
+<meta name="description" content="Jinn is an open-source platform for running your own AI company. Hire AI employees, share a ledger of work, teach it workflows — it runs on your machine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LEDGER LIGHT — real tokens from packages/web/src/routes/globals.css
+   ============================================================ */
+:root {
+  --font-ui: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-code: "IBM Plex Mono", "SF Mono", Monaco, Menlo, monospace;
+  --bg: #F4F1E8;
+  --bg-secondary: #FBF9F2;
+  --bg-tertiary: #ECE8DC;
+  --material-regular: rgba(251,249,242,0.94);
+  --material-thick: rgba(244,241,232,0.97);
+  --material-thin: rgba(33,30,22,0.04);
+  --fill-primary: rgba(33,30,22,0.08);
+  --fill-secondary: rgba(33,30,22,0.06);
+  --fill-tertiary: rgba(33,30,22,0.045);
+  --separator: rgba(33,30,22,0.14);
+  --text-primary: #211E16;
+  --text-secondary: rgba(33,30,22,0.66);
+  --text-tertiary: rgba(33,30,22,0.56);
+  --text-quaternary: rgba(33,30,22,0.30);
+  --accent: #926516;
+  --accent-fill: rgba(146,101,22,0.14);
+  --accent-contrast: #FBF9F2;
+  --system-blue: #2D6CB5;
+  --system-green: #597648;
+  --system-red: #B23B33;
+  --shadow-subtle: 0 1px 2px rgba(40,34,20,0.06);
+  --shadow-key: 0 2px 8px rgba(40,34,20,0.10), 0 8px 24px rgba(40,34,20,0.08);
+  --shadow-card: 0 0 0 0.5px rgba(40,34,20,0.08), 0 1px 3px rgba(40,34,20,0.07), 0 4px 12px rgba(40,34,20,0.06), inset 0 1px 0 rgba(255,255,255,0.70);
+  --shadow-overlay: 0 0 0 0.5px rgba(40,34,20,0.10), 0 4px 16px rgba(40,34,20,0.10), 0 16px 48px rgba(40,34,20,0.14), inset 0 1px 0 rgba(255,255,255,0.80);
+  --pill-bg: rgba(251,249,242,0.72);
+  --pill-border: rgba(33,30,22,0.10);
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 18px; --radius-2xl: 24px;
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+}
+/* LEDGER DARK — scoped to the night beat */
+.night {
+  --bg: #14130F;
+  --bg-secondary: #1E1C16;
+  --bg-tertiary: #2A2720;
+  --material-thin: rgba(255,255,255,0.05);
+  --fill-primary: rgba(255,255,255,0.10);
+  --fill-secondary: rgba(255,255,255,0.07);
+  --fill-tertiary: rgba(255,255,255,0.05);
+  --separator: rgba(255,255,255,0.09);
+  --text-primary: #E8E4D8;
+  --text-secondary: rgba(232,228,216,0.62);
+  --text-tertiary: rgba(232,228,216,0.38);
+  --text-quaternary: rgba(232,228,216,0.22);
+  --accent: #E0A33C;
+  --accent-fill: rgba(224,163,60,0.14);
+  --accent-contrast: #14130F;
+  --system-green: #7DBE6A;
+  --shadow-card: 0 0 0 0.5px rgba(0,0,0,0.30), 0 4px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  --shadow-overlay: 0 0 0 0.5px rgba(0,0,0,0.40), 0 16px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 1.47;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+::selection { background: var(--accent-fill); color: var(--text-primary); }
+
+/* ============================================================
+   Nav pills
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: max(env(safe-area-inset-top), 16px) 20px 0;
+  pointer-events: none;
+}
+.nav .pill {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-radius: 999px;
+  padding: 8px 16px;
+  box-shadow: var(--shadow-subtle);
+  font-size: 15px; font-weight: 600; letter-spacing: -0.24px;
+  color: var(--text-primary); text-decoration: none;
+  transition: transform 150ms var(--ease-spring);
+}
+.nav .pill:active { transform: scale(0.96); }
+.nav .pill .lamp {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #926516;
+}
+.nav .pill.ghost { font-weight: 500; color: var(--text-secondary); }
+
+/* ============================================================
+   Type
+   ============================================================ */
+.headline {
+  font-size: clamp(46px, 8vw, 116px);
+  font-weight: 700;
+  font-variation-settings: "wght" 700;
+  letter-spacing: -0.033em;
+  line-height: 1.02;
+  text-align: center;
+  text-wrap: balance;
+}
+.headline .dot { color: var(--accent); }
+.headline .w { display: inline-block; white-space: pre; }
+.sub {
+  font-size: clamp(17px, 1.6vw, 21px);
+  font-weight: 450;
+  color: var(--text-secondary);
+  letter-spacing: -0.24px;
+  line-height: 1.47;
+  text-align: center;
+  max-width: 34em;
+  margin: 24px auto 0;
+  text-wrap: balance;
+}
+.eyebrow {
+  font-family: var(--font-code);
+  font-size: 13px; font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+/* ============================================================
+   Layout — beats
+   ============================================================ */
+.beat { position: relative; height: 220vh; }
+.beat .stage {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: clamp(36px, 6vh, 64px);
+  padding: 24px;
+  overflow: hidden;
+  background: var(--bg);
+  /* re-evaluate inherited text color inside re-scoped themes (.night) */
+  color: var(--text-primary);
+}
+.beat .copy { max-width: 1100px; }
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 48px; padding: 96px 24px 64px;
+  position: relative;
+}
+.hero .eyebrow { margin-bottom: 20px; }
+.scroll-cue {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--text-quaternary);
+  font-family: var(--font-code); font-size: 11px; letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.scroll-cue svg { animation: cue 2.2s var(--ease-smooth) infinite; }
+@keyframes cue { 0%,100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(4px); opacity: 1; } }
+
+/* ============================================================
+   Composer vignette (hero) — faithful to the app card
+   ============================================================ */
+.composer {
+  width: min(640px, 100%);
+  background: var(--bg-secondary);
+  border-radius: 22px;
+  box-shadow: var(--shadow-card);
+  padding: 18px 18px 12px;
+}
+.composer .line {
+  min-height: 52px;
+  font-size: 17px; letter-spacing: -0.24px;
+  color: var(--text-primary);
+  padding: 4px 6px 12px;
+  display: flex; align-items: flex-start;
+}
+.composer .line .ph { color: var(--text-tertiary); }
+.caret {
+  display: inline-block; width: 2px; height: 1.25em;
+  background: var(--accent); margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+.composer .row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.composer .row .left { display: flex; align-items: center; gap: 4px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-tertiary); background: transparent;
+  border: none;
+}
+.send {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-contrast);
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+  box-shadow: var(--shadow-subtle);
+}
+
+/* ============================================================
+   Vignette shells
+   ============================================================ */
+.vignette { width: min(600px, 100%); }
+.vignette.wide { width: min(840px, 100%); }
+
+/* Employees */
+.emp-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.emp {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  width: 180px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.emp .ava {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 19px;
+  letter-spacing: -0.24px;
+}
+.emp .name { font-weight: 600; font-size: 16px; letter-spacing: -0.24px; }
+.emp .role { font-size: 13px; color: var(--text-tertiary); margin-top: -8px; }
+.emp .engine {
+  font-family: var(--font-code); font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--fill-tertiary);
+  padding: 3px 9px; border-radius: 999px;
+}
+.emp.ghost { background: transparent; box-shadow: none; }
+.emp.ghost .ava { background: var(--fill-tertiary); color: var(--text-tertiary); }
+.emp.ghost .name { color: var(--text-tertiary); }
+.emp.ghost .role { color: var(--text-quaternary); }
+.emp.ghost .engine { background: transparent; color: var(--text-quaternary); }
+
+/* Ledger / todos */
+.ledger {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 10px;
+  width: min(560px, 100%);
+}
+.todo {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 14px;
+  border-radius: var(--radius-lg);
+}
+.todo + .todo { margin-top: 2px; }
+.todo .box { flex: none; width: 22px; height: 22px; position: relative; }
+.todo .box svg { display: block; }
+.todo .title { flex: 1; font-size: 16px; letter-spacing: -0.24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.todo .title .txt { position: relative; display: inline-block; }
+.todo .title .strike {
+  position: absolute; left: -2px; top: 50%; height: 1.5px;
+  width: calc(100% + 4px);
+  background: var(--text-tertiary);
+  transform: scaleX(0); transform-origin: left center;
+}
+.chip {
+  flex: none;
+  font-size: 12px; font-weight: 600; letter-spacing: -0.1px;
+  padding: 4px 10px; border-radius: 999px;
+}
+.chip.progress { background: var(--accent-fill); color: var(--accent); }
+.chip.needs { background: rgba(45,108,181,0.12); color: var(--system-blue); }
+.chip.done { background: rgba(89,118,72,0.14); color: var(--system-green); }
+.chip-swap { position: relative; }
+.chip-swap .chip.done { position: absolute; inset: 0; opacity: 0; display:flex; align-items:center; justify-content:center; }
+
+/* Workflow rail */
+.flow {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 28px 28px 24px;
+  width: min(560px, 100%);
+}
+.flow .rail { position: relative; height: 4px; background: var(--fill-secondary); border-radius: 2px; margin: 0 42px; }
+.flow .rail .fill { position: absolute; inset: 0; background: var(--accent); border-radius: 2px; transform: scaleX(0); transform-origin: left center; }
+.flow .stops { display: flex; justify-content: space-between; margin-top: -14px; position: relative; }
+.stop { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 84px; }
+.stop .node {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-ambient, 0 0 0 0.5px rgba(40,34,20,0.10)), var(--shadow-subtle);
+  display: flex; align-items: center; justify-content: center;
+}
+.stop .node .core { width: 10px; height: 10px; border-radius: 50%; background: var(--fill-primary); transition: background 300ms var(--ease-smooth); }
+.stop.on .node .core { background: var(--accent); }
+.stop .lbl { font-family: var(--font-code); font-size: 12px; color: var(--text-tertiary); }
+.stop.on .lbl { color: var(--text-secondary); }
+.flow .cap { text-align: center; margin-top: 22px; font-size: 13px; color: var(--text-quaternary); font-family: var(--font-code); }
+
+/* Night feed */
+.feed {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+  width: min(560px, 100%);
+  font-family: var(--font-code);
+  font-size: 13.5px; line-height: 1.6;
+  color: var(--text-secondary);
+}
+.feed .fl { display: flex; align-items: baseline; gap: 12px; padding: 6px 0; }
+.feed .t { flex: none; color: var(--text-quaternary); }
+.feed .msg { flex: 1; min-width: 0; }
+.feed .ok { color: var(--system-green); }
+.feed .pulse {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); margin-right: 10px;
+  animation: pulse 2s var(--ease-smooth) infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-fill); } 50% { opacity: .55; box-shadow: 0 0 0 6px var(--accent-fill); } }
+
+/* Approval card */
+.approval {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-overlay);
+  padding: 24px;
+  width: min(440px, 100%);
+}
+.approval .from { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.approval .from .ava {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-fill); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+.approval .from .who { font-size: 13px; color: var(--text-tertiary); }
+.approval .q { font-size: 19px; font-weight: 600; letter-spacing: -0.24px; line-height: 1.3; }
+.approval .meta { font-size: 14px; color: var(--text-tertiary); margin-top: 6px; }
+.approval .actions { display: flex; gap: 10px; margin-top: 20px; }
+.approval .actions button {
+  flex: 1; border: none; cursor: pointer;
+  font-family: var(--font-ui); font-size: 15px; font-weight: 600;
+  padding: 12px 0; border-radius: var(--radius-md);
+  transition: transform 150ms var(--ease-spring);
+}
+.approval .actions button:active { transform: scale(0.97); }
+.approval .approve { background: var(--accent); color: var(--accent-contrast); }
+.approval .hold { background: var(--fill-secondary); color: var(--text-primary); }
+
+/* ============================================================
+   Install beat
+   ============================================================ */
+.install-card {
+  width: min(600px, 100%);
+  background: var(--bg-secondary);
+  border-radius: 22px;
+  box-shadow: var(--shadow-card);
+  padding: 26px 28px;
+  font-family: var(--font-code);
+  font-size: clamp(14px, 2.2vw, 17px);
+  position: relative;
+}
+.install-card .cmd { display: flex; align-items: center; gap: 12px; }
+.install-card .p { color: var(--accent); user-select: none; }
+.install-card .cmd + .cmd { margin-top: 12px; }
+.install-card .out { margin-top: 16px; color: var(--text-tertiary); font-size: 0.86em; line-height: 1.9; }
+.install-card .out .ok { color: var(--system-green); margin-right: 8px; }
+.copy-btn {
+  position: absolute; top: 16px; right: 16px;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--fill-secondary);
+  border: none; cursor: pointer;
+  padding: 7px 12px; border-radius: 999px;
+  transition: background 150ms var(--ease-smooth), transform 150ms var(--ease-spring);
+}
+.copy-btn:hover { background: var(--fill-primary); }
+.copy-btn:active { transform: scale(0.95); }
+.badges { display: flex; gap: 20px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+.badges span { font-size: 14px; color: var(--text-tertiary); letter-spacing: -0.1px; display: flex; align-items: center; gap: 7px; }
+.badges .bd { width: 4px; height: 4px; border-radius: 50%; background: var(--text-quaternary); }
+
+/* Footer */
+footer {
+  padding: 48px 24px calc(40px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+footer .links { display: flex; gap: 28px; }
+footer a {
+  color: var(--text-tertiary); text-decoration: none;
+  font-size: 14px; letter-spacing: -0.1px;
+  transition: color 150ms var(--ease-smooth);
+}
+footer a:hover { color: var(--text-primary); }
+footer .fine { font-family: var(--font-code); font-size: 11px; color: var(--text-quaternary); letter-spacing: 0.04em; }
+
+/* ============================================================
+   Mobile
+   ============================================================ */
+@media (max-width: 640px) {
+  .beat { height: 190vh; }
+  .emp { width: 46%; min-width: 150px; padding: 16px; }
+  .emp-row { gap: 12px; }
+  .sub { font-size: 16px; }
+  .todo .title { font-size: 15px; }
+  .flow .rail { margin: 0 18px; }
+  .approval { padding: 20px; }
+  .badges { gap: 10px 16px; }
+  .badges .bd { display: none; }
+}
+
+/* Reduced motion: everything readable, nothing required to move */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="pill" href="#top"><span class="lamp" style="background: var(--accent)"></span>Jinn</a>
+  <a class="pill ghost" href="https://github.com/jinn-gateway/jinn" target="_blank" rel="noopener">GitHub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div>
+    <p class="eyebrow">npm install -g jinn-cli</p>
+    <h1 class="headline" data-split>Run your own AI&nbsp;company<span class="dot">.</span></h1>
+    <p class="sub">Jinn is an open-source gateway that turns AI agents into a working company — employees, a shared ledger, workflows, triggers. On your machine, with your keys.</p>
+  </div>
+  <div class="composer" id="composer" aria-hidden="true">
+    <div class="line"><span id="typed"></span><span class="caret"></span></div>
+    <div class="row">
+      <div class="left">
+        <span class="icon-btn"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3.5v11M3.5 9h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      </div>
+      <span class="send"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12.5v-9M4.5 7 8 3.5 11.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+  </div>
+  <div class="scroll-cue">scroll<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+</header>
+
+<!-- BEAT 1 — EMPLOYEES -->
+<section class="beat" data-beat="employees">
+  <div class="stage">
+    <div class="copy">
+      <h2 class="headline" data-split>Hire employees<span class="dot">.</span></h2>
+      <p class="sub">Each one is an engine wearing a role — Claude Code, Codex, and more. Give them a seat in the org. They take it from there.</p>
+    </div>
+    <div class="vignette wide">
+      <div class="emp-row">
+        <div class="emp">
+          <div class="ava" style="background: var(--accent-fill); color: var(--accent)">S</div>
+          <div class="name">Scout</div><div class="role">Research</div>
+          <span class="engine">claude</span>
+        </div>
+        <div class="emp">
+          <div class="ava" style="background: rgba(45,108,181,0.12); color: var(--system-blue)">F</div>
+          <div class="name">Forge</div><div class="role">Engineering</div>
+          <span class="engine">codex</span>
+        </div>
+        <div class="emp">
+          <div class="ava" style="background: rgba(89,118,72,0.14); color: var(--system-green)">Q</div>
+          <div class="name">Quill</div><div class="role">Content</div>
+          <span class="engine">claude</span>
+        </div>
+        <div class="emp ghost">
+          <div class="ava"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <div class="name">Hire</div><div class="role">any role</div>
+          <span class="engine">any engine</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 2 — LEDGER -->
+<section class="beat" data-beat="ledger">
+  <div class="stage">
+    <div class="copy">
+      <h2 class="headline" data-split>They share a ledger<span class="dot">.</span></h2>
+      <p class="sub">Todos are the company's memory — what needs doing, what's in motion, what's blocked, what needs you.</p>
+    </div>
+    <div class="vignette ledger">
+      <div class="todo" id="todo-done">
+        <span class="box">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <circle id="done-ring" cx="11" cy="11" r="9.5" stroke="var(--text-quaternary)" stroke-width="1.5"/>
+            <circle id="done-fill" cx="11" cy="11" r="10" fill="var(--system-green)" opacity="0"/>
+            <path id="done-check" d="M6.8 11.3l2.8 2.8 5.4-5.8" stroke="#FBF9F2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="12" stroke-dashoffset="12"/>
+          </svg>
+        </span>
+        <span class="title" id="done-title"><span class="txt">Draft the weekly changelog<span class="strike" id="done-strike"></span></span></span>
+        <span class="chip-swap">
+          <span class="chip progress" id="chip-prog">In&nbsp;progress</span>
+          <span class="chip done" id="chip-done">Done</span>
+        </span>
+      </div>
+      <div class="todo">
+        <span class="box"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9.5" stroke="var(--text-quaternary)" stroke-width="1.5"/></svg></span>
+        <span class="title">Triage new support threads</span>
+        <span class="chip progress">In&nbsp;progress</span>
+      </div>
+      <div class="todo">
+        <span class="box"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9.5" stroke="var(--text-quaternary)" stroke-width="1.5"/></svg></span>
+        <span class="title">Approve the pricing page copy</span>
+        <span class="chip needs">Needs&nbsp;you</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 3 — WORKFLOWS -->
+<section class="beat" data-beat="flow">
+  <div class="stage">
+    <div class="copy">
+      <h2 class="headline" data-split>Teach it once<span class="dot">.</span></h2>
+      <p class="sub">Workflows are your SOPs, written down. A run spawns todos, hands work between employees, and sees it through.</p>
+    </div>
+    <div class="vignette flow">
+      <div class="rail"><div class="fill" id="rail-fill"></div></div>
+      <div class="stops">
+        <div class="stop" id="stop-1"><span class="node"><span class="core"></span></span><span class="lbl">research</span></div>
+        <div class="stop" id="stop-2"><span class="node"><span class="core"></span></span><span class="lbl">draft</span></div>
+        <div class="stop" id="stop-3"><span class="node"><span class="core"></span></span><span class="lbl">review</span></div>
+      </div>
+      <div class="cap">weekly-digest · run 42</div>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 4 — NIGHT (dark tokens) -->
+<section class="beat night" data-beat="night">
+  <div class="stage">
+    <div class="copy">
+      <h2 class="headline" data-split>It runs while you sleep<span class="dot">.</span></h2>
+      <p class="sub">Cron schedules, todo status changes, webhooks from the outside world — the company wakes itself up.</p>
+    </div>
+    <div class="vignette feed" id="feed">
+      <div class="fl"><span class="t">02:00</span><span class="msg"><span class="pulse"></span>cron · nightly digest started</span></div>
+      <div class="fl"><span class="t">02:04</span><span class="msg">scout → jimbo · report filed</span></div>
+      <div class="fl"><span class="t">02:11</span><span class="msg"><span class="ok">✓</span> todo #142 · done</span></div>
+      <div class="fl"><span class="t">02:12</span><span class="msg">1 approval queued for morning</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 5 — APPROVAL -->
+<section class="beat" data-beat="approve">
+  <div class="stage">
+    <div class="copy">
+      <h2 class="headline" data-split>You approve what matters<span class="dot">.</span></h2>
+      <p class="sub">A COO agent orchestrates, reviews, and gates the noise. Money, publishing, the irreversible — those wait for you.</p>
+    </div>
+    <div class="vignette approval">
+      <div class="from"><span class="ava">J</span><span class="who">Jimbo · COO · this morning</span></div>
+      <div class="q">Ship the weekly digest to 1,200 subscribers?</div>
+      <div class="meta">Reviewed · draft attached · sends at 09:00</div>
+      <div class="actions">
+        <button class="hold" type="button">Hold</button>
+        <button class="approve" type="button">Approve</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 6 — INSTALL -->
+<section class="beat" data-beat="install" style="height: 180vh;">
+  <div class="stage">
+    <div class="copy">
+      <h2 class="headline" data-split>Ready when you are<span class="dot">.</span></h2>
+      <p class="sub">Open source. Local-first. One command and the company is yours.</p>
+    </div>
+    <div class="vignette install-card">
+      <button class="copy-btn" id="copy" type="button">Copy</button>
+      <div class="cmd"><span class="p">$</span><span>npm install -g jinn-cli</span></div>
+      <div class="cmd"><span class="p">$</span><span>jinn start</span></div>
+      <div class="out" id="boot">
+        <div><span class="ok">✓</span>gateway on localhost:7777</div>
+        <div><span class="ok">✓</span>3 employees online</div>
+        <div><span class="ok">✓</span>ledger open · 2 todos waiting</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span>Open source</span><span class="bd"></span>
+      <span>Runs on your machine</span><span class="bd"></span>
+      <span>Your API keys, your data</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="links">
+    <a href="https://github.com/jinn-gateway/jinn" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.npmjs.com/package/jinn-cli" target="_blank" rel="noopener">npm</a>
+    <a href="#top">Top</a>
+  </div>
+  <div class="fine">jinn run — MIT</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- word splitting for headlines ---- */
+  document.querySelectorAll('[data-split]').forEach(h => {
+    const nodes = [...h.childNodes];
+    h.textContent = '';
+    nodes.forEach(n => {
+      if (n.nodeType === 3) {
+        n.textContent.split(/(\s+)/).forEach(part => {
+          if (!part) return;
+          const s = document.createElement('span');
+          s.className = 'w'; s.textContent = part;
+          h.appendChild(s);
+        });
+      } else { n.classList?.add('w'); h.appendChild(n); }
+    });
+  });
+
+  /* ---- composer typing loop ---- */
+  const phrases = [
+    'Hire a growth marketer.',
+    'What did the company ship today?',
+    'Run the weekly digest while I’m out.'
+  ];
+  const typed = document.getElementById('typed');
+  if (reduced) { typed.textContent = phrases[0]; }
+  else {
+    let pi = 0, ci = 0, dir = 1;
+    (function tick() {
+      const p = phrases[pi];
+      ci += dir;
+      typed.textContent = p.slice(0, ci);
+      let d = dir > 0 ? 55 + Math.random() * 60 : 22;
+      if (dir > 0 && ci === p.length) { dir = -1; d = 2200; }
+      if (dir < 0 && ci === 0) { dir = 1; pi = (pi + 1) % phrases.length; d = 500; }
+      setTimeout(tick, d);
+    })();
+  }
+
+  /* ---- copy button ---- */
+  document.getElementById('copy').addEventListener('click', () => {
+    navigator.clipboard?.writeText('npm install -g jinn-cli');
+    const b = document.getElementById('copy');
+    b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400);
+  });
+
+  if (reduced || !window.gsap) return; // static page is fully readable
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---- Lenis smooth scroll ---- */
+  const lenis = new Lenis({ lerp: 0.12 });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+
+  /* ---- hero entrance ---- */
+  gsap.from('.hero .w', { y: 40, opacity: 0, duration: 0.9, stagger: 0.05, ease: 'power3.out', delay: 0.1 });
+  gsap.from('.hero .sub, .hero .eyebrow', { y: 16, opacity: 0, duration: 0.8, delay: 0.5, ease: 'power2.out' });
+  gsap.from('#composer', { y: 28, opacity: 0, duration: 0.9, delay: 0.65, ease: 'power3.out' });
+  gsap.to('.hero > div:first-child, #composer', {
+    opacity: 0, y: -40, ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'bottom 90%', end: 'bottom 40%', scrub: true }
+  });
+
+  /* ---- per-beat scrub timelines ---- */
+  document.querySelectorAll('.beat').forEach(beat => {
+    const stage = beat.querySelector('.stage');
+    const words = stage.querySelectorAll('.w');
+    const sub = stage.querySelector('.sub');
+    const vig = stage.querySelector('.vignette');
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: beat, start: 'top top', end: 'bottom bottom', scrub: 0.4 }
+    });
+    tl.from(words, { y: 60, opacity: 0, stagger: 0.06, duration: 0.55, ease: 'power3.out' }, 0)
+      .from(sub, { y: 24, opacity: 0, duration: 0.4, ease: 'power2.out' }, 0.22)
+      .from(vig, { y: 60, opacity: 0, scale: 0.97, duration: 0.5, ease: 'power2.out' }, 0.3);
+
+    switch (beat.dataset.beat) {
+      case 'employees':
+        tl.from(stage.querySelectorAll('.emp'), { y: 40, opacity: 0, scale: 0.94, stagger: 0.09, duration: 0.4, ease: 'back.out(1.4)' }, 0.42);
+        break;
+      case 'ledger':
+        tl.to('#done-fill', { opacity: 1, duration: 0.08 }, 0.56)
+          .to('#done-ring', { opacity: 0, duration: 0.08 }, 0.56)
+          .to('#done-check', { strokeDashoffset: 0, duration: 0.12, ease: 'power2.out' }, 0.6)
+          .to('#done-strike', { scaleX: 1, duration: 0.14, ease: 'power2.inOut' }, 0.64)
+          .to('#done-title', { color: 'rgba(33,30,22,0.42)', duration: 0.14 }, 0.64)
+          .to('#chip-prog', { opacity: 0, duration: 0.1 }, 0.66)
+          .to('#chip-done', { opacity: 1, duration: 0.1 }, 0.68);
+        break;
+      case 'flow': {
+        tl.to('#rail-fill', { scaleX: 1, duration: 0.3, ease: 'none' }, 0.5);
+        ['#stop-1', '#stop-2', '#stop-3'].forEach((s, i) => {
+          tl.to(s + ' .core', { backgroundColor: '#926516', duration: 0.05 }, 0.5 + i * 0.14)
+            .to(s + ' .lbl', { color: 'rgba(33,30,22,0.66)', duration: 0.05 }, 0.5 + i * 0.14);
+        });
+        break;
+      }
+      case 'night':
+        tl.from(stage.querySelectorAll('.fl'), { y: 18, opacity: 0, stagger: 0.14, duration: 0.35, ease: 'power2.out' }, 0.5);
+        break;
+      case 'approve':
+        tl.from(stage.querySelector('.actions'), { y: 16, opacity: 0, duration: 0.3 }, 0.55);
+        break;
+      case 'install':
+        tl.from(stage.querySelectorAll('#boot div'), { y: 12, opacity: 0, stagger: 0.12, duration: 0.3 }, 0.55)
+          .from(stage.querySelector('.badges'), { y: 14, opacity: 0, duration: 0.3 }, 0.7);
+        break;
+    }
+    // dwell: hold the resolved state through the last ~30% of the pin
+    tl.to({}, { duration: tl.duration() * 0.45 });
+  });
+})();
+</script>
+</body>
+</html>

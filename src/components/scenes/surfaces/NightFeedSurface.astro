@@ -1,0 +1,137 @@
+---
+/**
+ * Overnight feed card - the night-shift scene's surface (STORYBOARD §Section
+ * 6). One narrow `--bg-secondary` card of mono-timestamped rows rendered
+ * from NIGHT_FEED; the waiting row ships resolved with its amber wash
+ * (`data-active`). Deliberately not alive (AMENDMENT §2.6): the scene plays
+ * once and this card then holds still.
+ */
+import { NIGHT_FEED } from "../../../lib/scenes/dashboard";
+---
+
+<div class="feed" data-surface="night" data-target="feed-card">
+  <header class="feed__head" data-field="header">{NIGHT_FEED.header}</header>
+
+  <div class="feed__rows">
+    {
+      NIGHT_FEED.rows.map((row) => (
+        <div class="feed__row" data-target={row.target} data-tone={row.tone}>
+          <span class="feed__time" data-field="time">
+            {row.time}
+          </span>
+          <svg class="feed__glyph" aria-hidden="true">
+            <use href={`#${row.icon}`} />
+          </svg>
+          <span class="feed__text" data-field="text">
+            {row.text}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .feed {
+    width: min(35rem, 100%);
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
+
+  .feed__head {
+    padding: 0 var(--space-3) var(--space-3);
+    font-family: var(--font-code);
+    font-size: var(--text-caption2);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .feed__rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feed__row {
+    display: grid;
+    grid-template-columns: 2.75rem 14px 1fr;
+    column-gap: var(--space-3);
+    align-items: baseline;
+    padding: 9px var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .feed__time {
+    font-family: var(--font-code);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .feed__glyph {
+    width: 13px;
+    height: 13px;
+    align-self: center;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--text-quaternary);
+  }
+
+  .feed__row[data-tone="green"] .feed__glyph {
+    color: var(--system-green);
+  }
+
+  .feed__row[data-tone="amber"] .feed__glyph {
+    color: var(--accent);
+  }
+
+  .feed__text {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  /* The one decision at your door - a soft amber wash that holds
+     (STORYBOARD §Section 6; sanctioned accent-fill wash). Playback applies
+     it via `data-active` only at the 3000ms highlight beat, so the animated
+     DOM matches the reducer (no highlight before the beat); no-JS and
+     reduced-motion ship it statically on the waiting (amber-tone) row -
+     the established motion/static split pattern. */
+  .feed__row {
+    transition: background-color 400ms var(--ease-smooth);
+  }
+
+  .feed__row[data-active],
+  :global(html:not([data-motion="ok"])) .feed__row[data-tone="amber"] {
+    background: var(--accent-fill);
+  }
+
+  .feed__row[data-active] .feed__text,
+  :global(html:not([data-motion="ok"]))
+    .feed__row[data-tone="amber"]
+    .feed__text {
+    color: var(--text-primary);
+    font-weight: var(--weight-medium);
+  }
+
+  @media (max-width: 899px) {
+    .feed {
+      width: 100%;
+      padding: var(--space-4) var(--space-3) var(--space-3);
+    }
+
+    /* Wrapped rows keep the hanging indent - the time column stays a
+       column, text wraps within its own track (STORYBOARD §5). */
+    .feed__row {
+      column-gap: var(--space-2);
+      padding: 8px var(--space-2);
+    }
+  }
+</style>

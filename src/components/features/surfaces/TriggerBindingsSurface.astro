@@ -1,0 +1,288 @@
+---
+/**
+ * §05 webhook-fire surface - the shipped triggers-pane row anatomy
+ * (surfaces/TriggersSurface.astro) with the storyboard's canonical-data
+ * extensions: a 4th row, the `poll` kind label, a mono token chip on the
+ * webhook row, and the run row parked under the webhook binding
+ * (STORYBOARD-FEATURES §4.6 - data-level delta, same row anatomy).
+ *
+ * This surface lives inside the page's one dark-scoped window; every color
+ * is a token, so the dark frame re-resolves them (no hardcoded darks).
+ */
+import { WEBHOOK_FIRE_PANE } from "../../../lib/scenes/features";
+
+const iconForKind = {
+  cron: "i-clock",
+  "todo-status": "i-list",
+  webhook: "i-plug",
+  poll: "i-search",
+} as const;
+---
+
+<div class="wtrig" data-surface="webhook-fire">
+  <header class="wtrig__head" data-field="header">
+    {WEBHOOK_FIRE_PANE.header}
+  </header>
+
+  <div class="wtrig__list">
+    {
+      WEBHOOK_FIRE_PANE.bindings.map((binding) => (
+        <div class="wtrig__binding-wrap">
+          <article
+            class="wtrig__binding"
+            data-target={binding.target}
+            data-state={binding.status}
+          >
+            <span class="wtrig__disc" aria-hidden="true">
+              <svg class="wtrig__icon">
+                <use href={`#${iconForKind[binding.kind]}`} />
+              </svg>
+            </span>
+            <span class="wtrig__meta">
+              <span class="wtrig__name" data-field="title">
+                {binding.title}
+              </span>
+              <span class="wtrig__detail" data-field="detail">
+                {binding.detail}
+              </span>
+            </span>
+            {binding.token && (
+              <span class="wtrig__token" data-field="token">
+                {binding.token}
+              </span>
+            )}
+            <span class="wtrig__kind" data-field="kind">
+              {binding.kind}
+            </span>
+            {binding.fired && (
+              <span class="wtrig__fired" data-field="fired">
+                {binding.fired}
+              </span>
+            )}
+          </article>
+          {binding.target === "binding-webhook" && (
+            <div class="wtrig__run" data-target="run-row" data-field="run">
+              <span class="wtrig__run-dot" aria-hidden="true" />
+              {WEBHOOK_FIRE_PANE.run}
+            </div>
+          )}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .wtrig {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  .wtrig__head {
+    color: var(--text-primary);
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .wtrig__list {
+    display: flex;
+    width: 100%;
+    max-width: 520px;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0 auto;
+    padding-top: var(--space-6);
+  }
+
+  .wtrig__binding-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .wtrig__binding {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    overflow: hidden;
+    padding: 13px 15px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .wtrig__disc {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    color: var(--text-tertiary);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .wtrig__binding[data-state="fired"] .wtrig__disc {
+    background: var(--accent-fill);
+    color: var(--accent);
+  }
+
+  .wtrig__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .wtrig__meta {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .wtrig__name,
+  .wtrig__detail {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .wtrig__name {
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: var(--weight-semibold);
+  }
+
+  /* AA (B2 review finding 8): small in-window text keeps secondary ink -
+     dark-theme tertiary reads ~3:1 on these rows. */
+  .wtrig__detail {
+    margin-top: 1px;
+    color: var(--text-secondary);
+    font-size: 11px;
+  }
+
+  /* The binding's own secret - a quiet mono chip (STORYBOARD-FEATURES §4.6). */
+  .wtrig__token {
+    flex: none;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--fill-tertiary);
+    color: var(--text-secondary);
+    font-family: var(--font-code);
+    font-size: 9.5px;
+  }
+
+  .wtrig__kind,
+  .wtrig__fired {
+    flex: none;
+    font-family: var(--font-code);
+    font-size: 10.5px;
+  }
+
+  .wtrig__kind {
+    color: var(--text-secondary);
+  }
+
+  .wtrig__fired {
+    display: none;
+    color: var(--accent);
+    font-weight: var(--weight-medium);
+  }
+
+  .wtrig__binding[data-state="fired"] .wtrig__kind {
+    display: none;
+  }
+
+  .wtrig__binding[data-state="fired"] .wtrig__fired {
+    display: block;
+  }
+
+  .wtrig__run {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-1);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+  }
+
+  /* A started run is live work - blue by the honest-state law. */
+  .wtrig__run-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--system-blue);
+  }
+
+  /* Collapsed while hidden so the reveal GROWS the list - one calm gesture. */
+  .wtrig__run {
+    max-height: 32px;
+    transition:
+      max-height 300ms var(--ease-smooth),
+      margin-top 300ms var(--ease-smooth);
+  }
+
+  .wtrig__run[hidden] {
+    display: flex;
+    max-height: 0;
+    margin-top: calc(-1 * var(--space-2));
+    overflow: hidden;
+  }
+
+  @media (max-width: 899px) {
+    .wtrig {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .wtrig__head {
+      font-size: var(--text-body);
+    }
+
+    .wtrig__list {
+      max-width: none;
+      padding-top: var(--space-4);
+    }
+
+    .wtrig__binding {
+      width: 100%;
+      padding-inline: 12px;
+    }
+
+    .wtrig__kind,
+    .wtrig__fired {
+      overflow: hidden;
+      font-size: 9.5px;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* The token chip yields the row-end slot to the kind/fired label and
+       wraps under the row text if needed (STORYBOARD-FEATURES §6). */
+    .wtrig__binding {
+      flex-wrap: wrap;
+    }
+
+    .wtrig__token {
+      order: 4;
+      margin-left: 42px;
+    }
+  }
+</style>

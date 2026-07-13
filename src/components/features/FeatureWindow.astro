@@ -1,0 +1,108 @@
+---
+/**
+ * FeatureWindow - the features page's stage-local standalone scene window
+ * (STORYBOARD-FEATURES §3): a pane-only crop - no icon ribbon, no sessions
+ * sidebar - that activates on viewport entry and loops. Window chrome is the
+ * frame + pane + pause control, nothing else (§10.3); the full dashboard
+ * chrome belongs to the landing's showcase.
+ *
+ * The root is a standalone `[data-scene-window][data-scene-id]` the page
+ * installer discovers (HANDOFF-A05 §1). The player mounts the real ≥44px
+ * pause control into `[data-scene-controls]`.
+ *
+ * `dark` scopes the FRAME (and only the frame) to the dark Ledger theme -
+ * §05's night window. The pause control and caption stay page-themed; they
+ * belong to the page, not the window (STORYBOARD-FEATURES §5).
+ */
+interface Props {
+  /** Registered scene id this window plays. */
+  sceneId: string;
+  /** Accessible caption describing the scene without relying on motion. */
+  caption: string;
+  /** Reserved resolved footprint - the frame's fixed height in px. */
+  height: number;
+  /** Mobile (<900px) footprint override - vertical arrangements grow. */
+  heightMobile?: number;
+  /** The one dark-scoped window on the page (§05 Triggers only). */
+  dark?: boolean;
+}
+
+const {
+  sceneId,
+  caption,
+  height,
+  heightMobile = height,
+  dark = false,
+} = Astro.props;
+---
+
+<figure
+  class="fwindow"
+  data-scene-window
+  data-scene-id={sceneId}
+  style={`--fwindow-height: ${height}px; --fwindow-height-mobile: ${heightMobile}px`}
+>
+  <figcaption class="visually-hidden" data-scene-caption>{caption}</figcaption>
+
+  <div
+    class="fwindow__frame"
+    data-scene-frame
+    aria-hidden="true"
+    data-theme={dark ? "dark" : undefined}
+  >
+    <slot />
+  </div>
+
+  <div class="fwindow__controls" data-scene-controls></div>
+</figure>
+
+<style>
+  .fwindow {
+    position: relative;
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Fixed height reserves the scene's resolved footprint - pre-play hidden
+     enter-targets must never collapse the frame (CLS rule, jinn-design). */
+  .fwindow__frame {
+    position: relative;
+    height: var(--fwindow-height);
+    overflow: hidden;
+    background: var(--bg);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  /* The dark-scoped frame re-resolves every Ledger token to the dark theme -
+     no mixed-theme surfaces inside (STORYBOARD-FEATURES §5). */
+  .fwindow__frame[data-theme="dark"] {
+    color: var(--text-primary);
+    color-scheme: dark;
+  }
+
+  /* Real, keyboard-accessible controls layer. NOT aria-hidden and never
+     inside the decorative frame. */
+  .fwindow__controls {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .fwindow__controls:empty {
+    display: none;
+  }
+
+  .fwindow__controls > :global(.scene-playback-control) {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    pointer-events: auto;
+  }
+
+  @media (max-width: 899px) {
+    .fwindow__frame {
+      height: var(--fwindow-height-mobile);
+    }
+  }
+</style>

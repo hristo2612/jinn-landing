@@ -1,0 +1,99 @@
+.scene-playback-control {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--text-primary);
+  background: var(--pill-bg);
+  box-shadow: var(--shadow-overlay);
+  backdrop-filter: blur(24px) saturate(160%);
+  cursor: pointer;
+  transition-property: scale, background-color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+.scene-playback-control:active {
+  scale: 0.96;
+}
+
+.scene-playback-control__icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: auto;
+  transition-property: opacity, scale, filter;
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease-snappy);
+}
+
+.scene-playback-control__icon--pause {
+  grid-template-columns: repeat(2, 3px);
+  gap: 3px;
+  width: 9px;
+  height: 12px;
+}
+
+.scene-playback-control__icon--pause i {
+  width: 3px;
+  height: 12px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.scene-playback-control__icon--play {
+  width: 0;
+  height: 0;
+  margin-left: calc(50% - 3px);
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid currentColor;
+}
+
+.scene-playback-control[data-state="playing"]
+  .scene-playback-control__icon--play,
+.scene-playback-control[data-state="paused"]
+  .scene-playback-control__icon--pause {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+
+.scene-playback-control[data-state="playing"]
+  .scene-playback-control__icon--pause,
+.scene-playback-control[data-state="paused"]
+  .scene-playback-control__icon--play {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-playback-control,
+  .scene-playback-control__icon {
+    transition-duration: 0ms;
+  }
+}
+/* The hero's server proof is resolved for no-JS and reduced-motion readers.
+   Motion-capable browsers mask only the resolved thread rows until the runtime
+   has primed the same visible frame to its initial state. The dashboard itself
+   never disappears, even on a slow or failed scene bundle. */
+html[data-motion="ok"]:is(
+    [data-scene-runtime="loading"],
+    [data-scene-runtime="static"]
+  )
+  [data-scene-id="delegation"]
+  :is(
+    [data-target="msg-user-1"],
+    [data-target="msg-coo-1"],
+    [data-target="chip-analyst"],
+    [data-target="chip-writer"],
+    [data-target="msg-coo-2"]
+  ) {
+  display: none;
+}

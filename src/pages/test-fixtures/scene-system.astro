@@ -1,0 +1,103 @@
+---
+import "../../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-motion="ok">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Scene system fixture</title>
+  </head>
+  <body data-pagefind-ignore="all">
+    <main>
+      <figure data-scene-controller data-scene-window data-scene-id="alpha">
+        <div data-scene-frame aria-hidden="true">
+          <div data-target="pane-chat" data-active>Alpha</div>
+        </div>
+        <div data-scene-controls></div>
+      </figure>
+      <figure data-scene-controller data-scene-window data-scene-id="beta">
+        <div data-scene-frame aria-hidden="true">
+          <div data-target="pane-chat" data-active>Beta</div>
+        </div>
+        <div data-scene-controls></div>
+      </figure>
+      <figure data-scene-window data-scene-id="gamma">
+        <div data-scene-frame aria-hidden="true">
+          <div data-target="pane-chat" data-active>Gamma</div>
+        </div>
+        <div data-scene-controls></div>
+      </figure>
+    </main>
+
+    <script>
+      import { installSceneSystem } from "../../lib/scenes/install-scene-system";
+      import type {
+        ChatSceneState,
+        SceneDefinition,
+      } from "../../lib/scenes/types";
+
+      const initialState: ChatSceneState = {
+        pane: "chat",
+        pill: { name: "COO", meta: "· COO · engine", presence: "active" },
+        thread: [],
+        composerPlaceholder: "Message the COO…",
+      };
+      const definitions = new Map<string, SceneDefinition<ChatSceneState>>(
+        ["alpha", "beta", "gamma"].map((id) => [
+          id,
+          {
+            id,
+            title: `${id} scene`,
+            surface: "chat",
+            claim: `Animate ${id}.`,
+            transcript: `${id} becomes active.`,
+            initialState,
+            targets: [{ id: "pane-chat", kind: "pane" }],
+            playback: {
+              mode: "once",
+              entry: "restart-on-enter",
+              offscreen: "pause",
+            },
+            beats: [
+              {
+                at: 0,
+                duration: 100,
+                target: "pane-chat",
+                action: { type: "highlight" },
+                easing: "snappy",
+              },
+            ],
+            checkpoints: [
+              { name: "initial", at: 0 },
+              { name: "resolved", at: 1000 },
+            ],
+          },
+        ]),
+      );
+
+      const controllers = await installSceneSystem(definitions);
+      Object.assign(window, { __sceneSystemControllers: controllers });
+    </script>
+  </body>
+</html>
+
+<style>
+  body {
+    margin: 0;
+  }
+
+  main {
+    display: grid;
+    gap: 2rem;
+    padding: 2rem;
+  }
+
+  [data-scene-window] {
+    min-height: 12rem;
+    padding: 2rem;
+    background: var(--bg-secondary);
+  }
+</style>

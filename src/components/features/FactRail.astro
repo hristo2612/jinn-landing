@@ -1,0 +1,66 @@
+---
+/**
+ * Fact rail - spec-sheet-quiet rows for the scanner (STORYBOARD-FEATURES §3).
+ * Mono label (the kicker voice) + one sentence. No icons, no borders, no
+ * cards, no hover states - row separation is whitespace only. It must read
+ * like print on the page, not like a component (§10.2).
+ */
+import type { FactRailRow } from "../../lib/scenes/features";
+
+interface Props {
+  rows: FactRailRow[];
+}
+
+const { rows } = Astro.props;
+---
+
+<dl class="fact-rail">
+  {
+    rows.map((row) => (
+      <div class="fact-rail__row">
+        <dt class="fact-rail__label">{row.label}</dt>
+        <dd class="fact-rail__text">{row.text}</dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .fact-rail {
+    display: flex;
+    max-width: 40rem;
+    flex-direction: column;
+    gap: 18px;
+    margin: 0;
+  }
+
+  .fact-rail__row {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    column-gap: var(--space-5);
+    align-items: baseline;
+  }
+
+  .fact-rail__label {
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .fact-rail__text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .fact-rail__row {
+      grid-template-columns: 1fr;
+      row-gap: 4px;
+    }
+  }
+</style>

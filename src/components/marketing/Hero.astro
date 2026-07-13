@@ -1,0 +1,231 @@
+---
+/**
+ * Hero copy over one complete Jinn dashboard. The page shell is stable at
+ * first paint; motion belongs inside the product window.
+ */
+import CommandPill from "../chrome/CommandPill.astro";
+import SceneWindow from "../scenes/SceneWindow.astro";
+import ChatSurface from "../scenes/surfaces/ChatSurface.astro";
+import OrgSurface from "../scenes/surfaces/OrgSurface.astro";
+import TodosSurface from "../scenes/surfaces/TodosSurface.astro";
+import WorkflowSurface from "../scenes/surfaces/WorkflowSurface.astro";
+import TriggersSurface from "../scenes/surfaces/TriggersSurface.astro";
+
+const githubUrl = "https://github.com/hristo2612/jinn";
+
+const sceneCaption =
+  "You message the COO about a signup dip. It replies with a plan, delegates research to the analyst and a copy fix to the writer, and reports the first finding - with a todo already open.";
+---
+
+<section class="hero" aria-label="Run your own AI company">
+  <div class="hero__copy">
+    <p class="hero__eyebrow">Open source · Local-first · Multi-engine</p>
+
+    <h1 class="hero__headline">
+      <span class="hero__line">
+        <span class="hero__line-inner hero__line-inner--thin">Run your own</span
+        >
+      </span>
+      <span class="hero__line">
+        <span class="hero__line-inner hero__line-inner--bold"
+          >AI company<span class="hero__period">.</span></span
+        >
+      </span>
+    </h1>
+
+    <p class="hero__sub">
+      Jinn is an open-source, local-first gateway. Hire AI employees, hand them
+      real work, and step in only when it matters.
+    </p>
+
+    <div class="hero__cta">
+      <CommandPill copy="npm install -g jinn-cli" />
+      <a class="hero__ghost" href={githubUrl}>
+        View on GitHub <span class="hero__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero__stage">
+    <SceneWindow caption={sceneCaption} sceneId="delegation">
+      <ChatSurface slot="chat" />
+      <OrgSurface slot="org" />
+      <TodosSurface slot="todos" />
+      <WorkflowSurface slot="flows" />
+      <TriggersSurface slot="triggers" />
+    </SceneWindow>
+  </div>
+
+  <span class="hero__scroll" aria-hidden="true">Scroll</span>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: max(100svh, 44rem);
+    overflow: visible;
+    padding: calc(var(--site-nav-height) + var(--safe-top) + var(--space-8))
+      var(--site-page-gutter)
+      clamp(var(--space-12), 8vh, calc(var(--space-16) + var(--space-4)));
+  }
+
+  .hero__copy {
+    flex: 0 0 auto;
+    width: min(100%, var(--site-hero-copy-max));
+    text-align: center;
+  }
+
+  .hero__eyebrow {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 12px;
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .hero__headline {
+    margin: var(--space-5) 0 0;
+    font-size: clamp(2.625rem, 6vw, 5.5rem);
+    line-height: 1.02;
+  }
+
+  .hero__line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+  }
+
+  .hero__line-inner {
+    display: block;
+  }
+
+  .hero__line-inner--thin {
+    font-weight: 250;
+    font-variation-settings: "wght" 250;
+    letter-spacing: -0.012em;
+    color: var(--text-primary);
+  }
+
+  .hero__line-inner--bold {
+    font-weight: 640;
+    font-variation-settings: "wght" 640;
+    letter-spacing: -0.042em;
+    color: var(--text-primary);
+  }
+
+  .hero__period {
+    color: var(--accent);
+  }
+
+  .hero__sub {
+    max-width: 35rem;
+    margin: var(--space-5) auto 0;
+    font-size: clamp(1rem, 1.4vw, 1.1875rem);
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    color: var(--text-secondary);
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+  }
+
+  .hero__ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    font-size: var(--text-footnote);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 160ms var(--ease-smooth);
+  }
+
+  .hero__ghost:hover {
+    color: var(--text-primary);
+  }
+
+  .hero__arrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-spring);
+  }
+
+  .hero__ghost:hover .hero__arrow {
+    transform: translateX(3px);
+  }
+
+  .hero__stage {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    min-height: 0;
+    margin-top: clamp(var(--space-8), 4vh, var(--space-12));
+  }
+
+  /* Desktop-only scroll cue. */
+  .hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--safe-bottom) + var(--space-5));
+    transform: translateX(-50%);
+    font-family: var(--font-code);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    pointer-events: none;
+  }
+
+  /* ============================================================
+     Mobile - chat-pane-only window, stacked CTA (STORYBOARD §4)
+     ============================================================ */
+  @media (max-width: 640px) {
+    .hero {
+      padding-top: calc(
+        var(--site-nav-height) + var(--safe-top) + var(--space-6)
+      );
+    }
+
+    .hero__eyebrow {
+      font-size: 11px;
+    }
+
+    .hero__headline {
+      font-size: clamp(2.625rem, 12vw, 2.875rem);
+    }
+
+    .hero__sub {
+      font-size: 1rem;
+    }
+
+    .hero__cta {
+      flex-direction: column;
+      gap: var(--space-4);
+      margin-top: var(--space-6);
+    }
+
+    .hero__cta :global(.command-pill) {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    /* Scroll cue is desktop-only (STORYBOARD §4/§5). */
+    .hero__scroll {
+      display: none;
+    }
+  }
+</style>

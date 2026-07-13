@@ -1,0 +1,429 @@
+---
+/**
+ * SceneWindow - the persistent Jinn dashboard frame: icon ribbon → sessions
+ * sidebar → content panes (the app's tonal staircase). It renders the RUNTIME
+ * contract the scene system drives:
+ *
+ *  - Ribbon items carry `data-target="ribbon-<pane>"` + `data-pane`, and the
+ *    active one gets `data-active`. A-07 moves `data-active` to swap panes.
+ *  - Every pane is a mounted container `data-target="pane-<pane>"` + `data-pane`
+ *    (a named slot each). A-04 fills only `chat`; A-08 fills the rest. The
+ *    active pane shows via `data-active`; the player toggles it at runtime.
+ *  - Ribbon + sessions render from the canonical `dashboard.ts` data, so the
+ *    SSR view and the A-05 reducer share one source of truth.
+ *
+ * The frame chrome (`[data-scene-frame]`) is a decorative illustration: fake
+ * controls are non-focusable and the whole frame is aria-hidden. A separate
+ * `[data-scene-controls]` slot (NOT aria-hidden) is reserved for the real
+ * pause/play control A-06 must add for the looping hero scene.
+ *
+ * The scene proof reaches assistive tech via the `<figcaption>`. Icons come
+ * from a single page-level <SceneIconSprite/> (id-safe across stacked windows).
+ */
+import { RIBBON, SESSIONS } from "../../lib/scenes/dashboard";
+import type { PaneKey } from "../../lib/scenes/types";
+
+interface Props {
+  /** Ribbon/pane to render active. */
+  activePane?: PaneKey;
+  /** Accessible caption describing the scene without relying on motion. */
+  caption: string;
+  /** Declarative scene id consumed by ScenePlayer/SceneController. */
+  sceneId?: string;
+  /** Full dashboard chrome for the hero, pane-only chrome for feature stories. */
+  chrome?: "full" | "focused";
+}
+
+const { activePane = "chat", caption, sceneId, chrome = "full" } = Astro.props;
+---
+
+<figure
+  class="scene-window"
+  data-scene-window
+  data-scene-id={sceneId}
+  data-window-chrome={chrome}
+>
+  <figcaption class="visually-hidden" data-scene-caption>{caption}</figcaption>
+
+  <div class="scene-window__frame" data-scene-frame aria-hidden="true">
+    {
+      chrome === "full" && (
+        <>
+          <div class="scene-window__ribbon">
+            <span class="scene-window__mark">{"\u{1F9DE}\u{FE0F}"}</span>
+            {RIBBON.map((item) => (
+              <span
+                class="scene-window__rb"
+                data-target={`ribbon-${item.pane}`}
+                data-pane={item.pane}
+                data-active={item.pane === activePane ? "" : undefined}
+              >
+                <svg class="scene-window__ic">
+                  <use href={`#${item.icon}`} />
+                </svg>
+              </span>
+            ))}
+            <span class="scene-window__rb-spacer" />
+            <span class="scene-window__rb scene-window__rb--settings">
+              <svg class="scene-window__ic">
+                <use href="#i-gear" />
+              </svg>
+            </span>
+          </div>
+
+          <aside class="scene-window__sidebar">
+            <div class="scene-window__sb-inner">
+              <div class="scene-window__sb-head">
+                <span class="scene-window__sb-title">Sessions</span>
+                <span class="scene-window__sb-plus">
+                  <svg class="scene-window__ic">
+                    <use href="#i-plus" />
+                  </svg>
+                </span>
+              </div>
+              <div class="scene-window__sb-search">
+                <svg class="scene-window__ic">
+                  <use href="#i-search" />
+                </svg>
+                Search
+              </div>
+              {SESSIONS.map((row) => (
+                <div
+                  class="scene-window__srow"
+                  data-active={row.active ? "" : undefined}
+                >
+                  <span class="scene-window__savatar">{row.emoji}</span>
+                  <span class="scene-window__smeta">
+                    <span class="scene-window__stt">{row.title}</span>
+                    <span class="scene-window__sst">{row.sub}</span>
+                  </span>
+                  {row.active && <span class="scene-window__sdot" />}
+                </div>
+              ))}
+            </div>
+          </aside>
+        </>
+      )
+    }
+
+    <div class="scene-window__panes">
+      <div
+        class="scene-window__pane"
+        data-target="pane-chat"
+        data-pane="chat"
+        data-active={activePane === "chat" ? "" : undefined}
+      >
+        <slot name="chat" />
+      </div>
+      <div
+        class="scene-window__pane"
+        data-target="pane-org"
+        data-pane="org"
+        data-active={activePane === "org" ? "" : undefined}
+      >
+        <slot name="org" />
+      </div>
+      <div
+        class="scene-window__pane"
+        data-target="pane-todos"
+        data-pane="todos"
+        data-active={activePane === "todos" ? "" : undefined}
+      >
+        <slot name="todos" />
+      </div>
+      <div
+        class="scene-window__pane"
+        data-target="pane-flows"
+        data-pane="flows"
+        data-active={activePane === "flows" ? "" : undefined}
+      >
+        <slot name="flows" />
+      </div>
+      <div
+        class="scene-window__pane"
+        data-target="pane-triggers"
+        data-pane="triggers"
+        data-active={activePane === "triggers" ? "" : undefined}
+      >
+        <slot name="triggers" />
+      </div>
+    </div>
+  </div>
+
+  <div class="scene-window__controls" data-scene-controls>
+    <slot name="controls" />
+  </div>
+</figure>
+
+<style>
+  .scene-window {
+    position: relative;
+    width: min(var(--site-window-max), 100%);
+    margin: 0;
+  }
+
+  .scene-window::before {
+    content: "";
+    position: absolute;
+    inset: -18% -8% -30%;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 62%
+    );
+    pointer-events: none;
+  }
+
+  .scene-window__frame {
+    position: relative;
+    display: grid;
+    grid-template-columns: 54px 236px 1fr;
+    height: var(--site-window-height);
+    min-height: 430px;
+    overflow: hidden;
+    background: var(--bg);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .scene-window[data-window-chrome="focused"] .scene-window__frame {
+    grid-template-columns: 1fr;
+  }
+
+  /* ribbon - leftmost chrome, the lightest tonal step */
+  .scene-window__ribbon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 0;
+    background: var(--ribbon-bg);
+  }
+
+  /* Brand mark = the product's own 🧞 glyph (pill-nav top slot; U+FE0F keeps
+     color presentation). The amber rounded square died in Amendment 1 §3. */
+  .scene-window__mark {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    place-items: center;
+    margin-bottom: var(--space-2);
+    font-size: 17px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .scene-window__rb {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+  }
+
+  /* Active tab: accent-fill wash (allow-listed) + a primary glyph - the
+     ribbon's only at-rest accent. */
+  .scene-window__rb[data-active] {
+    color: var(--text-primary);
+    background: var(--accent-fill);
+  }
+
+  .scene-window__rb .scene-window__ic {
+    width: 17px;
+    height: 17px;
+    stroke-width: 1.9;
+  }
+
+  .scene-window__rb-spacer {
+    flex: 1;
+  }
+
+  /* sessions sidebar - the middle tonal step */
+  .scene-window__sidebar {
+    min-width: 0;
+    background: var(--sidebar-bg);
+  }
+
+  .scene-window__sb-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 14px 10px;
+  }
+
+  .scene-window__sb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 10px;
+  }
+
+  .scene-window__sb-title {
+    font-size: var(--text-caption1);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .scene-window__sb-plus {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+  }
+
+  .scene-window__sb-plus .scene-window__ic {
+    width: 14px;
+    height: 14px;
+  }
+
+  .scene-window__sb-search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 32px;
+    margin: 0 4px 12px;
+    padding: 0 10px;
+    border-radius: 9px;
+    background: var(--fill-tertiary);
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+  }
+
+  .scene-window__sb-search .scene-window__ic {
+    width: 13px;
+    height: 13px;
+  }
+
+  .scene-window__srow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 8px 9px;
+    border-radius: var(--radius-md);
+  }
+
+  .scene-window__srow[data-active] {
+    background: var(--fill-secondary);
+  }
+
+  /* EmployeeAvatar parity: emoji glyph on a fill-secondary circle (the app's
+     emojiForName look - monograms are retired in the product). */
+  .scene-window__savatar {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .scene-window__smeta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .scene-window__stt {
+    display: block;
+    font-size: 12.5px;
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .scene-window__sst {
+    display: block;
+    margin-top: 1px;
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .scene-window__sdot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--system-green);
+  }
+
+  /* content panes - the deepest tonal step. All panes are mounted; the active
+     one shows. The player toggles data-active to swap them. */
+  .scene-window__panes {
+    position: relative;
+    min-width: 0;
+    background: var(--bg);
+  }
+
+  .scene-window__pane {
+    position: absolute;
+    inset: 0;
+    display: none;
+  }
+
+  .scene-window__pane[data-active] {
+    display: block;
+  }
+
+  .scene-window__ic {
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* The real, keyboard-accessible playback layer. It remains outside the
+     decorative frame and opts back into pointer events locally. */
+  .scene-window__controls {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .scene-window__controls:empty {
+    display: none;
+  }
+
+  .scene-window__controls > :global(.scene-playback-control) {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    pointer-events: auto;
+  }
+
+  @media (max-width: 899px) {
+    .scene-window {
+      width: 100%;
+    }
+
+    /* Mobile drops the stage glow (STORYBOARD §5). */
+    .scene-window::before {
+      display: none;
+    }
+
+    .scene-window__frame {
+      grid-template-columns: 1fr;
+      height: var(--site-window-height-mobile);
+    }
+
+    .scene-window__ribbon,
+    .scene-window__sidebar {
+      display: none;
+    }
+  }
+</style>

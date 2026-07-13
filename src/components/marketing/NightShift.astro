@@ -1,0 +1,111 @@
+---
+/**
+ * Section 6 - While you slept (STORYBOARD §Section 6). The pin has
+ * released; this is the darkest, quietest moment of the page - a
+ * full-viewport normal-flow section with theatrical silence around it
+ * (guardrail #7: MORE spacing, not less), one centered head, and the
+ * overnight feed card. This is where the visitor learns the dark page has
+ * been "night" all along.
+ *
+ * The window root is a standalone scene root (`data-scene-window` +
+ * `data-scene-id`, not nested in a controller) - the installer gives it
+ * its own controller and it activates on visibility.
+ */
+import NightFeedSurface from "../scenes/surfaces/NightFeedSurface.astro";
+
+const caption =
+  "An overnight feed: a backup ran, a webhook opened a refund review, todos completed with review, the analyst filed a report - and the morning digest is drafted, waiting for you.";
+---
+
+<section class="night" aria-label="While you were away">
+  <header class="night__head">
+    <p class="night__kicker">While you were away</p>
+    <h2 class="night__title">It ran while you slept.</h2>
+    <p class="night__body">
+      Triggers fire overnight. Workflows advance. Todos complete. Nothing waits
+      for morning - except the decisions that should.
+    </p>
+  </header>
+
+  <figure class="night__window" data-scene-window data-scene-id="night-shift">
+    <figcaption class="visually-hidden" data-scene-caption>
+      {caption}
+    </figcaption>
+    <div class="night__frame" data-scene-frame aria-hidden="true">
+      <NightFeedSurface />
+    </div>
+    <div class="night__controls" data-scene-controls></div>
+  </figure>
+</section>
+
+<style>
+  .night {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding: var(--site-section-space-theatrical) var(--site-page-gutter);
+  }
+
+  .night__head {
+    width: min(48rem, 100%);
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* One kicker voice page-wide (quiet mono secondary, both themes). */
+  .night__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .night__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--site-display-md);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+  }
+
+  .night__body {
+    max-width: 34rem;
+    margin: var(--space-4) auto 0;
+    font-size: clamp(0.98rem, 1.35vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .night__window {
+    margin: clamp(var(--space-10), 7vh, 5rem) 0 0;
+  }
+
+  /* Reserve the resolved feed's footprint: enter-targets ship hidden
+     before playback, and a collapsing frame would shift the layout
+     mid-scene and starve the visibility observers. */
+  .night__frame {
+    min-height: 18rem;
+  }
+
+  .night__controls:empty {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    .night {
+      min-height: 0;
+      /* The theatre keeps MORE silence than any other mobile section
+         (guardrail #7) - and the extra runway holds the night card clear
+         of the sunrise band below. */
+      padding-block: calc(var(--space-16) + var(--space-16));
+    }
+
+    .night__frame {
+      min-height: 19rem;
+    }
+  }
+</style>

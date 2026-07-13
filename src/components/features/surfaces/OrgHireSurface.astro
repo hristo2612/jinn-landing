@@ -1,0 +1,430 @@
+---
+/**
+ * §02 org-hire surface - the shipped org-pane anatomy (surfaces/
+ * OrgSurface.astro: executive node, stub, branch, department groups)
+ * rendered from ORG_HIRE_PANE at the landing's org plus the Support seat.
+ * No presence dots - the app's org map renders no live-session indicator
+ * (Addendum B2-4).
+ *
+ * The header is a text target (recounts 5→6 employees) using the
+ * motion/static split. The Support branch cell, department, and node are
+ * enter targets; the department reveal uses the established collapsed-hidden
+ * idiom (max-width/height + negative margin) so the chart WIDENS as one calm
+ * gesture instead of snapping (STORYBOARD-FEATURES §4.3).
+ *
+ * Branch geometry: a cell row mirroring the department columns - each cell
+ * carries a centered tick, and every cell after the first draws the line
+ * segment back to the previous center. The support cell collapses with its
+ * department, so ticks stay centered over their columns through the reveal.
+ */
+import { ORG_HIRE_PANE } from "../../../lib/scenes/features";
+
+const byTarget = new Map(
+  ORG_HIRE_PANE.employees.map((employee) => [employee.target, employee]),
+);
+const executive = ORG_HIRE_PANE.employees.find(
+  (employee) => employee.executive,
+)!;
+---
+
+<div class="orgh" data-surface="org-hire">
+  <header class="orgh__head">
+    <span class="orgh__head-motion" data-target="org-header"
+      >{ORG_HIRE_PANE.initialHeader}</span
+    >
+    <span class="orgh__head-static">{ORG_HIRE_PANE.header}</span>
+  </header>
+
+  <div class="orgh__chart">
+    <article
+      class="orgh__node orgh__node--executive"
+      data-target={executive.target}
+    >
+      <span class="orgh__avatar">{executive.emoji}</span>
+      <span class="orgh__identity">
+        <span class="orgh__name" data-field="name">{executive.name}</span>
+        <span class="orgh__role" data-field="role">{executive.role}</span>
+      </span>
+      <span class="orgh__engine" data-field="engine">{executive.engine}</span>
+    </article>
+
+    <span class="orgh__stub" aria-hidden="true"></span>
+
+    <div class="orgh__branch" aria-hidden="true">
+      <span class="orgh__bcell"><i class="orgh__tick"></i></span>
+      <span class="orgh__bcell"
+        ><i class="orgh__tick"></i><i class="orgh__blink"></i></span
+      >
+      <span
+        class="orgh__bcell orgh__bcell--support"
+        data-target="org-branch-support"
+        ><i class="orgh__tick"></i><i class="orgh__blink"></i></span
+      >
+    </div>
+
+    <div class="orgh__departments">
+      {
+        ORG_HIRE_PANE.departments.map((department) => (
+          <section
+            class:list={[
+              "orgh__department",
+              department.target === "dept-support" &&
+                "orgh__department--support",
+            ]}
+            data-target={department.target}
+            data-tone={department.tone}
+          >
+            <div class="orgh__department-label">
+              <i aria-hidden="true" />
+              <span data-field="label">{department.label}</span>
+            </div>
+            {department.employeeTargets.map((target) => {
+              const employee = byTarget.get(target)!;
+              return (
+                <article class="orgh__node" data-target={employee.target}>
+                  <span class="orgh__avatar">{employee.emoji}</span>
+                  <span class="orgh__identity">
+                    <span class="orgh__name" data-field="name">
+                      {employee.name}
+                    </span>
+                    <span class="orgh__role" data-field="role">
+                      {employee.role}
+                    </span>
+                  </span>
+                  <span class="orgh__engine" data-field="engine">
+                    {employee.engine}
+                  </span>
+                </article>
+              );
+            })}
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<style>
+  .orgh {
+    --orgh-col: 196px;
+    --orgh-gap: var(--space-4);
+
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  .orgh__head {
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+  }
+
+  /* Header recount - motion span ships the initial count (the player
+     replaces it); static span ships the resolved count for no-JS/reduced. */
+  .orgh__head-motion,
+  :global(html[data-motion="ok"]) .orgh__head-static {
+    display: none;
+  }
+
+  :global(html[data-motion="ok"]) .orgh__head-motion {
+    display: inline;
+  }
+
+  .orgh__chart {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orgh__node {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 56px;
+    align-items: center;
+    gap: 7px;
+    overflow: hidden;
+    padding: 0 10px;
+    border-radius: var(--radius-md);
+    background: var(--material-regular);
+    box-shadow: var(--shadow-card);
+  }
+
+  .orgh__node--executive {
+    width: 232px;
+    height: 60px;
+    flex: none;
+  }
+
+  .orgh__node--executive::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--accent);
+    content: "";
+  }
+
+  .orgh__avatar {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .orgh__node--executive .orgh__avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--accent-fill);
+    font-size: 15px;
+  }
+
+  .orgh__identity {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .orgh__name,
+  .orgh__role {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .orgh__name {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+  }
+
+  .orgh__node--executive .orgh__name {
+    font-size: 14px;
+    font-weight: var(--weight-bold);
+  }
+
+  /* AA (B2 review finding 8): small in-window text keeps secondary ink;
+     accent-on-accent-fill chips mix toward text-primary to clear 4.5:1. */
+  .orgh__role {
+    margin-top: 1px;
+    color: var(--text-secondary);
+    font-size: 10.5px;
+  }
+
+  .orgh__engine {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: var(--accent-fill);
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+    font-size: 9.5px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .orgh__stub {
+    width: 1.5px;
+    height: 18px;
+    flex: none;
+    background: var(--separator-opaque);
+  }
+
+  /* Branch cells mirror the department columns exactly - same width, same
+     gap, same collapse - so ticks stay centered over their departments while
+     the support column grows in. */
+  .orgh__branch {
+    display: flex;
+    flex: none;
+    gap: var(--orgh-gap);
+    height: 18px;
+  }
+
+  .orgh__bcell {
+    position: relative;
+    width: var(--orgh-col);
+    flex: none;
+  }
+
+  .orgh__tick {
+    position: absolute;
+    top: 0;
+    left: calc(50% - 0.75px);
+    width: 1.5px;
+    height: 100%;
+    background: var(--separator-opaque);
+  }
+
+  .orgh__blink {
+    position: absolute;
+    top: 0;
+    right: 50%;
+    width: calc(100% + var(--orgh-gap));
+    height: 1.5px;
+    background: var(--separator-opaque);
+  }
+
+  .orgh__departments {
+    display: flex;
+    flex: none;
+    gap: var(--orgh-gap);
+  }
+
+  .orgh__department {
+    position: relative;
+    display: flex;
+    width: var(--orgh-col);
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    padding: 32px 12px 12px;
+    border-radius: var(--radius-lg);
+    background: var(--fill-quaternary);
+  }
+
+  .orgh__department::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--department-tone);
+    content: "";
+    opacity: 0.7;
+  }
+
+  .orgh__department[data-tone="blue"] {
+    --department-tone: var(--system-blue);
+  }
+
+  .orgh__department[data-tone="green"] {
+    --department-tone: var(--system-green);
+  }
+
+  .orgh__department[data-tone="purple"] {
+    --department-tone: var(--system-purple);
+  }
+
+  .orgh__department-label {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .orgh__department-label i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--department-tone);
+  }
+
+  /* Collapsed-hidden reveal - the support column occupies zero width while
+     hidden so its entrance GROWS the chart as one calm gesture; the fade and
+     rise are the player's. Both the branch cell and the department collapse
+     on the same clock. */
+  .orgh__bcell--support,
+  .orgh__department--support {
+    max-width: var(--orgh-col);
+    transition:
+      max-width 300ms var(--ease-smooth),
+      margin-left 300ms var(--ease-smooth);
+  }
+
+  .orgh__bcell--support[hidden],
+  .orgh__department--support[hidden] {
+    display: flex;
+    max-width: 0;
+    margin-left: calc(-1 * var(--orgh-gap));
+    overflow: hidden;
+  }
+
+  .orgh__bcell--support[hidden] {
+    display: block;
+  }
+
+  @media (max-width: 899px) {
+    .orgh {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .orgh__head {
+      font-size: var(--text-body);
+    }
+
+    .orgh__chart {
+      justify-content: flex-start;
+      overflow: hidden;
+      padding-top: var(--space-4);
+    }
+
+    .orgh__node--executive {
+      width: 100%;
+      min-height: 56px;
+    }
+
+    .orgh__stub {
+      height: 14px;
+    }
+
+    /* Single vertical stub - the landing's mobile org pattern. The branch
+       cell row collapses to one connector; the support cell keeps its target
+       mounted (the player never ignores a missing target). */
+    .orgh__branch {
+      display: none;
+    }
+
+    .orgh__departments {
+      width: 100%;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .orgh__department {
+      width: 100%;
+      max-width: none;
+      padding: 30px 10px 10px;
+    }
+
+    .orgh__department .orgh__node {
+      height: 52px;
+    }
+
+    /* Vertical collapse on mobile - the third department extends the stack. */
+    .orgh__department--support {
+      max-height: 120px;
+      transition:
+        max-height 300ms var(--ease-smooth),
+        margin-top 300ms var(--ease-smooth);
+    }
+
+    .orgh__department--support[hidden] {
+      display: flex;
+      max-width: none;
+      max-height: 0;
+      margin-top: calc(-1 * var(--space-3));
+      margin-left: 0;
+      overflow: hidden;
+    }
+  }
+</style>

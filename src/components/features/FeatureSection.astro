@@ -1,0 +1,205 @@
+---
+/**
+ * FeatureSection - the page's one repeated shape (STORYBOARD-FEATURES §3,
+ * §10.1): kicker → title → body → window → fact rail. The repetition IS the
+ * spec-sheet calm.
+ *
+ * Desktop: text block and window alternate sides every other window section
+ * (`flip`); the rail always sits under the window, full column. `layout:
+ * "stack"` centers the window full-width below the text - used by §04 so the
+ * canvas's fixed hand-authored geometry never compresses, and by the
+ * window-less / static sections. Mobile is a narrowing: one column,
+ * text → window → rail.
+ */
+import type { FeatureSectionCopy } from "../../lib/scenes/features";
+import FactRail from "./FactRail.astro";
+
+interface Props {
+  copy: FeatureSectionCopy;
+  /** Mirror text/window sides (desktop). */
+  flip?: boolean;
+  /** "split" = text beside window; "stack" = text above window. */
+  layout?: "split" | "stack";
+  /** Grid width cap for the window column ("wide" fits the 860px canvas). */
+  window?: "pane" | "wide" | "none";
+}
+
+const {
+  copy,
+  flip = false,
+  layout = "split",
+  window: windowSize = "pane",
+} = Astro.props;
+---
+
+<section
+  class:list={[
+    "fsec",
+    `fsec--${layout}`,
+    flip && "fsec--flip",
+    `fsec--${windowSize}`,
+  ]}
+  id={copy.id}
+  aria-label={copy.title}
+>
+  <div class="fsec__copy">
+    <p class="fsec__kicker">{copy.kicker}</p>
+    <h2 class="fsec__title">{copy.title}</h2>
+    <p class="fsec__body">{copy.body}</p>
+    <slot name="under-body" />
+  </div>
+
+  <div class="fsec__stage">
+    <slot name="window" />
+    <div class="fsec__rail">
+      <FactRail rows={copy.rail} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .fsec {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+    column-gap: clamp(var(--space-8), 4.5vw, 4rem);
+    width: 100%;
+    max-width: 84rem;
+    margin: 0 auto;
+    padding: calc(var(--site-section-space) / 2) var(--site-page-gutter);
+  }
+
+  .fsec--flip {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  .fsec--flip .fsec__copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .fsec--flip .fsec__stage {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .fsec--stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    max-width: 60rem;
+  }
+
+  .fsec--stack.fsec--wide {
+    max-width: 64rem;
+  }
+
+  .fsec__copy {
+    max-width: 35rem;
+    padding-top: var(--space-6);
+  }
+
+  .fsec--stack .fsec__copy {
+    padding-top: 0;
+  }
+
+  .fsec__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .fsec__title {
+    margin: var(--space-4) 0 0;
+    font-size: var(--site-display-md);
+    font-weight: 640;
+    font-variation-settings: "wght" 640;
+    letter-spacing: -0.032em;
+    line-height: 1.06;
+    color: var(--text-primary);
+    text-wrap: balance;
+  }
+
+  .fsec__body {
+    margin: var(--space-5) 0 0;
+    max-width: 35rem;
+    font-size: clamp(0.98rem, 1.3vw, 1.0625rem);
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .fsec__stage {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* Containment (B2 review finding 9): fixed-column children (the tree card,
+     the canvas stage) must clip or scroll locally, never widen the document. */
+  .fsec__stage > :global(*) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .fsec__copy {
+    min-width: 0;
+  }
+
+  .fsec__rail {
+    padding-left: var(--space-2);
+  }
+
+  /* Window caps (§3): 720px for panes/cards, 860px for the canvas. Stacked
+     windows center; the rail stays left-aligned under them. */
+  .fsec__stage > :global(:first-child:not(.fsec__rail)) {
+    width: 100%;
+    max-width: 45rem;
+  }
+
+  .fsec--wide .fsec__stage > :global(:first-child:not(.fsec__rail)) {
+    max-width: 53.75rem;
+  }
+
+  .fsec--stack .fsec__stage > :global(:first-child:not(.fsec__rail)) {
+    margin-inline: auto;
+  }
+
+  /* Below the wide-desktop band the side alternation collapses to the calm
+     single column (text → window → rail); split windows would otherwise
+     squeeze the fixed-geometry surfaces. */
+  @media (max-width: 1279px) {
+    .fsec,
+    .fsec--flip {
+      display: flex;
+      flex-direction: column;
+      /* The grid mode's align-items: start would size stacked children to
+         max-content and widen the document (B2 review finding 9) - stacked
+         children stretch and clip/scroll locally instead. */
+      align-items: stretch;
+      gap: var(--space-8);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fsec {
+      padding-block: calc(var(--site-section-space) / 2);
+    }
+
+    .fsec__copy {
+      padding-top: 0;
+    }
+
+    .fsec__title {
+      font-size: clamp(1.75rem, 8vw, 2.125rem);
+    }
+
+    .fsec__rail {
+      padding-left: 0;
+    }
+  }
+</style>

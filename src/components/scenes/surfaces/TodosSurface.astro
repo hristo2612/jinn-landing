@@ -1,0 +1,508 @@
+---
+/**
+ * Todos surface - status glyph cards rendered from TODOS_PANE. Real-app
+ * references mirrored:
+ * packages/web/src/routes/todos/card.tsx
+ * packages/web/src/routes/todos/state-glyph.tsx
+ * packages/web/src/routes/todos/active-view.tsx
+ */
+import { TODOS_PANE, TODO_RELNOTES } from "../../../lib/scenes/dashboard";
+
+/**
+ * Discs carry their own data-state only when a scene targets the DISC
+ * (card-142, card-relnotes per the approved beat tables). A card whose
+ * single approved set-state targets the CARD (card-changelog) renders an
+ * attribute-less disc that derives its state contextually - one attribute,
+ * one owner, no split truth.
+ */
+const discTargets: Record<string, string> = {
+  "card-142": "card-142-disc",
+};
+const contextualDiscs = new Set(["card-changelog"]);
+---
+
+<div class="todos" data-surface="todos">
+  <header class="todos__head">
+    <span class="todos__title" data-field="header">{TODOS_PANE.header}</span>
+    <span class="todos__segments">
+      {
+        TODOS_PANE.segments.map((segment, index) => (
+          <span data-field="segment" data-active={index === 0 ? "" : undefined}>
+            {segment}
+          </span>
+        ))
+      }
+    </span>
+  </header>
+
+  <div class="todos__list">
+    <article class="todos__card" data-target={TODO_RELNOTES.target} hidden>
+      <div class="todos__row">
+        <span
+          class="todos__disc"
+          data-target="card-relnotes-disc"
+          data-state={TODO_RELNOTES.initialStatus}
+        >
+          <svg class="todos__icon todos__icon--assigned">
+            <use href="#i-user"></use>
+          </svg>
+          <svg class="todos__icon todos__icon--executing">
+            <use href="#i-loader"></use>
+          </svg>
+          <svg class="todos__icon todos__icon--blocked">
+            <use href="#i-pause"></use>
+          </svg>
+          <svg class="todos__icon todos__icon--done">
+            <use href="#i-check"></use>
+          </svg>
+        </span>
+        <span class="todos__card-title" data-field="title">
+          {TODO_RELNOTES.title}
+        </span>
+      </div>
+      <div class="todos__meta">
+        <span class="todos__owner">
+          <i>{TODO_RELNOTES.emoji}</i>
+          <span data-field="owner">{TODO_RELNOTES.owner}</span>
+        </span>
+        <span class="todos__spring"></span>
+      </div>
+      <div class="todos__exec">
+        <svg class="todos__icon">
+          <use href="#i-msg"></use>
+        </svg>
+        <span class="todos__exec-motion" data-target="card-relnotes-exec"
+        ></span>
+      </div>
+    </article>
+    {
+      TODOS_PANE.cards.map((card) => (
+        <article
+          class="todos__card"
+          data-target={card.target}
+          data-state={card.status}
+        >
+          <div class="todos__row">
+            <span
+              class="todos__disc"
+              data-target={discTargets[card.target]}
+              data-state={
+                contextualDiscs.has(card.target) ? undefined : card.status
+              }
+            >
+              <svg class="todos__icon todos__icon--assigned">
+                <use href="#i-user" />
+              </svg>
+              <svg class="todos__icon todos__icon--executing">
+                <use href="#i-loader" />
+              </svg>
+              <svg class="todos__icon todos__icon--blocked">
+                <use href="#i-pause" />
+              </svg>
+              <svg class="todos__icon todos__icon--done">
+                <use href="#i-check" />
+              </svg>
+            </span>
+            <span class="todos__card-title" data-field="title">
+              {card.title}
+            </span>
+            {card.badge && (
+              <span class="todos__badge" data-field="badge">
+                <svg class="todos__icon">
+                  <use href="#i-pause" />
+                </svg>
+                {card.badge}
+              </span>
+            )}
+          </div>
+
+          <div class="todos__meta">
+            <span class="todos__owner">
+              <i>{card.emoji}</i>
+              <span data-field="owner">{card.owner}</span>
+            </span>
+            <span class="todos__spring" />
+            {card.cost && <span data-field="cost">{card.cost}</span>}
+            {card.age && <span data-field="age">{card.age}</span>}
+          </div>
+
+          {card.exec && card.target === "card-142" && (
+            <div class="todos__exec">
+              <svg class="todos__icon">
+                <use href="#i-msg" />
+              </svg>
+              <span class="todos__exec-motion" data-target="card-142-exec">
+                {card.initialExec}
+              </span>
+              <span class="todos__exec-static" data-field="exec">
+                {card.exec}
+              </span>
+            </div>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .todos {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  .todos__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .todos__title {
+    color: var(--text-primary);
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .todos__segments {
+    display: flex;
+    margin-left: auto;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--fill-quaternary);
+  }
+
+  .todos__segments > span {
+    padding: 4px 12px;
+    border-radius: 999px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .todos__segments > span[data-active] {
+    background: var(--bg-tertiary);
+    box-shadow: var(--shadow-subtle);
+    color: var(--text-primary);
+  }
+
+  /* Content top-anchors under the pane header (the app's list layout) so
+     every pane swap presents its proof in the same optical band. */
+  .todos__list {
+    display: flex;
+    width: 100%;
+    max-width: 560px;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0 auto;
+    padding-top: var(--space-6);
+  }
+
+  .todos__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+    text-align: left;
+  }
+
+  .todos__card[data-state="done"] {
+    opacity: 0.82;
+  }
+
+  .todos__card[data-target="card-142"][data-state="done"] {
+    opacity: 1;
+  }
+
+  /* An attribute-less disc derives its state from its card - one set-state,
+     one owner (the approved §2.3 changelog beat targets the CARD). */
+  .todos__card[data-state="blocked"] .todos__disc:not([data-state]) {
+    background: color-mix(in srgb, var(--system-orange) 18%, transparent);
+    color: var(--system-orange);
+  }
+
+  /* Assigned stays on the neutral disc (amendment §2.3: "assigned - grey
+     disc"): blue is the honest-state colour for EXECUTING work only. */
+  .todos__card[data-state="blocked"]
+    .todos__disc:not([data-state])
+    .todos__icon--blocked,
+  .todos__card[data-state="assigned"]
+    .todos__disc:not([data-state])
+    .todos__icon--assigned {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+
+  /* Ambient card (amendment §2.3) - collapsed while hidden so its arrival
+     GROWS the ledger and the cards below slide down one slot (the surface's
+     presentation of the new work item; fade/rise is the player's). */
+  .todos__card[data-target="card-relnotes"] {
+    max-height: 140px;
+    transition:
+      max-height 400ms var(--ease-smooth),
+      margin-bottom 400ms var(--ease-smooth),
+      padding-block 400ms var(--ease-smooth);
+  }
+
+  .todos__card[data-target="card-relnotes"][hidden] {
+    display: flex;
+    max-height: 0;
+    margin-bottom: -10px;
+    padding-block: 0;
+    overflow: hidden;
+  }
+
+  /* The session line exists only once its text does - it grows open with
+     the approved 12000ms replace-text beat itself (the row is that beat's
+     presentation) instead of reserving dead space on the assigned card. */
+  .todos__card[data-target="card-relnotes"] .todos__exec {
+    max-height: 20px;
+    opacity: 1;
+    transition:
+      max-height 300ms var(--ease-smooth),
+      margin-top 300ms var(--ease-smooth),
+      opacity 300ms var(--ease-smooth);
+  }
+
+  .todos__card[data-target="card-relnotes"]:has(
+      [data-target="card-relnotes-exec"]:empty
+    )
+    .todos__exec {
+    max-height: 0;
+    margin-top: calc(-1 * var(--space-2));
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  /* Unblocking (amendment §2.3/§4): when the changelog card leaves blocked,
+     its Blocked badge and stale waiting-reason quietly clear. */
+  .todos__badge {
+    transition: opacity 250ms var(--ease-smooth);
+  }
+
+  .todos__card:not([data-state="blocked"]) .todos__badge {
+    opacity: 0;
+  }
+
+  .todos__card[data-target="card-changelog"] [data-field="age"] {
+    transition: opacity 250ms var(--ease-smooth);
+  }
+
+  .todos__card[data-target="card-changelog"]:not([data-state="blocked"])
+    [data-field="age"] {
+    opacity: 0;
+  }
+
+  .todos__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .todos__disc {
+    position: relative;
+    display: grid;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-tertiary);
+    color: var(--text-tertiary);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .todos__disc[data-state="executing"] {
+    background: color-mix(in srgb, var(--system-blue) 16%, transparent);
+    color: var(--system-blue);
+  }
+
+  .todos__disc[data-state="blocked"] {
+    background: color-mix(in srgb, var(--system-orange) 18%, transparent);
+    color: var(--system-orange);
+  }
+
+  .todos__disc[data-state="done"] {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .todos__icon {
+    display: block;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .todos__disc .todos__icon {
+    position: absolute;
+    opacity: 0;
+    scale: 0.25;
+    transition-property: opacity, scale, filter;
+    transition-duration: 300ms;
+    transition-timing-function: var(--ease-snappy);
+    filter: blur(4px);
+  }
+
+  .todos__disc[data-state="assigned"] .todos__icon--assigned,
+  .todos__disc[data-state="executing"] .todos__icon--executing,
+  .todos__disc[data-state="blocked"] .todos__icon--blocked,
+  .todos__disc[data-state="done"] .todos__icon--done {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+
+  .todos__disc[data-state="executing"] .todos__icon--executing {
+    animation: todos-spin 1s linear infinite;
+  }
+
+  /* Motion governance: the spinner runs only while this window's player is
+     playing - pause control, offscreen, visibility, and channel yields all
+     freeze it through the machinery-owned player-state attribute. */
+  :global([data-scene-window]:not([data-scene-player-state="playing"]))
+    .todos__disc[data-state="executing"]
+    .todos__icon--executing {
+    animation-play-state: paused;
+  }
+
+  .todos__card-title {
+    min-width: 0;
+    flex: 1;
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.32;
+    text-wrap: pretty;
+  }
+
+  .todos__badge {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--system-orange) 16%, transparent);
+    color: var(--system-orange);
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .todos__badge .todos__icon {
+    width: 9px;
+    height: 9px;
+  }
+
+  .todos__meta,
+  .todos__exec {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 36px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .todos__owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+  }
+
+  /* EmployeeAvatar parity: dense 17px emoji chip (monograms are retired). */
+  .todos__owner i {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  .todos__spring {
+    flex: 1;
+  }
+
+  .todos__exec {
+    gap: 6px;
+  }
+
+  .todos__exec .todos__icon {
+    width: 11px;
+    height: 11px;
+  }
+
+  .todos__exec-motion,
+  :global(html[data-motion="ok"]) .todos__exec-static {
+    display: none;
+  }
+
+  :global(html[data-motion="ok"]) .todos__exec-motion {
+    display: inline;
+  }
+
+  @keyframes todos-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .todos__disc .todos__icon {
+      animation: none;
+      transition-duration: 0ms;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .todos {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .todos__title {
+      font-size: var(--text-body);
+    }
+
+    .todos__segments > span {
+      padding-inline: 9px;
+      font-size: 10.5px;
+    }
+
+    .todos__list {
+      justify-content: flex-start;
+      padding-top: var(--space-4);
+    }
+
+    .todos__exec-motion,
+    .todos__exec-static {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+</style>

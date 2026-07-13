@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jinn — Run your own AI company</title>
+<meta name="description" content="Jinn is an open-source platform for running your own AI company. Hire AI employees, hand them a shared ledger of work, and let the company run itself — on your machine, with your keys.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E0A33C'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..560;1,9..144,300..560&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0A0807;
+    --ink-2: #121009;
+    --bone: #F2EBDD;
+    --bone-2: #EDE4D3;
+    --text: #EFE7D8;
+    --text-2: #A99F8C;
+    --text-3: #6E6659;
+    --amber: #E0A33C;
+    --ember: #F2C069;
+    --amber-deep: #8A5A1B;
+    --ink-on-bone: #14110B;
+    --ink-2-on-bone: #57503F;
+    --sage: #9BB27E;
+    --rust: #C4744B;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-ui: "Hanken Grotesk", -apple-system, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --pad: clamp(24px, 6vw, 96px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: rgba(224, 163, 60, 0.28); color: var(--bone); }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- film grain ---------- */
+  .grain {
+    position: fixed; inset: -100px;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0.055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 300px 300px;
+    animation: grainShift 0.9s steps(3) infinite;
+  }
+  @keyframes grainShift {
+    0% { transform: translate(0, 0); }
+    33% { transform: translate(-40px, 25px); }
+    66% { transform: translate(25px, -40px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* ---------- nav ---------- */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px var(--pad);
+    transition: transform 0.55s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;
+  }
+  .nav.hidden { transform: translateY(-110%); opacity: 0; }
+  .nav-mark {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 430;
+    font-variation-settings: "opsz" 40;
+    letter-spacing: 0.01em;
+    color: var(--text);
+    display: flex; align-items: baseline; gap: 2px;
+  }
+  .nav-mark .dot { color: var(--amber); }
+  .nav-links { display: flex; gap: 36px; align-items: center; }
+  .nav-links a {
+    font-size: 14px; font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: 0.02em;
+    transition: color 0.3s ease;
+  }
+  .nav-links a:hover { color: var(--text); }
+  @media (max-width: 640px) {
+    .nav { padding: 22px 24px; }
+    .nav-links { gap: 22px; }
+    .nav-links a.hide-mobile { display: none; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    min-height: 100vh; min-height: 100svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px var(--pad) 80px;
+    overflow: hidden;
+  }
+  #embers {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    -webkit-mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
+  }
+  .hero-glow {
+    position: absolute;
+    left: 50%; top: 42%;
+    width: 130vmin; height: 130vmin;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(224,163,60,0.10) 0%, rgba(224,163,60,0.035) 32%, transparent 62%);
+    pointer-events: none;
+    animation: breathe 9s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); }
+  }
+
+  .hero-inner { position: relative; z-index: 2; max-width: 1100px; }
+
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 36px;
+  }
+  .hero-eyebrow .sep { color: var(--amber-deep); padding: 0 10px; }
+  .hero-eyebrow .term { white-space: nowrap; }
+  @media (max-width: 640px) {
+    .hero-eyebrow { font-size: 11px; letter-spacing: 0.18em; }
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 350;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(52px, 9.4vw, 138px);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    color: var(--text);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 380;
+  }
+  h1 .period { color: var(--amber); }
+  .h1-line { display: block; overflow: hidden; padding-bottom: 0.13em; margin-bottom: -0.13em; }
+  .h1-line > span { display: block; }
+
+  .hero-sub {
+    margin: 44px auto 0;
+    max-width: 560px;
+    font-size: clamp(16px, 1.4vw, 19px);
+    line-height: 1.65;
+    color: var(--text-2);
+    font-weight: 400;
+  }
+
+  .hero-cta {
+    margin-top: 52px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 28px; flex-wrap: wrap;
+  }
+  button { appearance: none; border: 0; background: none; }
+  .cmd-pill {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 14.5px;
+    color: var(--text);
+    background: rgba(242, 235, 221, 0.045);
+    padding: 15px 24px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    backdrop-filter: blur(6px);
+  }
+  .cmd-pill:hover { background: rgba(242, 235, 221, 0.08); }
+  .cmd-pill .prompt { color: var(--amber); }
+  .cmd-pill .copy-hint {
+    font-size: 11px; color: var(--text-3);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+  .cmd-pill:hover .copy-hint { color: var(--text-2); }
+  .quiet-link {
+    font-size: 15px; font-weight: 500;
+    color: var(--text-2);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: color 0.3s ease;
+  }
+  .quiet-link:hover { color: var(--text); }
+  .quiet-link .arrow { transition: transform 0.3s ease; display: inline-block; }
+  .quiet-link:hover .arrow { transform: translateX(3px); }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+  }
+  .scroll-cue .line {
+    width: 1px; height: 44px;
+    background: linear-gradient(to bottom, transparent, var(--amber-deep));
+    animation: cueDrop 2.6s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes cueDrop {
+    0% { transform: scaleY(0); opacity: 0; }
+    40% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+  }
+
+  /* ---------- shared section chrome ---------- */
+  section { position: relative; }
+  .section-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: clamp(110px, 15vh, 190px) var(--pad);
+  }
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 28px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-weight: 360;
+    font-variation-settings: "opsz" 100;
+    font-size: clamp(36px, 4.6vw, 64px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    max-width: 700px;
+  }
+  .section-lede {
+    margin-top: 26px;
+    max-width: 540px;
+    color: var(--text-2);
+    font-size: clamp(16px, 1.3vw, 18px);
+  }
+
+  /* ---------- four primitives ---------- */
+  .primitives { margin-top: clamp(70px, 9vh, 120px); }
+  .primitive {
+    display: grid;
+    grid-template-columns: 90px 1fr 1.35fr;
+    gap: clamp(24px, 4vw, 72px);
+    align-items: baseline;
+    padding: clamp(38px, 5vh, 58px) 0;
+    position: relative;
+  }
+  .primitive::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, rgba(239,231,216,0.14), rgba(239,231,216,0.02));
+  }
+  .primitive-num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--amber-deep);
+    letter-spacing: 0.15em;
+    transition: color 0.4s ease;
+  }
+  .primitive:hover .primitive-num { color: var(--amber); }
+  .primitive-name::after {
+    content: ".";
+    color: var(--amber);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+  .primitive:hover .primitive-name::after { opacity: 1; }
+  .primitive-name {
+    font-family: var(--font-display);
+    font-weight: 380;
+    font-variation-settings: "opsz" 72;
+    font-size: clamp(30px, 3.4vw, 46px);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+  }
+  .primitive-name .tag {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-3);
+    margin-top: 10px;
+  }
+  .primitive-desc {
+    color: var(--text-2);
+    font-size: clamp(15.5px, 1.25vw, 17.5px);
+    line-height: 1.7;
+    max-width: 520px;
+  }
+  .primitive-desc strong { color: var(--text); font-weight: 500; }
+  @media (max-width: 860px) {
+    .primitive { grid-template-columns: 1fr; gap: 14px; padding: 40px 0; }
+    .primitive-num { order: 0; }
+    .primitive-name { order: 1; }
+    .primitive-desc { order: 2; }
+    .primitive-name .tag { margin-top: 6px; }
+  }
+
+  /* ---------- MCP title card (light beat) ---------- */
+  .mcp {
+    background: var(--bone);
+    color: var(--ink-on-bone);
+  }
+  .mcp .section-inner {
+    padding-top: clamp(130px, 18vh, 220px);
+    padding-bottom: clamp(130px, 18vh, 220px);
+    text-align: center;
+    max-width: 1100px;
+  }
+  .mcp .kicker { color: var(--amber-deep); }
+  .mcp-statement {
+    font-family: var(--font-display);
+    font-weight: 340;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(38px, 5.6vw, 84px);
+    line-height: 1.12;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+  .mcp-statement em {
+    font-style: italic;
+    font-weight: 380;
+  }
+  .mcp-sub {
+    margin: 40px auto 0;
+    max-width: 560px;
+    color: var(--ink-2-on-bone);
+    font-size: clamp(16px, 1.35vw, 18.5px);
+    line-height: 1.65;
+  }
+
+  /* ---------- how it works ---------- */
+  .how .section-inner { max-width: 1240px; padding-bottom: clamp(70px, 9vh, 120px); }
+  .steps {
+    margin-top: clamp(70px, 9vh, 110px);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(36px, 4vw, 64px);
+  }
+  .step-num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--amber-deep);
+    letter-spacing: 0.15em;
+    margin-bottom: 22px;
+  }
+  .step h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-variation-settings: "opsz" 48;
+    font-size: clamp(24px, 2.2vw, 30px);
+    margin-bottom: 16px;
+    letter-spacing: 0;
+  }
+  .step p { color: var(--text-2); font-size: 16px; line-height: 1.85; }
+  .step code {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--ember);
+    background: rgba(224, 163, 60, 0.08);
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; gap: 52px; } }
+
+  /* ---------- ledger vignette ---------- */
+  .ledger-wrap {
+    margin-top: clamp(80px, 10vh, 130px);
+    display: flex; justify-content: center;
+    position: relative;
+  }
+  .ledger-glow {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 900px; height: 600px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse, rgba(224,163,60,0.10) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .ledger {
+    position: relative;
+    width: 100%; max-width: 760px;
+    background: linear-gradient(to bottom, rgba(32,28,18,0.92), rgba(22,19,12,0.92));
+    border-radius: 20px;
+    padding: 28px 0 12px;
+    box-shadow: 0 40px 90px -30px rgba(0,0,0,0.75),
+                0 0 0 1px rgba(239,231,216,0.06),
+                inset 0 1px 0 rgba(239,231,216,0.07);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+  .ledger-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 30px 22px;
+  }
+  .ledger-title {
+    font-family: var(--font-mono);
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .ledger-live {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .ledger-live .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--amber);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(224,163,60,0.4); }
+    50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(224,163,60,0); }
+  }
+  .ledger-rows { min-height: 300px; }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 14px 110px 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 15px 30px;
+    font-size: 14.5px;
+    transition: background 0.3s ease;
+  }
+  .ledger-row:hover { background: rgba(239,231,216,0.025); }
+  .ledger-row .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    justify-self: center;
+  }
+  .dot.executing { background: var(--amber); animation: pulse 2s ease-in-out infinite; }
+  .dot.done { background: var(--sage); }
+  .dot.needs-you { background: var(--rust); }
+  .dot.idle { background: var(--text-3); }
+  .ledger-row .who {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .ledger-row .what { color: var(--text); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ledger-row .status {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .ledger-row .status.hot { color: var(--amber); }
+  @media (max-width: 640px) {
+    .ledger-row { grid-template-columns: 12px 1fr auto; }
+    .ledger-row .who { display: none; }
+    .ledger-row .what { font-size: 14px; }
+  }
+
+  /* ---------- closing ---------- */
+  .closing { text-align: center; position: relative; overflow: hidden; }
+  .closing-glow {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 110vmin; height: 110vmin;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(224,163,60,0.07) 0%, rgba(224,163,60,0.02) 35%, transparent 62%);
+    pointer-events: none;
+    animation: breathe 11s ease-in-out infinite;
+  }
+  .closing .section-inner {
+    padding-top: clamp(140px, 20vh, 240px);
+    padding-bottom: clamp(140px, 20vh, 240px);
+  }
+  .closing-line {
+    font-family: var(--font-display);
+    font-weight: 350;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(40px, 6.4vw, 96px);
+    line-height: 1.08;
+    letter-spacing: -0.014em;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .closing-line em { font-style: italic; }
+  .closing .hero-cta { margin-top: 56px; }
+
+  /* ---------- footer ---------- */
+  footer {
+    padding: 48px var(--pad) 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 20px;
+  }
+  footer .foot-mark {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 430;
+    color: var(--text-2);
+  }
+  footer .foot-mark .dot { color: var(--amber-deep); }
+  .foot-links { display: flex; gap: 30px; }
+  .foot-links a {
+    font-size: 13.5px; color: var(--text-3); font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  .foot-links a:hover { color: var(--text); }
+  .foot-note { font-size: 13px; color: var(--text-3); width: 100%; text-align: left; margin-top: 4px; font-family: var(--font-mono); }
+
+  /* ---------- reveal defaults (JS adds motion) ---------- */
+  .reveal { opacity: 0; transform: translateY(28px); }
+  html.no-motion .reveal { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grain, .hero-glow, .scroll-cue .line, .ledger-live .pulse, .dot.executing { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<nav class="nav" id="nav">
+  <a class="nav-mark" href="#">jinn<span class="dot">.</span></a>
+  <div class="nav-links">
+    <a href="#what" class="hide-mobile">What it is</a>
+    <a href="#how" class="hide-mobile">How it works</a>
+    <a href="https://github.com/jinn-run/jinn">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <canvas id="embers" aria-hidden="true"></canvas>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="hero-eyebrow reveal"><span class="term">Open source</span><span class="sep">·</span><span class="term">Local-first</span><span class="sep">·</span><span class="term">Multi-engine</span></p>
+    <h1 id="headline">
+      <span class="h1-line"><span>Run your own</span></span>
+      <span class="h1-line"><span><em>AI&nbsp;company</em><span class="period">.</span></span></span>
+    </h1>
+    <p class="hero-sub reveal">Hire AI employees, hand them a shared ledger of work, and let the company run itself — on your machine, with your keys.</p>
+    <div class="hero-cta reveal">
+      <button class="cmd-pill" id="copyCmd" type="button">
+        <span class="prompt">$</span>
+        <span class="cmd-text">npm install -g jinn-cli</span>
+        <span class="copy-hint">copy</span>
+      </button>
+      <a class="quiet-link" href="https://github.com/jinn-run/jinn">Star on GitHub <span class="arrow">→</span></a>
+    </div>
+  </div>
+  <div class="scroll-cue" aria-hidden="true">
+    <span>Scroll</span>
+    <div class="line"></div>
+  </div>
+</header>
+
+<section class="what" id="what">
+  <div class="section-inner">
+    <p class="kicker reveal">The shape of it</p>
+    <h2 class="section-title reveal">A company in four parts.</h2>
+    <p class="section-lede reveal">One local gateway daemon. Four primitives. Everything else — the org chart, the delegation, the approvals — emerges from how they compose.</p>
+
+    <div class="primitives">
+      <div class="primitive reveal">
+        <span class="primitive-num">01</span>
+        <h3 class="primitive-name">Employees<span class="tag">The who</span></h3>
+        <p class="primitive-desc">An engine wearing a role. <strong>Claude Code, Codex, and more</strong> — each with a persona, a rank, and a seat in the org chart. They talk to each other. They delegate down and escalate up.</p>
+      </div>
+      <div class="primitive reveal">
+        <span class="primitive-num">02</span>
+        <h3 class="primitive-name">Todos<span class="tag">The what</span></h3>
+        <p class="primitive-desc">The live ledger of work — <strong>the company's shared memory</strong>. What needs doing, what's in progress, what's blocked, and the short list that actually needs you.</p>
+      </div>
+      <div class="primitive reveal">
+        <span class="primitive-num">03</span>
+        <h3 class="primitive-name">Workflows<span class="tag">The how</span></h3>
+        <p class="primitive-desc">Reusable SOPs. <strong>"Here's how we do X"</strong> — written once, run forever. A run spawns todos, advances them, and hands off between employees on its own.</p>
+      </div>
+      <div class="primitive reveal">
+        <span class="primitive-num">04</span>
+        <h3 class="primitive-name">Triggers<span class="tag">The when</span></h3>
+        <p class="primitive-desc">How the company wakes up. <strong>Cron schedules, todo status changes, webhooks</strong> from the outside world. Something happens — and someone is already handling it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mcp">
+  <div class="section-inner">
+    <p class="kicker reveal">One interface</p>
+    <p class="mcp-statement reveal">Every employee works the whole company through MCP.<br><em>The hands are shared.</em></p>
+    <p class="mcp-sub reveal">Hiring, delegating, escalating, approving — the company metaphor isn't a skin over an API. It <em>is</em> the API. A COO agent orchestrates and reviews, so you only see what matters.</p>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="section-inner">
+    <p class="kicker reveal">How it works</p>
+    <h2 class="section-title reveal">Install. Hire. Step back.</h2>
+
+    <div class="steps">
+      <div class="step reveal">
+        <p class="step-num">01</p>
+        <h3>Install</h3>
+        <p><code>npm install -g jinn-cli</code> then <code>jinn start</code>. A local gateway daemon on your machine — your API keys, your data, a web dashboard, a Slack connector.</p>
+      </div>
+      <div class="step reveal">
+        <p class="step-num">02</p>
+        <h3>Hire</h3>
+        <p>Give an engine a role, a persona, a department. A COO — <code>Jimbo</code>, by default — orchestrates the org, reviews the work, and gates what reaches you.</p>
+      </div>
+      <div class="step reveal">
+        <p class="step-num">03</p>
+        <h3>It runs</h3>
+        <p>Triggers wake the company. Workflows spawn todos. Employees pick them up, delegate, and report. You approve the few things that need a human.</p>
+      </div>
+    </div>
+
+    <div class="ledger-wrap reveal">
+      <div class="ledger-glow" aria-hidden="true"></div>
+      <div class="ledger" aria-label="Live work ledger demo">
+        <div class="ledger-head">
+          <span class="ledger-title">The ledger</span>
+          <span class="ledger-live"><span class="pulse"></span>Live</span>
+        </div>
+        <div class="ledger-rows" id="ledgerRows"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="closing-glow" aria-hidden="true"></div>
+  <div class="section-inner">
+    <p class="closing-line reveal">The whole company,<br><em>one command away.</em></p>
+    <div class="hero-cta reveal">
+      <button class="cmd-pill" id="copyCmd2" type="button">
+        <span class="prompt">$</span>
+        <span class="cmd-text">npm install -g jinn-cli</span>
+        <span class="copy-hint">copy</span>
+      </button>
+      <a class="quiet-link" href="#">Read the docs <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a class="foot-mark" href="#">jinn<span class="dot">.</span></a>
+  <div class="foot-links">
+    <a href="https://github.com/jinn-run/jinn">GitHub</a>
+    <a href="https://www.npmjs.com/package/jinn-cli">npm</a>
+    <a href="#">Docs</a>
+  </div>
+  <p class="foot-note">MIT licensed · runs on your machine</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.11/dist/lenis.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- ember constellation canvas ---------- */
+  var canvas = document.getElementById("embers");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var embers = [];
+  var nodes = [];
+  var links = [];
+  var t0 = performance.now();
+
+  // Curated constellation: a loose org chart in normalized coords,
+  // kept out of the headline band (y 0.30–0.72 center column).
+  var NODE_LAYOUT = [
+    { x: 0.50, y: 0.16, label: "coo" },  // top center
+    { x: 0.26, y: 0.30 },
+    { x: 0.74, y: 0.28, label: "dev" },
+    { x: 0.12, y: 0.52, label: "scout" },
+    { x: 0.88, y: 0.50 },
+    { x: 0.18, y: 0.80 },
+    { x: 0.84, y: 0.78, label: "support" },
+    { x: 0.62, y: 0.88 }
+  ];
+  // org-tree edges only — no center-crossing chords
+  var LINK_PAIRS = [[0,1],[0,2],[1,3],[2,4],[3,5],[4,6],[4,7]];
+
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    initField();
+  }
+
+  function initField() {
+    embers = [];
+    var count = W < 640 ? 46 : 110;
+    for (var i = 0; i < count; i++) {
+      embers.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 0.6 + Math.random() * 1.7,
+        vy: 0.06 + Math.random() * 0.22,
+        vx: (Math.random() - 0.5) * 0.08,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.4 + Math.random() * 0.9,
+        big: Math.random() < 0.08
+      });
+    }
+    nodes = NODE_LAYOUT.map(function (p, i) {
+      return {
+        bx: p.x * W, by: p.y * H,
+        phase: i * 1.37,
+        driftPhase: i * 2.11,
+        label: p.label
+      };
+    });
+    links = LINK_PAIRS.map(function (pair, i) {
+      return { a: pair[0], b: pair[1], offset: i * 2.57 };
+    });
+  }
+
+  function nodePos(n, t) {
+    return {
+      x: n.bx + Math.sin(t * 0.00012 + n.driftPhase) * 14,
+      y: n.by + Math.cos(t * 0.00009 + n.driftPhase * 1.7) * 10
+    };
+  }
+
+  function draw(now) {
+    var t = now - t0;
+    ctx.clearRect(0, 0, W, H);
+
+    // ember motes
+    for (var i = 0; i < embers.length; i++) {
+      var e = embers[i];
+      e.y -= e.vy; e.x += e.vx + Math.sin(t * 0.0004 * e.speed + e.phase) * 0.06;
+      if (e.y < -8) { e.y = H + 8; e.x = Math.random() * W; }
+      if (e.x < -8) e.x = W + 8; if (e.x > W + 8) e.x = -8;
+      var flicker = 0.35 + 0.3 * Math.sin(t * 0.001 * e.speed + e.phase);
+      if (e.big) {
+        var g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * 7);
+        g.addColorStop(0, "rgba(242,192,105," + (flicker * 0.35) + ")");
+        g.addColorStop(1, "rgba(242,192,105,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 7, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = "rgba(224,163,60," + flicker * 0.55 + ")";
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // constellation links: brief, staggered — at most ~2 softly visible at once.
+    // skipped entirely on small screens where they crowd the headline.
+    if (W >= 640) {
+      for (var j = 0; j < links.length; j++) {
+        var L = links[j];
+        var cycle = 18000; // ms per full link cycle
+        var lt = ((t + L.offset * 1000) % cycle) / cycle; // 0..1
+        var alpha = 0;
+        if (lt < 0.10) alpha = lt / 0.10;
+        else if (lt < 0.24) alpha = 1;
+        else if (lt < 0.36) alpha = 1 - (lt - 0.24) / 0.12;
+        if (alpha <= 0.01) continue;
+        var pa = nodePos(nodes[L.a], t), pb = nodePos(nodes[L.b], t);
+        var grad = ctx.createLinearGradient(pa.x, pa.y, pb.x, pb.y);
+        grad.addColorStop(0, "rgba(224,163,60,0)");
+        grad.addColorStop(0.5, "rgba(224,163,60," + (0.13 * alpha) + ")");
+        grad.addColorStop(1, "rgba(224,163,60,0)");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+      }
+    }
+
+    // constellation nodes: breathing glow
+    for (var k = 0; k < nodes.length; k++) {
+      var n = nodes[k];
+      var p = nodePos(n, t);
+      var breatheA = 0.5 + 0.5 * Math.sin(t * 0.0006 + n.phase);
+      var rr = 2 + breatheA * 1.2;
+      var gg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr * 9);
+      gg.addColorStop(0, "rgba(242,192,105," + (0.25 + breatheA * 0.2) + ")");
+      gg.addColorStop(0.35, "rgba(224,163,60," + (0.08 + breatheA * 0.06) + ")");
+      gg.addColorStop(1, "rgba(224,163,60,0)");
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.arc(p.x, p.y, rr * 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(244,230,200," + (0.6 + breatheA * 0.4) + ")";
+      ctx.beginPath(); ctx.arc(p.x, p.y, rr * 0.55, 0, Math.PI * 2); ctx.fill();
+      // whisper-quiet role label, desktop only, brightest mid-breath
+      if (n.label && W >= 900) {
+        ctx.font = "11px 'IBM Plex Mono', monospace";
+        ctx.textAlign = "left";
+        ctx.fillStyle = "rgba(169,159,140," + (0.10 + breatheA * 0.22) + ")";
+        ctx.fillText(n.label, p.x + 16, p.y + 4);
+      }
+    }
+
+    if (!reduced) requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+  requestAnimationFrame(draw);
+
+  /* ---------- ledger vignette ---------- */
+  var LEDGER_FEED = [
+    { dot: "executing", who: "scout", what: "Competitive scan — 3 findings drafted", status: "executing", hot: true },
+    { dot: "done", who: "writer", what: "Changelog for v0.24 published", status: "done" },
+    { dot: "needs-you", who: "coo", what: "Pricing page copy — approval requested", status: "needs you", hot: true },
+    { dot: "executing", who: "dev", what: "Webhook retries — tests passing, 2 to go", status: "executing", hot: true },
+    { dot: "done", who: "support", what: "4 tickets triaged, 1 escalated", status: "done" },
+    { dot: "idle", who: "analyst", what: "Weekly metrics digest — scheduled 09:00", status: "queued" },
+    { dot: "done", who: "dev", what: "Flaky session test quarantined", status: "done" },
+    { dot: "executing", who: "writer", what: "Docs: workflows quickstart, sec. 2/3", status: "executing", hot: true }
+  ];
+  var rowsEl = document.getElementById("ledgerRows");
+  var feedIndex = 0;
+  function rowHTML(r) {
+    return '<span class="dot ' + r.dot + '"></span>' +
+      '<span class="who">' + r.who + "</span>" +
+      '<span class="what">' + r.what + "</span>" +
+      '<span class="status' + (r.hot ? " hot" : "") + '">' + r.status + "</span>";
+  }
+  function pushRow() {
+    var r = LEDGER_FEED[feedIndex % LEDGER_FEED.length];
+    feedIndex++;
+    var el = document.createElement("div");
+    el.className = "ledger-row";
+    el.innerHTML = rowHTML(r);
+    el.style.opacity = "0";
+    el.style.transform = "translateY(-6px)";
+    rowsEl.insertBefore(el, rowsEl.firstChild);
+    requestAnimationFrame(function () {
+      el.style.transition = "opacity 0.7s ease, transform 0.7s ease";
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
+    });
+    while (rowsEl.children.length > 6) rowsEl.removeChild(rowsEl.lastChild);
+  }
+  for (var s = 0; s < 5; s++) pushRow();
+  if (!reduced) setInterval(pushRow, 2800);
+
+  /* ---------- copy pill ---------- */
+  function wireCopy(id) {
+    var btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var text = btn.querySelector(".cmd-text").textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(text);
+      var hint = btn.querySelector(".copy-hint");
+      hint.textContent = "copied";
+      setTimeout(function () { hint.textContent = "copy"; }, 1800);
+    });
+  }
+  wireCopy("copyCmd"); wireCopy("copyCmd2");
+
+  /* ---------- motion ---------- */
+  if (reduced || !window.gsap) {
+    document.documentElement.classList.add("no-motion");
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  var lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+  gsap.ticker.lagSmoothing(0);
+
+  // headline: masked line rise
+  gsap.fromTo(".h1-line > span",
+    { yPercent: 110 },
+    { yPercent: 0, duration: 1.5, ease: "power4.out", stagger: 0.14, delay: 0.25 });
+
+  // hero furniture
+  gsap.utils.toArray(".hero .reveal").forEach(function (el, i) {
+    gsap.fromTo(el, { opacity: 0, y: 24 },
+      { opacity: 1, y: 0, duration: 1.2, ease: "power2.out", delay: 0.75 + i * 0.15 });
+  });
+
+  // scrolled reveals
+  gsap.utils.toArray("section .reveal, footer .reveal").forEach(function (el) {
+    gsap.fromTo(el, { opacity: 0, y: 30 },
+      {
+        opacity: 1, y: 0, duration: 1.15, ease: "power2.out",
+        scrollTrigger: { trigger: el, start: "top 86%", once: true }
+      });
+  });
+
+  // hero canvas parallax + dim
+  gsap.to("#embers", {
+    yPercent: 18, opacity: 0.35, ease: "none",
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true }
+  });
+  gsap.to(".hero-inner", {
+    yPercent: -8, opacity: 0.25, ease: "none",
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true }
+  });
+
+  // anchor links glide via lenis
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      var target = a.getAttribute("href");
+      if (target.length > 1 && document.querySelector(target)) {
+        ev.preventDefault();
+        lenis.scrollTo(target, { offset: 0, duration: 1.6 });
+      }
+    });
+  });
+
+  // nav: hide on scroll down, show on scroll up
+  var lastY = 0;
+  var nav = document.getElementById("nav");
+  lenis.on("scroll", function (e) {
+    var y = e.scroll;
+    if (y > 140 && y > lastY + 4) nav.classList.add("hidden");
+    else if (y < lastY - 4) nav.classList.remove("hidden");
+    lastY = y;
+  });
+})();
+</script>
+</body>
+</html>

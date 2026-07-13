@@ -1,0 +1,448 @@
+---
+/**
+ * Morning approval surface - the approval card ("the COO gate") and the
+ * slim run #142 rail tail it completes (STORYBOARD §Section 7). Rendered
+ * resolved from MORNING_PANE: gate approved, post step done, run badge
+ * Completed. Motion browsers prime the parked initial state (gate waiting,
+ * post queued, badge Running, fill at 0) before playback.
+ *
+ * The hidden `page` span is the theme beacon the scene's t=0 `theme` beat
+ * targets. Hold/Approve are decorative - the frame is aria-hidden and
+ * carries no focusable controls.
+ *
+ * Real-app references mirrored: the workflow step discs/status treatment
+ * (WorkflowSurface.astro) and the app's approval prompt card.
+ */
+import { MORNING_PANE } from "../../../lib/scenes/dashboard";
+
+const [gate, post] = MORNING_PANE.steps;
+const stepIcons: Record<string, string[]> = {
+  "step-gate": ["approval", "done"],
+  "step-post": ["queued", "running", "done"],
+};
+const iconSymbol: Record<string, string> = {
+  queued: "i-clock",
+  running: "i-loader",
+  done: "i-check",
+  approval: "i-bell",
+};
+---
+
+<div class="morning" data-surface="morning">
+  <span data-target="page" hidden></span>
+
+  <article class="morning__card" data-target="approval-card">
+    <header class="morning__who">
+      <span class="morning__name" data-field="header">
+        {MORNING_PANE.header}
+      </span>
+    </header>
+    <p class="morning__title" data-field="title">{MORNING_PANE.title}</p>
+    <p class="morning__line" data-field="line">{MORNING_PANE.line}</p>
+    <div class="morning__actions">
+      <span class="morning__btn morning__btn--hold" data-field="hold">
+        {MORNING_PANE.holdLabel}
+      </span>
+      <span
+        class="morning__btn morning__btn--approve"
+        data-target="approve"
+        data-field="approve">{MORNING_PANE.approveLabel}</span
+      >
+    </div>
+  </article>
+
+  <div
+    class="morning__tail"
+    data-target="rail-tail"
+    data-progress={MORNING_PANE.progress}
+  >
+    <div class="morning__tail-head">
+      <span class="morning__run" data-field="run">{MORNING_PANE.run}</span>
+      <span
+        class="morning__badge"
+        data-target="run-badge"
+        data-state={MORNING_PANE.badge.toLowerCase()}
+      >
+        <span class="morning__badge-label morning__badge-label--running">
+          {MORNING_PANE.initialBadge}
+        </span>
+        <span class="morning__badge-label morning__badge-label--completed">
+          {MORNING_PANE.badge}
+        </span>
+      </span>
+    </div>
+
+    <div class="morning__rail-host">
+      <span class="morning__rail" aria-hidden="true"></span>
+      <div class="morning__steps">
+        {
+          [gate, post].map((step) => (
+            <article
+              class="morning__step"
+              data-target={step.target}
+              data-state={step.status}
+            >
+              <span class="morning__disc" aria-hidden="true">
+                {stepIcons[step.target].map((state) => (
+                  <svg class={`morning__icon morning__icon--${state}`}>
+                    <use href={`#${iconSymbol[state]}`} />
+                  </svg>
+                ))}
+              </span>
+              <span class="morning__meta">
+                <span class="morning__step-name" data-field="title">
+                  {step.title}
+                </span>
+                <span
+                  class="morning__status morning__status--motion"
+                  data-target={`${step.target}-status`}
+                >
+                  {step.initialDetail}
+                </span>
+                <span
+                  class="morning__status morning__status--static"
+                  data-field="status"
+                >
+                  {step.detail}
+                </span>
+              </span>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .morning {
+    width: min(30rem, 100%);
+    margin: 0 auto;
+  }
+
+  .morning__card {
+    padding: var(--space-5) var(--space-6) var(--space-6);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
+
+  .morning__name {
+    font-size: var(--text-footnote);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+  }
+
+  .morning__title {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-body);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+  }
+
+  .morning__line {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-footnote);
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .morning__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .morning__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.5rem;
+    min-height: 44px;
+    padding: 0 var(--space-5);
+    border-radius: 999px;
+    font-size: var(--text-subheadline);
+    font-weight: var(--weight-semibold);
+  }
+
+  .morning__btn--hold {
+    background: var(--fill-secondary);
+    color: var(--text-secondary);
+  }
+
+  .morning__btn--approve {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    box-shadow: var(--inset-shine), var(--shadow-key);
+  }
+
+  /* ---- the run #142 tail ---- */
+
+  .morning__tail {
+    /* The scene's set-progress animates this on the rail-tail target;
+       the rail below consumes it. Resolved default = crossed. */
+    --scene-progress: 1;
+
+    margin-top: var(--space-6);
+  }
+
+  .morning__tail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-1) var(--space-3);
+  }
+
+  .morning__run {
+    font-family: var(--font-code);
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+  }
+
+  .morning__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    background: color-mix(in srgb, var(--system-blue) 16%, transparent);
+    color: var(--system-blue);
+  }
+
+  .morning__badge::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+  }
+
+  .morning__badge[data-state="completed"] {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .morning__badge-label--completed,
+  .morning__badge[data-state="completed"] .morning__badge-label--running {
+    display: none;
+  }
+
+  .morning__badge[data-state="completed"] .morning__badge-label--completed {
+    display: inline;
+  }
+
+  .morning__rail-host {
+    position: relative;
+  }
+
+  .morning__steps {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .morning__rail-host::before,
+  .morning__rail {
+    position: absolute;
+    top: 50%;
+    right: calc(25% - 1px);
+    left: calc(25% - 1px);
+    height: 2px;
+    translate: 0 -50%;
+    content: "";
+  }
+
+  .morning__rail-host::before {
+    background: var(--separator-opaque);
+  }
+
+  .morning__rail {
+    right: auto;
+    z-index: 2;
+    width: 50%;
+    max-width: 50%;
+    background: var(--system-green);
+    transform-origin: left center;
+    transform: scaleX(var(--scene-progress));
+  }
+
+  .morning__step {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    min-width: 0;
+    min-height: 66px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .morning__disc {
+    position: relative;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-tertiary);
+    color: var(--text-tertiary);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .morning__step[data-state="running"] .morning__disc {
+    background: color-mix(in srgb, var(--system-blue) 16%, transparent);
+    color: var(--system-blue);
+  }
+
+  .morning__step[data-state="done"] .morning__disc,
+  .morning__step[data-state="approved"] .morning__disc {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .morning__step[data-state="awaiting-approval"] .morning__disc {
+    background: color-mix(in srgb, var(--system-yellow) 16%, transparent);
+    color: var(--system-yellow);
+  }
+
+  .morning__icon {
+    position: absolute;
+    display: block;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    opacity: 0;
+    scale: 0.25;
+    transition-property: opacity, scale, filter;
+    transition-duration: 300ms;
+    transition-timing-function: var(--ease-snappy);
+    filter: blur(4px);
+  }
+
+  .morning__step[data-state="queued"] .morning__icon--queued,
+  .morning__step[data-state="running"] .morning__icon--running,
+  .morning__step[data-state="done"] .morning__icon--done,
+  .morning__step[data-state="approved"] .morning__icon--done,
+  .morning__step[data-state="awaiting-approval"] .morning__icon--approval {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+
+  .morning__step[data-state="running"] .morning__icon--running {
+    animation: morning-spin 1s linear infinite;
+  }
+
+  /* Motion governance: the spinner runs only while this window's player is
+     playing - pause control, offscreen, visibility, and channel yields all
+     freeze it through the machinery-owned player-state attribute. */
+  :global([data-scene-window]:not([data-scene-player-state="playing"]))
+    .morning__step[data-state="running"]
+    .morning__icon--running {
+    animation-play-state: paused;
+  }
+
+  .morning__meta {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .morning__step-name,
+  .morning__status {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .morning__step-name {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.25;
+  }
+
+  .morning__status {
+    margin-top: 2px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+
+  .morning__step[data-state="awaiting-approval"] .morning__status {
+    color: var(--text-secondary);
+    font-weight: var(--weight-semibold);
+  }
+
+  .morning__status--motion,
+  :global(html[data-motion="ok"]) .morning__status--static {
+    display: none;
+  }
+
+  :global(html[data-motion="ok"]) .morning__status--motion {
+    display: block;
+  }
+
+  @keyframes morning-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .morning__icon {
+      animation: none;
+      transition-duration: 0ms;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .morning {
+      width: 100%;
+    }
+
+    .morning__card {
+      padding: var(--space-4) var(--space-5) var(--space-5);
+    }
+
+    /* The mini-rail rotates vertical on narrow widths (STORYBOARD §5). */
+    .morning__steps {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .morning__rail-host::before,
+    .morning__rail {
+      top: 33px;
+      bottom: 33px;
+      left: 15px;
+      width: 2px;
+      height: auto;
+      translate: -50% 0;
+    }
+
+    .morning__rail {
+      bottom: auto;
+      max-width: none;
+      height: calc(100% - 66px);
+      max-height: calc(100% - 66px);
+      transform: scaleY(var(--scene-progress));
+      transform-origin: center top;
+    }
+  }
+</style>

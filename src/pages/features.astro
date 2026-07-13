@@ -1,0 +1,167 @@
+---
+/**
+ * /features - the same building toured in daylight (STORYBOARD-FEATURES).
+ * Ten numbered sections in adoption order, each one claim + one window +
+ * one fact rail; two pure-type rests (the hero and §08); the closing
+ * statics; the quiet CTA. Statically light end to end - the landing owns
+ * the site's one theatrical theme move. The §05 triggers window is the
+ * page's ONE dark-scoped surface (the night window).
+ *
+ * Every window is a stage-local standalone scene window: pane-only crops
+ * that activate on viewport entry and loop under the one page-wide motion
+ * channel. No pin, no sunrise, no swap, no ambient followers.
+ */
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import SceneIconSprite from "../components/scenes/SceneIconSprite.astro";
+import SiteFooter from "../components/chrome/SiteFooter.astro";
+import FeaturesHero from "../components/features/FeaturesHero.astro";
+import FeatureSection from "../components/features/FeatureSection.astro";
+import FeatureWindow from "../components/features/FeatureWindow.astro";
+import RestSection from "../components/features/RestSection.astro";
+import FeaturesCta from "../components/features/FeaturesCta.astro";
+import ChipRow from "../components/features/ChipRow.astro";
+import StaticCards from "../components/features/StaticCards.astro";
+import EngineChatSurface from "../components/features/surfaces/EngineChatSurface.astro";
+import OrgHireSurface from "../components/features/surfaces/OrgHireSurface.astro";
+import TodoApprovalSurface from "../components/features/surfaces/TodoApprovalSurface.astro";
+import CanvasMiniSurface from "../components/features/surfaces/CanvasMiniSurface.astro";
+import TriggerBindingsSurface from "../components/features/surfaces/TriggerBindingsSurface.astro";
+import McpFeedSurface from "../components/features/surfaces/McpFeedSurface.astro";
+import ConnectorCardSurface from "../components/features/surfaces/ConnectorCardSurface.astro";
+import {
+  ENGINE_CHIPS,
+  FEATURES_CAPTIONS,
+  FEATURES_META,
+  FEATURES_SECTIONS,
+} from "../lib/scenes/features";
+---
+
+<MarketingLayout
+  page="features"
+  theme="light"
+  title={FEATURES_META.title}
+  description={FEATURES_META.description}
+>
+  <SceneIconSprite />
+  <main class="marketing-main features-main">
+    <FeaturesHero />
+
+    <FeatureSection copy={FEATURES_SECTIONS.engines}>
+      <ChipRow slot="under-body" chips={ENGINE_CHIPS} />
+      <FeatureWindow
+        slot="window"
+        sceneId="engine-switch"
+        caption={FEATURES_CAPTIONS["engine-switch"]}
+        height={480}
+      >
+        <EngineChatSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <FeatureSection copy={FEATURES_SECTIONS.employees} flip>
+      <FeatureWindow
+        slot="window"
+        sceneId="org-hire"
+        caption={FEATURES_CAPTIONS["org-hire"]}
+        height={430}
+        heightMobile={620}
+      >
+        <OrgHireSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <FeatureSection copy={FEATURES_SECTIONS.todos}>
+      <FeatureWindow
+        slot="window"
+        sceneId="todo-approval"
+        caption={FEATURES_CAPTIONS["todo-approval"]}
+        height={400}
+      >
+        <TodoApprovalSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <FeatureSection
+      copy={FEATURES_SECTIONS.workflows}
+      layout="stack"
+      window="wide"
+    >
+      <FeatureWindow
+        slot="window"
+        sceneId="triage-run"
+        caption={FEATURES_CAPTIONS["triage-run"]}
+        height={430}
+        heightMobile={600}
+      >
+        <CanvasMiniSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <FeatureSection copy={FEATURES_SECTIONS.triggers} flip>
+      <FeatureWindow
+        slot="window"
+        sceneId="webhook-fire"
+        caption={FEATURES_CAPTIONS["webhook-fire"]}
+        height={440}
+        heightMobile={500}
+        dark
+      >
+        <TriggerBindingsSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <FeatureSection copy={FEATURES_SECTIONS.mcp}>
+      <FeatureWindow
+        slot="window"
+        sceneId="mcp-hands"
+        caption={FEATURES_CAPTIONS["mcp-hands"]}
+        height={310}
+        heightMobile={420}
+      >
+        <McpFeedSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <FeatureSection copy={FEATURES_SECTIONS.connectors} flip>
+      <FeatureWindow
+        slot="window"
+        sceneId="slack-approve"
+        caption={FEATURES_CAPTIONS["slack-approve"]}
+        height={340}
+        heightMobile={400}
+      >
+        <ConnectorCardSurface />
+      </FeatureWindow>
+    </FeatureSection>
+
+    <RestSection />
+
+    <FeatureSection copy={FEATURES_SECTIONS.skills}>
+      <StaticCards slot="window" kind="skill" />
+    </FeatureSection>
+
+    <FeatureSection copy={FEATURES_SECTIONS.local} flip>
+      <StaticCards slot="window" kind="tree" />
+    </FeatureSection>
+
+    <FeaturesCta />
+    <SiteFooter />
+  </main>
+</MarketingLayout>
+
+<script>
+  import { installCommandPills } from "../lib/command-pill";
+  import { installMotionScenes } from "../lib/scenes/install-motion-scenes";
+
+  installCommandPills();
+  installMotionScenes({
+    load: async () => {
+      const [{ installSceneSystem }, { featuresSceneDefinitions }] =
+        await Promise.all([
+          import("../lib/scenes/install-scene-system"),
+          import("../lib/scenes/features-scene-registry"),
+        ]);
+      return () => installSceneSystem(featuresSceneDefinitions);
+    },
+  });
+</script>

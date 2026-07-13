@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jinn — Run your own AI company</title>
+<meta name="description" content="Jinn is an open-source platform for running your own AI company. Hire AI employees, hand them a shared ledger of work, and let the company run itself — on your machine, with your keys.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E0A33C'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     LEDGER TOKENS — verbatim from the app's globals.css (dark)
+     ============================================================ */
+  :root {
+    --bg: #14130F;
+    --bg-secondary: #1E1C16;
+    --bg-tertiary: #2A2720;
+    --material-regular: rgba(30,28,22,0.92);
+    --material-thick: rgba(20,18,15,0.96);
+    --material-thin: rgba(255,255,255,0.05);
+    --material-ultra-thin: rgba(255,255,255,0.03);
+    --fill-primary: rgba(255,255,255,0.10);
+    --fill-secondary: rgba(255,255,255,0.07);
+    --fill-tertiary: rgba(255,255,255,0.05);
+    --fill-quaternary: rgba(255,255,255,0.035);
+    --text-primary: #E8E4D8;
+    --text-secondary: rgba(232,228,216,0.62);
+    --text-tertiary: rgba(232,228,216,0.38);
+    --text-quaternary: rgba(232,228,216,0.22);
+    --accent: #E0A33C;
+    --accent-fill: rgba(224,163,60,0.14);
+    --accent-contrast: #14130F;
+    --system-green: #7DBE6A;
+    --system-orange: #E89B45;
+    --system-red: #E0675A;
+    --inset-shine: inset 0 1px 0 rgba(255,255,255,0.06);
+    --shadow-subtle: 0 1px 2px rgba(0,0,0,0.30);
+    --shadow-ambient: 0 0 0 0.5px rgba(0,0,0,0.30);
+    --shadow-key: 0 4px 16px rgba(0,0,0,0.50);
+    --shadow-card: 0 0 0 0.5px rgba(0,0,0,0.30), 0 4px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+    --shadow-overlay: 0 0 0 0.5px rgba(0,0,0,0.40), 0 16px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05);
+    --pill-bg: rgba(34,31,24,0.64);
+    --code-bg: rgba(255,255,255,0.05);
+    --code-text: #E8E4D8;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-2xl: 24px;
+    --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+    --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+    --ease-snappy: cubic-bezier(0.2,0,0,1);
+    --font-ui: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-code: "IBM Plex Mono", "SF Mono", Monaco, Menlo, monospace;
+    /* Display sizes derived by continuing the HIG scale past 34 (×~1.414):
+       48 → 68 → 96 → 136 */
+    --display-hero: clamp(48px, 9.6vw, 136px);
+    --display-statement: clamp(38px, 5.8vw, 96px);
+    --display-title: clamp(34px, 4.6vw, 68px);
+    --display-name: clamp(28px, 3.3vw, 48px);
+    --pad: clamp(24px, 6vw, 96px);
+  }
+
+  /* LEDGER LIGHT — the MCP beat is literally the app's light theme */
+  .beat-light {
+    --bg: #F4F1E8;
+    --bg-secondary: #FBF9F2;
+    --bg-tertiary: #ECE8DC;
+    --fill-primary: rgba(33,30,22,0.08);
+    --fill-secondary: rgba(33,30,22,0.06);
+    --fill-tertiary: rgba(33,30,22,0.045);
+    --fill-quaternary: rgba(33,30,22,0.028);
+    --text-primary: #211E16;
+    --text-secondary: rgba(33,30,22,0.66);
+    --text-tertiary: rgba(33,30,22,0.56);
+    --text-quaternary: rgba(33,30,22,0.30);
+    --accent: #926516;
+    --accent-fill: rgba(146,101,22,0.14);
+    --accent-contrast: #FBF9F2;
+    --shadow-card: 0 0 0 0.5px rgba(40,34,20,0.08), 0 1px 3px rgba(40,34,20,0.07), 0 4px 12px rgba(40,34,20,0.06), inset 0 1px 0 rgba(255,255,255,0.70);
+    --code-bg: rgba(33,30,22,0.05);
+    --code-text: #4A4030;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: auto; -webkit-tap-highlight-color: transparent; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 17px;
+    line-height: 1.47;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--accent-fill); color: var(--text-primary); }
+  a { color: inherit; text-decoration: none; }
+  button { appearance: none; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+  .focus-ring:focus-visible { outline: 2px solid #5B9BD5; outline-offset: 2px; border-radius: var(--radius-sm); }
+
+  /* ============================================================
+     Nav — floating corner chips, frosted only once scrolled
+     ============================================================ */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px var(--pad);
+    pointer-events: none;
+    transition: transform 0.55s cubic-bezier(0.32,0.72,0,1);
+  }
+  .nav.hidden { transform: translateY(-120%); }
+  .nav-chip {
+    pointer-events: auto;
+    display: inline-flex; align-items: center; gap: 24px;
+    padding: 10px 18px;
+    border-radius: 100px;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+    transition: background 0.45s var(--ease-smooth), box-shadow 0.45s var(--ease-smooth);
+  }
+  .nav.scrolled .nav-chip {
+    background: var(--pill-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: var(--shadow-ambient), var(--shadow-subtle), var(--inset-shine);
+  }
+  .nav-mark {
+    font-weight: 600; font-size: 17px; letter-spacing: -0.24px;
+    color: var(--text-primary);
+  }
+  .nav-mark .dot { color: var(--accent); }
+  .nav-links { display: flex; gap: 26px; align-items: center; }
+  .nav-links a {
+    font-size: 14px; font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: -0.1px;
+    transition: color 0.3s var(--ease-smooth);
+  }
+  .nav-links a:hover { color: var(--text-primary); }
+  @media (max-width: 640px) {
+    .nav { padding: 14px 20px; }
+    .nav-links { gap: 18px; }
+    .nav-links a.hide-mobile { display: none; }
+  }
+
+  /* ============================================================
+     Hero
+     ============================================================ */
+  .hero {
+    position: relative;
+    min-height: 100vh; min-height: 100svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px var(--pad) 90px;
+    overflow: hidden;
+  }
+  #constellation {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  }
+  .hero-warmth {
+    position: absolute;
+    left: 50%; top: 44%;
+    width: 130vmin; height: 130vmin;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(224,163,60,0.045) 0%, rgba(224,163,60,0.015) 34%, transparent 62%);
+    pointer-events: none;
+    animation: breathe 10s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.8; transform: translate(-50%,-50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%,-50%) scale(1.06); }
+  }
+
+  .hero-inner { position: relative; z-index: 2; max-width: 1160px; }
+
+  .eyebrow {
+    font-family: var(--font-code);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 40px;
+  }
+  .eyebrow .sep { color: var(--text-quaternary); padding: 0 10px; }
+  @media (max-width: 640px) {
+    .eyebrow { font-size: 10.5px; letter-spacing: 0.18em; }
+    .eyebrow .sep { padding: 0 7px; }
+  }
+
+  h1 {
+    font-size: var(--display-hero);
+    line-height: 1.0;
+    color: var(--text-primary);
+    font-weight: 250;
+  }
+  .h1-line { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+  .h1-line > span { display: block; will-change: transform; }
+  .h1-thin  { font-weight: 250; letter-spacing: -0.022em; }
+  .h1-bold  { font-weight: 640; letter-spacing: -0.045em; font-variation-settings: "wght" 640; }
+  h1 .period { color: var(--accent); }
+
+  .hero-sub {
+    margin: 42px auto 0;
+    max-width: 560px;
+    font-size: clamp(16px, 1.4vw, 19px);
+    line-height: 1.65;
+    letter-spacing: -0.1px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  .hero-cta {
+    margin-top: 52px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 28px; flex-wrap: wrap;
+  }
+
+  /* Install pill — frosted material + card elevation, no border */
+  .cmd-pill {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-family: var(--font-code);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--pill-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    padding: 16px 26px;
+    border-radius: 100px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.25s var(--ease-spring), box-shadow 0.3s var(--ease-smooth), background 0.3s var(--ease-smooth);
+  }
+  .cmd-pill:hover {
+    transform: translateY(-1px);
+    background: rgba(42,39,30,0.72);
+    box-shadow: var(--shadow-ambient), var(--shadow-key), var(--inset-shine);
+  }
+  .cmd-pill:active { transform: translateY(0) scale(0.985); }
+  .cmd-pill .prompt { color: var(--accent); }
+  .cmd-pill .copy-hint {
+    font-size: 10.5px; color: var(--text-quaternary);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    transition: color 0.3s var(--ease-smooth);
+  }
+  .cmd-pill:hover .copy-hint { color: var(--text-tertiary); }
+
+  .quiet-link {
+    font-size: 15px; font-weight: 500;
+    letter-spacing: -0.1px;
+    color: var(--text-secondary);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: color 0.3s var(--ease-smooth);
+  }
+  .quiet-link:hover { color: var(--text-primary); }
+  .quiet-link .arrow { transition: transform 0.3s var(--ease-spring); display: inline-block; }
+  .quiet-link:hover .arrow { transform: translateX(3px); }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 36px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    color: var(--text-quaternary);
+    font-family: var(--font-code);
+    font-size: 10.5px; letter-spacing: 0.25em; text-transform: uppercase;
+  }
+  .scroll-cue .line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--text-quaternary));
+    animation: cueDrop 2.6s var(--ease-smooth) infinite;
+    transform-origin: top;
+  }
+  @keyframes cueDrop {
+    0% { transform: scaleY(0); opacity: 0; }
+    40% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+  }
+
+  /* ============================================================
+     Shared section chrome
+     ============================================================ */
+  section { position: relative; background: var(--bg); color: var(--text-primary); }
+  .section-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: clamp(110px, 15vh, 190px) var(--pad);
+  }
+  .kicker {
+    font-family: var(--font-code);
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 30px;
+  }
+  .section-title {
+    font-size: var(--display-title);
+    font-weight: 620;
+    letter-spacing: -0.035em;
+    line-height: 1.06;
+    max-width: 760px;
+  }
+  .section-lede {
+    margin-top: 28px;
+    max-width: 540px;
+    color: var(--text-secondary);
+    font-size: clamp(16px, 1.3vw, 18px);
+    line-height: 1.65;
+    letter-spacing: -0.1px;
+  }
+
+  /* ============================================================
+     Four primitives — numbered editorial ledger, whitespace only
+     ============================================================ */
+  .primitives { margin-top: clamp(64px, 8vh, 110px); }
+  .primitive {
+    display: grid;
+    grid-template-columns: 88px 1fr 1.25fr;
+    gap: clamp(24px, 4vw, 72px);
+    align-items: baseline;
+    padding: clamp(36px, 5vh, 54px) 0;
+  }
+  .primitive-num {
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--text-quaternary);
+    letter-spacing: 0.15em;
+    transition: color 0.6s var(--ease-smooth);
+  }
+  .primitive:hover .primitive-num,
+  .primitive.active .primitive-num { color: var(--accent); }
+  .primitive-name {
+    font-size: var(--display-name);
+    font-weight: 560;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+  }
+  .primitive-name::after {
+    content: ".";
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.45s var(--ease-smooth);
+  }
+  .primitive:hover .primitive-name::after { opacity: 1; }
+  .primitive-name .tag {
+    display: block;
+    font-family: var(--font-code);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    color: var(--text-tertiary);
+    margin-top: 12px;
+  }
+  .primitive-desc {
+    color: var(--text-secondary);
+    font-size: clamp(15.5px, 1.25vw, 17.5px);
+    line-height: 1.7;
+    letter-spacing: -0.1px;
+    max-width: 520px;
+  }
+  .primitive-desc strong { color: var(--text-primary); font-weight: 500; }
+  .primitive-meta {
+    display: block;
+    font-family: var(--font-code);
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: var(--text-quaternary);
+    margin-top: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 860px) {
+    .primitive { grid-template-columns: 1fr; gap: 16px; padding: 40px 0; align-items: start; }
+    .primitive-name .tag { margin-top: 8px; }
+    .primitive-meta { white-space: normal; }
+  }
+
+  /* ============================================================
+     MCP — the hard cut: the app's light theme, verbatim
+     ============================================================ */
+  .beat-light { background: var(--bg); color: var(--text-primary); }
+  .beat-light .section-inner {
+    padding-top: clamp(130px, 18vh, 220px);
+    padding-bottom: clamp(130px, 18vh, 220px);
+    text-align: center;
+    max-width: 1200px;
+  }
+  .mcp-statement {
+    font-size: clamp(36px, 5.4vw, 88px);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+  .mcp-statement strong { display: block; margin-top: 0.08em; font-weight: 620; letter-spacing: -0.04em; }
+  .mcp-sub {
+    margin: 40px auto 0;
+    max-width: 560px;
+    color: var(--text-secondary);
+    font-size: clamp(16px, 1.35vw, 18.5px);
+    line-height: 1.65;
+    letter-spacing: -0.1px;
+  }
+  .mcp-tools {
+    margin: 56px auto 0;
+    font-family: var(--font-code);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--text-quaternary);
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px 26px;
+  }
+  @media (max-width: 640px) { .mcp-tools { gap: 8px 18px; font-size: 11px; } }
+
+  /* ============================================================
+     How it works
+     ============================================================ */
+  .how .section-inner { padding-bottom: clamp(70px, 9vh, 120px); }
+  .steps {
+    margin-top: clamp(64px, 8vh, 100px);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(36px, 4vw, 64px);
+  }
+  .step-num {
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--text-quaternary);
+    letter-spacing: 0.15em;
+    margin-bottom: 22px;
+  }
+  .step h3 {
+    font-size: clamp(22px, 2.1vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.024em;
+    margin-bottom: 14px;
+  }
+  .step p { color: var(--text-secondary); font-size: 16px; line-height: 1.8; letter-spacing: -0.1px; }
+  .step code {
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--code-text);
+    background: var(--code-bg);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+  }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; gap: 48px; } }
+
+  /* ============================================================
+     Ledger vignette — a real app surface, token-true
+     ============================================================ */
+  .ledger-wrap {
+    margin-top: clamp(80px, 10vh, 130px);
+    display: flex; justify-content: center;
+  }
+  .ledger {
+    width: 100%; max-width: 760px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-2xl);
+    padding: 26px 0 10px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .ledger-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px 20px;
+  }
+  .ledger-title {
+    font-family: var(--font-code);
+    font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  .ledger-live {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-code);
+    font-size: 10.5px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  .ledger-live .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(224,163,60,0.35); }
+    50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(224,163,60,0); }
+  }
+  .ledger-rows { min-height: 296px; }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 14px 104px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 28px;
+    font-size: 15px;
+    transition: background 0.3s var(--ease-smooth);
+  }
+  .ledger-row:hover { background: var(--fill-quaternary); }
+  .ledger-row .dot { width: 7px; height: 7px; border-radius: 50%; justify-self: center; }
+  .dot.executing { background: var(--accent); animation: pulse 2s ease-in-out infinite; }
+  .dot.done { background: var(--system-green); }
+  .dot.needs-you { background: var(--system-orange); }
+  .dot.idle { background: var(--text-quaternary); }
+  .ledger-row .who {
+    font-family: var(--font-code);
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+  .ledger-row .what {
+    color: var(--text-primary); font-weight: 400; letter-spacing: -0.1px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ledger-row .status {
+    font-family: var(--font-code);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  .ledger-row .status.hot { color: var(--accent); }
+  @media (max-width: 640px) {
+    .ledger-row { grid-template-columns: 12px 1fr auto; }
+    .ledger-row .who { display: none; }
+    .ledger-row .what { font-size: 14px; }
+  }
+
+  /* ============================================================
+     Closing
+     ============================================================ */
+  .closing { text-align: center; overflow: hidden; }
+  .closing .section-inner {
+    padding-top: clamp(140px, 20vh, 240px);
+    padding-bottom: clamp(140px, 20vh, 240px);
+  }
+  .closing-line {
+    font-size: var(--display-statement);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-weight: 250;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .closing-line strong { font-weight: 640; letter-spacing: -0.045em; }
+  .closing .hero-cta { margin-top: 56px; }
+
+  /* ============================================================
+     Footer
+     ============================================================ */
+  footer {
+    padding: 48px var(--pad) 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 20px;
+  }
+  footer .foot-mark { font-size: 17px; font-weight: 600; color: var(--text-secondary); }
+  footer .foot-mark .dot { color: var(--accent); }
+  .foot-links { display: flex; gap: 30px; }
+  .foot-links a {
+    font-size: 13.5px; color: var(--text-tertiary); font-weight: 500;
+    transition: color 0.3s var(--ease-smooth);
+  }
+  .foot-links a:hover { color: var(--text-primary); }
+  .foot-note {
+    font-size: 12px; color: var(--text-quaternary);
+    width: 100%; text-align: left; margin-top: 4px;
+    font-family: var(--font-code);
+  }
+
+  /* ---------- reveal defaults (JS adds motion) ---------- */
+  .reveal { opacity: 0; transform: translateY(26px); }
+  html.no-motion .reveal { opacity: 1; transform: none; filter: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-warmth, .scroll-cue .line, .ledger-live .pulse, .dot.executing { animation: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav-chip">
+    <a class="nav-mark focus-ring" href="#">jinn<span class="dot">.</span></a>
+  </div>
+  <div class="nav-chip">
+    <div class="nav-links">
+      <a href="#what" class="hide-mobile focus-ring">What it is</a>
+      <a href="#how" class="hide-mobile focus-ring">How it works</a>
+      <a href="https://github.com/jinn-run/jinn" class="focus-ring">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <canvas id="constellation" aria-hidden="true"></canvas>
+  <div class="hero-warmth" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="eyebrow reveal">Open source<span class="sep">·</span>Local-first<span class="sep">·</span>Multi-engine</p>
+    <h1 id="headline">
+      <span class="h1-line"><span class="h1-thin">Run your own</span></span>
+      <span class="h1-line"><span class="h1-bold" id="h1bold">AI&nbsp;company<span class="period">.</span></span></span>
+    </h1>
+    <p class="hero-sub reveal">Hire AI employees, hand them a shared ledger of work, and let the company run itself — on your machine, with your keys.</p>
+    <div class="hero-cta reveal">
+      <button class="cmd-pill focus-ring" id="copyCmd" type="button">
+        <span class="prompt">$</span>
+        <span class="cmd-text">npm install -g jinn-cli</span>
+        <span class="copy-hint">copy</span>
+      </button>
+      <a class="quiet-link focus-ring" href="https://github.com/jinn-run/jinn">Star on GitHub <span class="arrow">→</span></a>
+    </div>
+  </div>
+  <div class="scroll-cue" aria-hidden="true">
+    <span>Scroll</span>
+    <div class="line"></div>
+  </div>
+</header>
+
+<section class="what" id="what">
+  <div class="section-inner">
+    <p class="kicker reveal">The shape of it</p>
+    <h2 class="section-title reveal">A company in four parts.</h2>
+    <p class="section-lede reveal">One local gateway daemon. Four primitives. Everything else — the org chart, the delegation, the approvals — emerges from how they compose.</p>
+
+    <div class="primitives">
+      <div class="primitive reveal">
+        <span class="primitive-num">01</span>
+        <h3 class="primitive-name">Employees<span class="tag">the who</span></h3>
+        <div>
+          <p class="primitive-desc">An engine wearing a role. <strong>Claude Code, Codex, and more</strong> — each with a persona, a rank, and a seat in the org chart. They talk to each other. They delegate down and escalate up.</p>
+          <span class="primitive-meta">org/scout.yaml · engine: claude · rank: senior</span>
+        </div>
+      </div>
+      <div class="primitive reveal">
+        <span class="primitive-num">02</span>
+        <h3 class="primitive-name">Todos<span class="tag">the what</span></h3>
+        <div>
+          <p class="primitive-desc">The live ledger of work — <strong>the company's shared memory</strong>. What needs doing, what's in progress, what's blocked, and the short list that actually needs you.</p>
+          <span class="primitive-meta">wi_4f2a · status: executing · assignee: dev</span>
+        </div>
+      </div>
+      <div class="primitive reveal">
+        <span class="primitive-num">03</span>
+        <h3 class="primitive-name">Workflows<span class="tag">the how</span></h3>
+        <div>
+          <p class="primitive-desc">Reusable SOPs. <strong>"Here's how we do X"</strong> — written once, run forever. A run spawns todos, advances them, and hands off between employees on its own.</p>
+          <span class="primitive-meta">weekly-digest · 6 steps · gate: approval</span>
+        </div>
+      </div>
+      <div class="primitive reveal">
+        <span class="primitive-num">04</span>
+        <h3 class="primitive-name">Triggers<span class="tag">the when</span></h3>
+        <div>
+          <p class="primitive-desc">How the company wakes up. <strong>Cron schedules, todo status changes, webhooks</strong> from the outside world. Something happens — and someone is already handling it.</p>
+          <span class="primitive-meta">cron 0 9 * * 1 · todo-status: blocked · webhook</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="beat-light">
+  <div class="section-inner">
+    <p class="kicker reveal">One interface</p>
+    <p class="mcp-statement reveal">Every employee works the whole company through MCP. <strong>The hands are shared.</strong></p>
+    <p class="mcp-sub reveal">Hiring, delegating, escalating, approving — the company metaphor isn't a skin over an API. It is the API. A COO agent orchestrates and reviews, so you only see what matters.</p>
+    <p class="mcp-tools reveal" aria-hidden="true">
+      <span>delegate_task</span><span>list_work_items</span><span>start_workflow_run</span><span>send_to_session</span><span>decide_approval</span>
+    </p>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="section-inner">
+    <p class="kicker reveal">How it works</p>
+    <h2 class="section-title reveal">Install. Hire. Step back.</h2>
+
+    <div class="steps">
+      <div class="step reveal">
+        <p class="step-num">01</p>
+        <h3>Install</h3>
+        <p><code>npm install -g jinn-cli</code> then <code>jinn start</code>. A local gateway daemon on your machine — your API keys, your data, a web dashboard, a Slack connector.</p>
+      </div>
+      <div class="step reveal">
+        <p class="step-num">02</p>
+        <h3>Hire</h3>
+        <p>Give an engine a role, a persona, a department. A COO — <code>Jimbo</code>, by default — orchestrates the org, reviews the work, and gates what reaches you.</p>
+      </div>
+      <div class="step reveal">
+        <p class="step-num">03</p>
+        <h3>It runs</h3>
+        <p>Triggers wake the company. Workflows spawn todos. Employees pick them up, delegate, and report. You approve the few things that need a human.</p>
+      </div>
+    </div>
+
+    <div class="ledger-wrap reveal">
+      <div class="ledger" aria-label="Live work ledger demo">
+        <div class="ledger-head">
+          <span class="ledger-title">Todos</span>
+          <span class="ledger-live"><span class="pulse"></span>Live</span>
+        </div>
+        <div class="ledger-rows" id="ledgerRows"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="section-inner">
+    <p class="closing-line reveal">The whole company,<br><strong>one command away.</strong></p>
+    <div class="hero-cta reveal">
+      <button class="cmd-pill focus-ring" id="copyCmd2" type="button">
+        <span class="prompt">$</span>
+        <span class="cmd-text">npm install -g jinn-cli</span>
+        <span class="copy-hint">copy</span>
+      </button>
+      <a class="quiet-link focus-ring" href="#">Read the docs <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a class="foot-mark" href="#">jinn<span class="dot">.</span></a>
+  <div class="foot-links">
+    <a href="https://github.com/jinn-run/jinn">GitHub</a>
+    <a href="https://www.npmjs.com/package/jinn-cli">npm</a>
+    <a href="#">Docs</a>
+  </div>
+  <p class="foot-note">MIT licensed · runs on your machine</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.11/dist/lenis.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ============================================================
+     Constellation — breathing org chart with delegation sparks.
+     Warm paper-white nodes; amber appears ONLY as the spark.
+     DPR-scaled canvas.
+     ============================================================ */
+  var canvas = document.getElementById("constellation");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var nodes = [], links = [];
+  var t0 = performance.now();
+
+  // Org layout in normalized coords. The top arc stays above the eyebrow;
+  // sides hug the edges; the center column stays clear for the headline.
+  var NODE_LAYOUT = [
+    { x: 0.22, y: 0.17, label: "coo" },
+    { x: 0.44, y: 0.10 },
+    { x: 0.78, y: 0.18, label: "dev" },
+    { x: 0.09, y: 0.46, label: "scout" },
+    { x: 0.91, y: 0.44 },
+    { x: 0.15, y: 0.78 },
+    { x: 0.87, y: 0.74, label: "support" },
+    { x: 0.62, y: 0.90 }
+  ];
+  var LINK_PAIRS = [[0,1],[1,2],[0,3],[2,4],[3,5],[4,6],[6,7]];
+  // Mobile: fewer nodes, pinned to edges/corners, clear of the text column.
+  var NODE_LAYOUT_M = [
+    { x: 0.50, y: 0.07 },
+    { x: 0.12, y: 0.16 },
+    { x: 0.88, y: 0.15 },
+    { x: 0.07, y: 0.55 },
+    { x: 0.93, y: 0.52 },
+    { x: 0.14, y: 0.87 },
+    { x: 0.86, y: 0.85 }
+  ];
+  var LINK_PAIRS_M = [[0,1],[0,2],[1,3],[2,4],[3,5],[4,6]];
+
+  // Delegation spark state
+  var spark = null;           // { link, start, dur, dir }
+  var nextSparkAt = 2600;     // first spark shortly after load
+  var flare = {};             // nodeIndex -> flare start time
+
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    initField();
+  }
+
+  var mobile = false;
+  function initField() {
+    mobile = W < 640;
+    var layout = mobile ? NODE_LAYOUT_M : NODE_LAYOUT;
+    nodes = layout.map(function (p, i) {
+      return { bx: p.x * W, by: p.y * H, phase: i * 1.37, driftPhase: i * 2.11, label: p.label };
+    });
+    links = (mobile ? LINK_PAIRS_M : LINK_PAIRS).filter(function (pair) {
+      return pair[0] < nodes.length && pair[1] < nodes.length;
+    });
+  }
+
+  function nodePos(n, t) {
+    return {
+      x: n.bx + Math.sin(t * 0.00011 + n.driftPhase) * 13,
+      y: n.by + Math.cos(t * 0.00008 + n.driftPhase * 1.7) * 9
+    };
+  }
+
+  function easeInOut(u) { return u < 0.5 ? 2*u*u : 1 - Math.pow(-2*u+2, 2)/2; }
+
+  function draw(now) {
+    var t = now - t0;
+    ctx.clearRect(0, 0, W, H);
+
+    // rest links — barely-there constellation structure (desktop only;
+    // on mobile the delegation spark draws its own edge as it travels)
+    if (!mobile) {
+      for (var j = 0; j < links.length; j++) {
+        var pa = nodePos(nodes[links[j][0]], t), pb = nodePos(nodes[links[j][1]], t);
+        ctx.strokeStyle = "rgba(232,228,216,0.038)";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+      }
+    }
+
+    // delegation spark — one at a time, occasional
+    if (!spark && t > nextSparkAt) {
+      var L = links[Math.floor(Math.random() * links.length)];
+      spark = { a: L[0], b: L[1], start: t, dur: 1500 };
+    }
+    if (spark) {
+      var u = (t - spark.start) / spark.dur;
+      if (u >= 1) {
+        flare[spark.b] = t;
+        spark = null;
+        nextSparkAt = t + 3800 + Math.random() * 3200;
+      } else {
+        var p1 = nodePos(nodes[spark.a], t), p2 = nodePos(nodes[spark.b], t);
+        var eu = easeInOut(u);
+        var sx = p1.x + (p2.x - p1.x) * eu, sy = p1.y + (p2.y - p1.y) * eu;
+        var edgeA = Math.sin(Math.PI * Math.min(1, u * 1.15)) * 0.20;
+        // edge glows amber while the spark travels
+        var grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        grad.addColorStop(0, "rgba(224,163,60,0)");
+        grad.addColorStop(Math.max(0.01, Math.min(0.99, eu)), "rgba(224,163,60," + edgeA + ")");
+        grad.addColorStop(1, "rgba(224,163,60,0)");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        // spark head
+        var sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, 14);
+        sg.addColorStop(0, "rgba(224,163,60,0.55)");
+        sg.addColorStop(0.4, "rgba(224,163,60,0.14)");
+        sg.addColorStop(1, "rgba(224,163,60,0)");
+        ctx.fillStyle = sg;
+        ctx.beginPath(); ctx.arc(sx, sy, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(242,220,180,0.9)";
+        ctx.beginPath(); ctx.arc(sx, sy, 1.6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // nodes — breathing warm paper-white
+    for (var k = 0; k < nodes.length; k++) {
+      var n = nodes[k];
+      var p = nodePos(n, t);
+      var breatheA = 0.5 + 0.5 * Math.sin(t * 0.00055 + n.phase);
+      var flareBoost = 0;
+      if (flare[k] != null) {
+        var fu = (t - flare[k]) / 1100;
+        if (fu < 1) flareBoost = Math.sin(Math.PI * fu) * 0.5; else delete flare[k];
+      }
+      var rr = 2 + breatheA * 1.1 + flareBoost * 1.4;
+      var glowA = 0.10 + breatheA * 0.10 + flareBoost * 0.16;
+      var gg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr * 9);
+      gg.addColorStop(0, "rgba(232,228,216," + glowA + ")");
+      gg.addColorStop(0.4, "rgba(232,228,216," + (glowA * 0.35) + ")");
+      gg.addColorStop(1, "rgba(232,228,216,0)");
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.arc(p.x, p.y, rr * 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(232,228,216," + (0.55 + breatheA * 0.35 + flareBoost * 0.1) + ")";
+      ctx.beginPath(); ctx.arc(p.x, p.y, rr * 0.55, 0, Math.PI * 2); ctx.fill();
+      // mono role label, desktop only
+      if (n.label && W >= 900) {
+        ctx.font = "11px 'IBM Plex Mono', monospace";
+        ctx.textAlign = "left";
+        ctx.fillStyle = "rgba(232,228,216," + (0.14 + breatheA * 0.14 + flareBoost * 0.25) + ")";
+        ctx.fillText(n.label, p.x + 15, p.y + 4);
+      }
+    }
+
+    if (!reduced) requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+  requestAnimationFrame(draw);
+
+  /* ---------- ledger vignette feed ---------- */
+  var LEDGER_FEED = [
+    { dot: "executing", who: "scout", what: "Competitive scan — 3 findings drafted", status: "executing", hot: true },
+    { dot: "done", who: "writer", what: "Changelog for v0.24 published", status: "done" },
+    { dot: "needs-you", who: "coo", what: "Pricing page copy — approval requested", status: "needs you" },
+    { dot: "executing", who: "dev", what: "Webhook retries — tests passing, 2 to go", status: "executing", hot: true },
+    { dot: "done", who: "support", what: "4 tickets triaged, 1 escalated", status: "done" },
+    { dot: "idle", who: "analyst", what: "Weekly metrics digest — scheduled 09:00", status: "queued" },
+    { dot: "done", who: "dev", what: "Flaky session test quarantined", status: "done" },
+    { dot: "executing", who: "writer", what: "Docs: workflows quickstart, sec. 2/3", status: "executing", hot: true }
+  ];
+  var rowsEl = document.getElementById("ledgerRows");
+  var feedIndex = 0;
+  function rowHTML(r) {
+    return '<span class="dot ' + r.dot + '"></span>' +
+      '<span class="who">' + r.who + "</span>" +
+      '<span class="what">' + r.what + "</span>" +
+      '<span class="status' + (r.hot ? " hot" : "") + '">' + r.status + "</span>";
+  }
+  function pushRow() {
+    var r = LEDGER_FEED[feedIndex % LEDGER_FEED.length];
+    feedIndex++;
+    var el = document.createElement("div");
+    el.className = "ledger-row";
+    el.innerHTML = rowHTML(r);
+    el.style.opacity = "0";
+    el.style.transform = "translateY(-6px)";
+    rowsEl.insertBefore(el, rowsEl.firstChild);
+    requestAnimationFrame(function () {
+      el.style.transition = "opacity 0.7s var(--ease-smooth), transform 0.7s var(--ease-smooth)";
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
+    });
+    while (rowsEl.children.length > 6) rowsEl.removeChild(rowsEl.lastChild);
+  }
+  for (var s = 0; s < 5; s++) pushRow();
+  if (!reduced) setInterval(pushRow, 2800);
+
+  /* ---------- copy pill ---------- */
+  function wireCopy(id) {
+    var btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var text = btn.querySelector(".cmd-text").textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(text);
+      var hint = btn.querySelector(".copy-hint");
+      hint.textContent = "copied";
+      setTimeout(function () { hint.textContent = "copy"; }, 1800);
+    });
+  }
+  wireCopy("copyCmd"); wireCopy("copyCmd2");
+
+  /* ---------- motion ---------- */
+  if (reduced || !window.gsap) {
+    document.documentElement.classList.add("no-motion");
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  var lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+  gsap.ticker.lagSmoothing(0);
+
+  // headline: masked line rise + optical weight bloom on line 2
+  gsap.fromTo(".h1-line > span",
+    { yPercent: 110 },
+    { yPercent: 0, duration: 1.4, ease: "power4.out", stagger: 0.13, delay: 0.2 });
+  var bold = document.getElementById("h1bold");
+  var wObj = { w: 260 };
+  gsap.to(wObj, {
+    w: 640, duration: 1.6, ease: "power3.inOut", delay: 0.45,
+    onUpdate: function () { bold.style.fontVariationSettings = '"wght" ' + wObj.w.toFixed(0); }
+  });
+
+  // hero furniture — app's authReveal (rise + deblur)
+  gsap.utils.toArray(".hero .reveal").forEach(function (el, i) {
+    gsap.fromTo(el, { opacity: 0, y: 22, filter: "blur(5px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.1, ease: "power2.out", delay: 0.7 + i * 0.14 });
+  });
+
+  // scrolled reveals — same voice
+  gsap.utils.toArray("section .reveal").forEach(function (el) {
+    gsap.fromTo(el, { opacity: 0, y: 28, filter: "blur(5px)" },
+      {
+        opacity: 1, y: 0, filter: "blur(0px)", duration: 1.05, ease: "power2.out",
+        scrollTrigger: { trigger: el, start: "top 86%", once: true }
+      });
+  });
+
+  // primitives: exactly ONE row — the one nearest the viewport center —
+  // carries the amber tick at a time
+  var prims = gsap.utils.toArray(".primitive");
+  function updateActivePrimitive() {
+    var mid = window.innerHeight / 2;
+    var best = null, bestD = Infinity;
+    prims.forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) return;
+      var d = Math.abs((r.top + r.bottom) / 2 - mid);
+      if (d < bestD) { bestD = d; best = el; }
+    });
+    prims.forEach(function (el) {
+      el.classList.toggle("active", el === best && bestD < window.innerHeight * 0.4);
+    });
+  }
+  ScrollTrigger.create({
+    trigger: ".primitives", start: "top bottom", end: "bottom top",
+    onUpdate: updateActivePrimitive, onToggle: updateActivePrimitive
+  });
+
+  // hero canvas parallax + dim
+  gsap.to("#constellation", {
+    yPercent: 16, opacity: 0.3, ease: "none",
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true }
+  });
+  gsap.to(".hero-inner", {
+    yPercent: -8, opacity: 0.25, ease: "none",
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true }
+  });
+
+  // anchor links glide
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      var target = a.getAttribute("href");
+      if (target.length > 1 && document.querySelector(target)) {
+        ev.preventDefault();
+        lenis.scrollTo(target, { offset: 0, duration: 1.6 });
+      }
+    });
+  });
+
+  // nav: frost once scrolled; hide going down, show coming back
+  var lastY = 0;
+  var nav = document.getElementById("nav");
+  lenis.on("scroll", function (e) {
+    var y = e.scroll;
+    nav.classList.toggle("scrolled", y > 50);
+    if (y > 160 && y > lastY + 4) nav.classList.add("hidden");
+    else if (y < lastY - 4) nav.classList.remove("hidden");
+    lastY = y;
+  });
+})();
+</script>
+</body>
+</html>

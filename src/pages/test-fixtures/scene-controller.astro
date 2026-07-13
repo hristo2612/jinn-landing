@@ -1,0 +1,464 @@
+---
+/**
+ * Browser-only SceneController fixture. Four declarative stages prove desktop
+ * pinning and mobile stacked-window behavior without adding placeholder
+ * sections to the real landing page.
+ */
+import type { PaneKey } from "../../lib/scenes/types";
+import "../../styles/global.css";
+
+const stages: { id: string; pane: PaneKey; label: string }[] = [
+  { id: "stage-chat", pane: "chat", label: "Chat" },
+  { id: "stage-org", pane: "org", label: "Org" },
+  { id: "stage-todos", pane: "todos", label: "Todos" },
+  { id: "stage-flows", pane: "flows", label: "Flows" },
+];
+const panes = stages.map(({ pane }) => pane);
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-motion="ok">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>SceneController fixture</title>
+  </head>
+  <body data-pagefind-ignore="all">
+    <script is:inline>
+      window.__sceneFixtureRafCallbacks = 0;
+      const nativeRequestAnimationFrame =
+        window.requestAnimationFrame.bind(window);
+      window.requestAnimationFrame = (callback) =>
+        nativeRequestAnimationFrame((time) => {
+          window.__sceneFixtureRafCallbacks += 1;
+          callback(time);
+        });
+    </script>
+    <main data-scene-controller>
+      <div class="fixture-pin" data-scene-pin>
+        <figure data-scene-window data-scene-shared-window>
+          <div data-scene-frame aria-hidden="true">
+            <div class="fixture-ribbon">
+              {
+                panes.map((pane) => (
+                  <span
+                    data-target={`ribbon-${pane}`}
+                    data-active={pane === "chat" ? "" : undefined}
+                  >
+                    {pane}
+                  </span>
+                ))
+              }
+            </div>
+            {
+              panes.map((pane) => (
+                <div
+                  class="fixture-pane"
+                  data-target={`pane-${pane}`}
+                  data-active={pane === "chat" ? "" : undefined}
+                >
+                  {pane} pane
+                  {pane === "todos" && (
+                    <>
+                      <span data-target="todos-mode">Primary</span>
+                      <span data-target="todos-loop-state" data-state="queued">
+                        queued
+                      </span>
+                    </>
+                  )}
+                </div>
+              ))
+            }
+          </div>
+          <div data-scene-controls></div>
+        </figure>
+      </div>
+
+      <div class="fixture-stages">
+        {
+          stages.map((stage) => (
+            <section
+              data-scene-stage
+              data-scene-id={stage.id}
+              data-sunrise-boundary={stage.id === "stage-org" ? "" : undefined}
+            >
+              <h2>{stage.label}</h2>
+              <figure
+                data-scene-window
+                data-scene-mobile-window
+                data-scene-id={stage.id}
+              >
+                <div data-scene-frame aria-hidden="true">
+                  <div class="fixture-ribbon">
+                    {panes.map((pane) => (
+                      <span
+                        data-target={`ribbon-${pane}`}
+                        data-active={pane === "chat" ? "" : undefined}
+                      >
+                        {pane}
+                      </span>
+                    ))}
+                  </div>
+                  {panes.map((pane) => (
+                    <div
+                      class="fixture-pane"
+                      data-target={`pane-${pane}`}
+                      data-active={pane === "chat" ? "" : undefined}
+                    >
+                      {pane} pane
+                      {pane === "todos" && (
+                        <>
+                          <span data-target="todos-mode">Primary</span>
+                          <span
+                            data-target="todos-loop-state"
+                            data-state="queued"
+                          >
+                            queued
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div data-scene-controls />
+              </figure>
+            </section>
+          ))
+        }
+      </div>
+    </main>
+
+    <figure data-scene-window data-scene-id="morning-approval" hidden>
+      <div data-scene-frame aria-hidden="true"></div>
+      <div data-scene-controls></div>
+    </figure>
+
+    <script>
+      import { gsap } from "gsap";
+
+      import { SceneController } from "../../lib/scenes/scene-controller";
+      import { SceneMotionChannel } from "../../lib/scenes/scene-motion-channel";
+      import { installSunrise } from "../../lib/sunrise";
+      import type {
+        ChatSceneState,
+        PaneKey,
+        SceneDefinition,
+      } from "../../lib/scenes/types";
+
+      const stageData: { id: string; pane: PaneKey }[] = [
+        { id: "stage-chat", pane: "chat" },
+        { id: "stage-org", pane: "org" },
+        { id: "stage-todos", pane: "todos" },
+        { id: "stage-flows", pane: "flows" },
+      ];
+      if (new URLSearchParams(location.search).has("heroDestination")) {
+        document
+          .querySelector("[data-scene-stage][data-scene-id='stage-chat']")
+          ?.remove();
+      }
+      const initialState: ChatSceneState = {
+        pane: "chat",
+        pill: { name: "COO", meta: "· COO · engine", presence: "active" },
+        thread: [],
+        composerPlaceholder: "Message the COO…",
+      };
+      const definitions = new Map<string, SceneDefinition<ChatSceneState>>(
+        stageData.map(({ id, pane }) => [
+          id,
+          {
+            id,
+            title: `${pane} stage`,
+            surface: pane,
+            claim: `Activate the ${pane} pane.`,
+            transcript: `The ${pane} fixture pane becomes active.`,
+            initialState: { ...initialState, pane },
+            targets: [
+              { id: `ribbon-${pane}`, kind: "pane" },
+              { id: `pane-${pane}`, kind: "pane" },
+            ],
+            playback: {
+              mode: "once",
+              entry:
+                id === "stage-org" || id === "stage-chat"
+                  ? "restart-on-enter"
+                  : "play",
+              offscreen: "pause",
+            },
+            beats: [
+              {
+                at: 0,
+                duration: 120,
+                target: `ribbon-${pane}`,
+                action: { type: "highlight" },
+                easing: "snappy",
+              },
+              {
+                at: 80,
+                duration: 120,
+                target: `pane-${pane}`,
+                action: { type: "highlight" },
+                easing: "snappy",
+              },
+            ],
+            checkpoints: [
+              { name: "initial", at: 0 },
+              { name: "resolved", at: 1000 },
+            ],
+          },
+        ]),
+      );
+      definitions.set("morning-approval", {
+        id: "morning-approval",
+        title: "Morning fixture",
+        surface: "morning",
+        claim: "Exercise the sunrise boundary.",
+        transcript: "The fixture crosses into morning.",
+        initialState,
+        targets: [],
+        playback: { mode: "once", entry: "play", offscreen: "pause" },
+        beats: [],
+        checkpoints: [
+          { name: "initial", at: 0 },
+          { name: "resolved", at: 10 },
+        ],
+      });
+      const ambientDefinition = {
+        id: "stage-todos-ambient",
+        title: "Todos ambient fixture",
+        surface: "todos",
+        claim: "Exercise ambient scheduling.",
+        transcript: "The Todos pane performs a bounded ambient beat.",
+        initialState: { ...initialState, pane: "todos" },
+        targets: [{ id: "pane-todos", kind: "pane" }],
+        playback: {
+          mode: "loop",
+          entry: "play",
+          offscreen: "pause",
+          dwellMs: 6000,
+          quietResetMs: 600,
+        },
+        ambient: { follows: "stage-todos", startDelay: 2000 },
+        beats: [0, 6000, 12000, 18000].map((at) => ({
+          at,
+          duration: 400,
+          target: "pane-todos",
+          action: { type: "pulse" as const, cycles: 1 as const },
+          easing: "smooth" as const,
+        })),
+        checkpoints: [
+          { name: "initial", at: 0 },
+          { name: "resolved", at: 18400 },
+        ],
+      } satisfies SceneDefinition<ChatSceneState>;
+      const alternateTodosDefinition = {
+        id: "stage-todos-alternate",
+        title: "Alternate Todos fixture",
+        surface: "todos",
+        claim: "Exercise same-surface scene swapping.",
+        transcript: "The alternate Todos scene resolves truthfully.",
+        initialState: { ...initialState, pane: "todos" },
+        targets: [
+          { id: "pane-todos", kind: "pane" },
+          { id: "todos-mode", kind: "text" },
+        ],
+        playback: { mode: "once", entry: "play", offscreen: "pause" },
+        beats: [
+          {
+            at: 0,
+            duration: 120,
+            target: "todos-mode",
+            action: { type: "replace-text", text: "Alternate resolved" },
+            easing: "smooth",
+          },
+        ],
+        checkpoints: [
+          { name: "initial", at: 0 },
+          { name: "resolved", at: 120 },
+        ],
+      } satisfies SceneDefinition<ChatSceneState>;
+      definitions.set(alternateTodosDefinition.id, alternateTodosDefinition);
+      const selectedTodosLoop = {
+        id: "stage-todos-selected-loop",
+        title: "Selected Todos loop fixture",
+        surface: "todos",
+        claim: "Exercise role-owned ambient yielding after a swap.",
+        transcript: "A selected loop commits its current beat before yielding.",
+        initialState: {
+          ...initialState,
+          pane: "todos",
+          targetStates: { "todos-loop-state": "queued" },
+        },
+        targets: [
+          { id: "pane-todos", kind: "pane" },
+          {
+            id: "todos-loop-state",
+            kind: "state",
+            initialState: "queued",
+            transitions: [{ from: "queued", to: "running" }],
+          },
+        ],
+        playback: {
+          mode: "loop",
+          entry: "play",
+          offscreen: "pause",
+          dwellMs: 6000,
+          quietResetMs: 600,
+        },
+        beats: [
+          {
+            at: 2400,
+            duration: 350,
+            target: "todos-loop-state",
+            action: { type: "set-state", from: "queued", to: "running" },
+            easing: "smooth",
+          },
+        ],
+        checkpoints: [
+          { name: "initial", at: 0 },
+          { name: "resolved", at: 3000 },
+        ],
+      } satisfies SceneDefinition<ChatSceneState>;
+      definitions.set(selectedTodosLoop.id, selectedTodosLoop);
+      if (new URLSearchParams(location.search).has("ambient")) {
+        definitions.set(ambientDefinition.id, ambientDefinition);
+      }
+
+      const root = document.querySelector<HTMLElement>(
+        "[data-scene-controller]",
+      )!;
+      const motionChannel = new SceneMotionChannel();
+      const controller = new SceneController(root, definitions, motionChannel);
+      const morningRoot = document.querySelector<HTMLElement>(
+        "[data-scene-window][data-scene-id='morning-approval']",
+      )!;
+      const morningController = new SceneController(
+        morningRoot,
+        definitions,
+        motionChannel,
+      );
+      let tickerTicks = 0;
+      const countTickerTick = (): void => {
+        tickerTicks += 1;
+      };
+      const tickerProbe = {
+        start(): void {
+          gsap.ticker.remove(countTickerTick);
+          tickerTicks = 0;
+          gsap.ticker.add(countTickerTick);
+        },
+        read(): number {
+          return tickerTicks;
+        },
+        stop(): void {
+          gsap.ticker.remove(countTickerTick);
+        },
+      };
+      Object.assign(window, {
+        __sceneFixtureController: controller,
+        __sceneFixtureMorningController: morningController,
+        __sceneFixtureMotionChannel: motionChannel,
+        __sceneFixtureTickerProbe: tickerProbe,
+      });
+      void Promise.all([controller.start(), morningController.start()]).then(
+        () => installSunrise([controller, morningController]),
+      );
+    </script>
+  </body>
+</html>
+
+<style>
+  body {
+    margin: 0;
+  }
+
+  [data-scene-controller] {
+    position: relative;
+    min-height: 400vh;
+  }
+
+  .fixture-pin {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50vw;
+    height: 100vh;
+    padding: 10vh 4vw;
+  }
+
+  [data-scene-window] {
+    display: block;
+    width: 100%;
+    min-height: 20rem;
+    margin: 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-xl);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .fixture-ribbon {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .fixture-ribbon span,
+  .fixture-pane {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--fill-tertiary);
+  }
+
+  .fixture-ribbon [data-active] {
+    background: var(--accent-fill);
+  }
+
+  .fixture-pane {
+    display: none;
+    min-height: 12rem;
+    margin-top: var(--space-4);
+  }
+
+  .fixture-pane[data-active] {
+    display: block;
+  }
+
+  .fixture-stages {
+    margin-left: 50vw;
+  }
+
+  [data-scene-stage] {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+  }
+
+  [data-scene-mobile-window] {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    [data-scene-controller] {
+      min-height: auto;
+    }
+
+    .fixture-pin {
+      display: none;
+    }
+
+    .fixture-stages {
+      margin-left: 0;
+    }
+
+    [data-scene-stage] {
+      align-content: center;
+      gap: var(--space-5);
+      min-height: 100vh;
+      padding: var(--space-4);
+    }
+
+    [data-scene-mobile-window] {
+      display: block;
+    }
+  }
+</style>

@@ -1,0 +1,610 @@
+@import "./fonts.css";
+@import "./generated/ledger-tokens.css";
+
+/*
+ * Ledger skin for Starlight.
+ *
+ * This file intentionally styles Starlight's supported public hooks instead
+ * of replacing its layout or components. The docs retain Starlight's search,
+ * sidebar, drawer, TOC, anchors, pagination, code copy, and Pagefind behavior.
+ */
+
+:root,
+::backdrop {
+  --sl-color-white: var(--text-primary);
+  --sl-color-gray-1: var(--text-primary);
+  --sl-color-gray-2: var(--text-secondary);
+  --sl-color-gray-3: var(--text-tertiary);
+  --sl-color-gray-4: var(--text-quaternary);
+  --sl-color-gray-5: var(--separator);
+  --sl-color-gray-6: var(--fill-secondary);
+  --sl-color-gray-7: var(--bg-secondary);
+  --sl-color-black: var(--bg);
+  --sl-color-accent-low: var(--accent-fill);
+  --sl-color-accent: var(--accent);
+  --sl-color-accent-high: var(--accent);
+  --sl-color-text: var(--text-primary);
+  --sl-color-text-accent: var(--accent);
+  --sl-color-text-invert: var(--accent-contrast);
+  --sl-color-bg: var(--bg);
+  --sl-color-bg-nav: var(--material-thick);
+  --sl-color-bg-sidebar: var(--sidebar-bg);
+  --sl-color-bg-inline-code: var(--fill-secondary);
+  --sl-color-bg-accent: var(--accent-fill);
+  --sl-color-hairline-light: var(--separator);
+  --sl-color-hairline: var(--separator);
+  --sl-color-hairline-shade: var(--separator);
+  --sl-color-backdrop-overlay: var(--material-thick);
+  --sl-shadow-sm: var(--shadow-subtle);
+  --sl-shadow-md: var(--shadow-card);
+  --sl-shadow-lg: var(--shadow-overlay);
+  --sl-font: var(--font-ui);
+  --sl-font-mono: var(--font-code);
+  --sl-text-body: var(--text-body);
+  --sl-text-body-sm: var(--text-footnote);
+  --sl-text-code: var(--text-footnote);
+  --sl-text-code-sm: var(--text-caption1);
+  --sl-text-h1: 2.5rem;
+  --sl-text-h2: 1.75rem;
+  --sl-text-h3: 1.375rem;
+  --sl-text-h4: var(--text-title3);
+  --sl-text-h5: var(--text-body);
+  --sl-line-height: var(--leading-relaxed);
+  --sl-line-height-headings: var(--leading-tight);
+  --sl-nav-height: 4rem;
+  --sl-nav-pad-x: clamp(0.75rem, 2.4vw, 1.5rem);
+  --sl-nav-pad-y: 0.625rem;
+  --sl-mobile-toc-height: 3.25rem;
+  --sl-sidebar-width: 17.5rem;
+  --sl-sidebar-pad-x: 0.875rem;
+  --sl-content-width: 46rem;
+  --sl-content-pad-x: clamp(1.25rem, 4vw, 2.5rem);
+  --sl-menu-button-size: 2.75rem;
+}
+
+html {
+  min-width: 20rem;
+  color: var(--text-primary);
+  background: var(--bg);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--bg);
+  letter-spacing: var(--tracking-normal);
+}
+
+::selection {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 3px;
+}
+
+/* Header: one quiet material band, without a decorative rest hairline. */
+header.header {
+  border-bottom: 0 !important;
+  background: var(--material-thick) !important;
+  box-shadow: var(--shadow-subtle);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+}
+
+.site-title {
+  color: var(--text-primary) !important;
+  font-family: var(--font-display);
+  font-size: var(--text-title2) !important;
+  font-weight: var(--weight-bold) !important;
+  letter-spacing: -0.03em;
+}
+
+site-search button[data-open-modal] {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border: 0 !important;
+  border-radius: var(--radius-lg) !important;
+  color: var(--text-secondary) !important;
+  background: var(--fill-tertiary) !important;
+  box-shadow: var(--shadow-subtle);
+  transition-property: color, background-color, box-shadow, scale;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-snappy);
+}
+
+site-search button[data-open-modal]:hover {
+  color: var(--text-primary) !important;
+  background: var(--fill-secondary) !important;
+  box-shadow: var(--shadow-card);
+}
+
+site-search button[data-open-modal]:active,
+starlight-menu-button button:active,
+.pagination-links a:active,
+.expressive-code .copy button:active {
+  scale: 0.96;
+}
+
+site-search kbd,
+starlight-theme-select select {
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+}
+
+site-search button > kbd {
+  color: var(--text-tertiary);
+  background: var(--fill-secondary);
+}
+
+starlight-theme-select label {
+  min-height: 2.75rem;
+  border: 0 !important;
+  border-radius: var(--radius-lg);
+  background: var(--fill-tertiary);
+  box-shadow: var(--shadow-subtle);
+}
+
+/* Starlight renders this slot even without social links; keep it silent. */
+.social-icons::after {
+  display: none;
+}
+
+starlight-menu-button button {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+  border: 0 !important;
+  color: var(--text-secondary) !important;
+  background: var(--fill-tertiary) !important;
+  box-shadow: var(--shadow-subtle) !important;
+  transition-property: color, background-color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-snappy);
+}
+
+starlight-menu-button button:hover {
+  color: var(--text-primary) !important;
+  background: var(--fill-secondary) !important;
+}
+
+/* Navigation rail: Ledger's tonal staircase and one truthful active marker. */
+.sidebar-pane {
+  border-inline-end: 0 !important;
+  background: var(--sidebar-bg) !important;
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-content {
+  padding: var(--space-6) var(--sl-sidebar-pad-x) var(--space-8) !important;
+  gap: var(--space-4) !important;
+}
+
+.sidebar-pane ul ul li {
+  margin-inline-start: 0;
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.sidebar-pane .top-level > li + li {
+  margin-top: var(--space-5);
+}
+
+.sidebar-pane summary {
+  min-height: 2.75rem;
+  padding: 0 var(--space-3) !important;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  transition-property: color, background-color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+.sidebar-pane summary:hover {
+  color: var(--text-primary);
+  background: var(--fill-quaternary);
+}
+
+.sidebar-pane summary .large {
+  color: inherit !important;
+  font-family: var(--font-code);
+  font-size: var(--text-caption2) !important;
+  font-weight: var(--weight-semibold) !important;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.sidebar-pane summary .caret {
+  color: var(--text-tertiary);
+  transition-property: transform;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+.sidebar-pane a {
+  position: relative;
+  display: flex !important;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-top: 2px;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-secondary) !important;
+  line-height: var(--leading-snug) !important;
+  text-decoration: none;
+  transition-property: color, background-color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+.sidebar-pane a:hover {
+  color: var(--text-primary) !important;
+  background: var(--fill-quaternary);
+}
+
+.sidebar-pane a[aria-current="page"] {
+  color: var(--text-primary) !important;
+  background: var(--fill-secondary) !important;
+  font-weight: var(--weight-semibold);
+}
+
+.sidebar-pane a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--space-2);
+  width: 3px;
+  height: var(--space-4);
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* Reading surface: type and whitespace do the structural work. */
+.content-panel {
+  padding: var(--space-6) var(--sl-content-pad-x) !important;
+}
+
+.content-panel + .content-panel {
+  border-top: 0 !important;
+}
+
+main > .content-panel:first-child {
+  padding-top: clamp(3.25rem, 8vw, 5rem) !important;
+  padding-bottom: var(--space-2) !important;
+}
+
+main > .content-panel:nth-child(2) {
+  padding-top: var(--space-2) !important;
+}
+
+main h1#_top {
+  max-width: 18ch;
+  margin-top: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4.5vw, 3.25rem);
+  font-weight: var(--weight-bold);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.sl-markdown-content {
+  color: var(--text-primary);
+  font-size: var(--text-body);
+  line-height: var(--leading-relaxed);
+}
+
+.sl-markdown-content > p:first-child {
+  color: var(--text-secondary);
+  font-size: clamp(var(--text-body), 2vw, var(--text-title3));
+  line-height: var(--leading-relaxed);
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--text-primary) !important;
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.sl-markdown-content :is(p, li, figcaption, blockquote) {
+  text-wrap: pretty;
+}
+
+.sl-markdown-content a {
+  color: var(--accent) !important;
+  text-decoration-color: var(--accent-fill) !important;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition-property: color, text-decoration-color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+.sl-markdown-content a:hover {
+  color: var(--text-primary) !important;
+  text-decoration-color: var(--accent) !important;
+}
+
+.sl-markdown-content code:not(:where(.not-content *)) {
+  border-radius: var(--radius-sm);
+  color: var(--code-text);
+  background: var(--code-bg);
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-markdown-content :is(table, time),
+.pagination-links,
+.right-sidebar-panel {
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-markdown-content table:not(:where(.not-content *)) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: var(--text-subheadline);
+}
+
+.sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+  border-color: var(--separator);
+}
+
+.sl-markdown-content blockquote:not(:where(.not-content *)) {
+  border-inline-start: 3px solid var(--accent);
+  color: var(--text-secondary);
+}
+
+.sl-markdown-content hr:not(:where(.not-content *)) {
+  border-color: var(--separator);
+}
+
+/* Code is a raised working surface; copy behavior remains Expressive Code's. */
+.expressive-code figure.frame {
+  border: 0 !important;
+  border-radius: var(--radius-xl) !important;
+  background: var(--bg-secondary) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.expressive-code figure.frame > figcaption.header {
+  border-bottom: 0 !important;
+  background: var(--fill-tertiary) !important;
+}
+
+.expressive-code figure.frame pre {
+  border: 0 !important;
+  background: var(--bg-secondary) !important;
+  font-family: var(--font-code) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.expressive-code .copy button {
+  min-width: 2.75rem !important;
+  min-height: 2.75rem !important;
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-secondary) !important;
+  background: var(--material-regular) !important;
+  box-shadow: var(--shadow-subtle) !important;
+  transition-property: color, background-color, box-shadow, scale, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-snappy);
+}
+
+.expressive-code .copy button:hover {
+  color: var(--text-primary) !important;
+  background: var(--bg-secondary) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.expressive-code .copy .feedback {
+  color: var(--accent-contrast) !important;
+  background: var(--system-green) !important;
+}
+
+/* TOC and pagination remain native Starlight components with quieter chrome. */
+.right-sidebar {
+  border-inline-start: 0 !important;
+}
+
+.right-sidebar-panel {
+  padding-top: var(--space-8) !important;
+}
+
+.right-sidebar-panel h2 {
+  color: var(--text-secondary) !important;
+  font-family: var(--font-code);
+  font-size: var(--text-caption2) !important;
+  font-weight: var(--weight-semibold) !important;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.right-sidebar-panel a {
+  min-height: 2.5rem;
+  padding: var(--space-2) 0;
+  color: var(--text-secondary) !important;
+  line-height: var(--leading-snug);
+  transition-property: color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+.right-sidebar-panel a:hover,
+.right-sidebar-panel a[aria-current="true"] {
+  color: var(--accent) !important;
+}
+
+.pagination-links {
+  gap: var(--space-3) !important;
+}
+
+.pagination-links a {
+  min-height: 5.5rem;
+  border: 0 !important;
+  border-radius: var(--radius-xl) !important;
+  padding: var(--space-4) var(--space-5) !important;
+  color: var(--text-secondary) !important;
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-card) !important;
+  transition-property: color, background-color, box-shadow, scale;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-snappy);
+}
+
+.pagination-links a:hover {
+  color: var(--text-primary) !important;
+  background: var(--bg-tertiary);
+  box-shadow: var(--shadow-key) !important;
+}
+
+.pagination-links .link-title {
+  color: var(--text-primary) !important;
+  font-size: var(--text-body) !important;
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug) !important;
+}
+
+mobile-starlight-toc nav {
+  border-top: 0 !important;
+  background: var(--material-thick) !important;
+  box-shadow: var(--shadow-subtle);
+}
+
+mobile-starlight-toc summary {
+  min-height: 3.25rem;
+  border-bottom: 0 !important;
+}
+
+mobile-starlight-toc .toggle {
+  min-height: 2.5rem;
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-secondary);
+  background: var(--fill-tertiary) !important;
+}
+
+mobile-starlight-toc .dropdown {
+  border: 0 !important;
+  background: var(--material-thick) !important;
+  box-shadow: var(--shadow-overlay) !important;
+}
+
+/* Search uses Pagefind unchanged, with Ledger materials and focus treatment. */
+site-search dialog {
+  border: 0 !important;
+  border-radius: var(--radius-xl) !important;
+  background: var(--material-thick) !important;
+  box-shadow: var(--shadow-overlay) !important;
+}
+
+site-search dialog::backdrop {
+  background: var(--material-thick);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+#starlight__search {
+  --pagefind-ui-primary: var(--accent) !important;
+  --pagefind-ui-text: var(--text-primary) !important;
+  --pagefind-ui-font: var(--font-ui) !important;
+  --pagefind-ui-background: var(--bg-secondary) !important;
+  --pagefind-ui-border: var(--separator) !important;
+  --pagefind-ui-border-width: 0 !important;
+  --pagefind-ui-tag: var(--fill-secondary) !important;
+}
+
+#starlight__search .pagefind-ui__search-input {
+  min-height: 3.5rem;
+  border: 0 !important;
+  border-radius: var(--radius-lg) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-secondary) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+#starlight__search
+  .pagefind-ui__result-title:not(:where(.pagefind-ui__result-nested *)),
+#starlight__search .pagefind-ui__result-nested {
+  border-radius: var(--radius-md) !important;
+  background: var(--fill-quaternary) !important;
+  transition-property: background-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-smooth);
+}
+
+#starlight__search
+  .pagefind-ui__result-title:not(:where(.pagefind-ui__result-nested *)):hover,
+#starlight__search
+  .pagefind-ui__result-title:not(
+    :where(.pagefind-ui__result-nested *)
+  ):focus-within,
+#starlight__search .pagefind-ui__result-nested:hover,
+#starlight__search .pagefind-ui__result-nested:focus-within {
+  outline: 0 !important;
+  background: var(--fill-secondary) !important;
+  box-shadow: var(--shadow-subtle);
+}
+
+@media (max-width: 49.99rem) {
+  .sidebar-pane {
+    background: var(--sidebar-bg) !important;
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .sidebar-content {
+    padding-top: var(--space-5) !important;
+    padding-bottom: calc(var(--space-8) + var(--safe-bottom)) !important;
+  }
+
+  main > .content-panel:first-child {
+    padding-top: var(--space-10) !important;
+  }
+
+  main h1#_top {
+    font-size: clamp(2.375rem, 11vw, 3rem);
+  }
+
+  .sl-markdown-content > p:first-child {
+    font-size: var(--text-body);
+  }
+
+  site-search dialog {
+    border-radius: 0 !important;
+  }
+}
+
+@media (min-width: 50rem) {
+  :root {
+    --sl-nav-height: 4.5rem;
+    --sl-mobile-toc-height: 0rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    site-search button,
+    starlight-menu-button button,
+    .sidebar-pane summary,
+    .sidebar-pane a,
+    .right-sidebar-panel a,
+    .pagination-links a,
+    .expressive-code .copy button,
+    #starlight__search .pagefind-ui__result-title,
+    #starlight__search .pagefind-ui__result-nested
+  ) {
+    transition-duration: 0.01ms !important;
+  }
+
+  :root {
+    scroll-behavior: auto !important;
+  }
+}

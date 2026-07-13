@@ -1,0 +1,124 @@
+---
+/**
+ * §09/§10 static compositions - the SKILL.md file card and the ~/.jinn tree
+ * card (STORYBOARD-FEATURES §4.10/§4.11). QuietCard treatment, mono type;
+ * no animation - these are the page's closing statics.
+ */
+import { SKILL_CARD, TREE_CARD } from "../../lib/scenes/features";
+
+interface Props {
+  kind: "skill" | "tree";
+}
+
+const { kind } = Astro.props;
+
+/** Minimal escaping for the set:html tree rows (all-canonical strings). */
+function escapeTree(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+---
+
+{
+  kind === "skill" ? (
+    <figure class="scard" data-static="skill">
+      <figcaption class="scard__path">{SKILL_CARD.path}</figcaption>
+      <pre class="scard__pre">
+        <code>{SKILL_CARD.snippet.join("\n")}</code>
+      </pre>
+    </figure>
+  ) : (
+    <figure class="scard" data-static="tree">
+      <pre
+        class="scard__pre scard__pre--tree"
+        set:html={
+          escapeTree(TREE_CARD.root) +
+          "\n" +
+          TREE_CARD.rows
+            .map(
+              (row) =>
+                `${escapeTree(row.branch)} ${escapeTree(row.name.padEnd(18))}<span class="scard__comment">${escapeTree(row.comment)}</span>`,
+            )
+            .join("\n")
+        }
+      />
+    </figure>
+  )
+}
+
+<style>
+  .scard {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: var(--space-5) var(--space-6);
+    background: var(--fill-tertiary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* AA note (the landing footer precedent): tertiary/quaternary inks fail
+     the axe contrast gate at these mono sizes on the light page, so the
+     statics keep to secondary - hierarchy comes from the primary tree names
+     and the size/tracking, not from fainter ink. */
+  .scard__path {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-code);
+    font-size: var(--text-caption2);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scard__pre {
+    margin: 0;
+    overflow-x: auto;
+    font-family: var(--font-code);
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+
+  .scard__pre--tree {
+    color: var(--text-primary);
+  }
+
+  .scard__pre :global(.scard__comment) {
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .scard {
+      padding: var(--space-4) var(--space-5);
+    }
+
+    /* Snippet 12px, wrap instead of horizontal scroll (§6). */
+    .scard__pre {
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-x: visible;
+    }
+
+    /* The tree keeps its columns; comments drop below 360px rather than
+       wrap (§6). */
+    .scard__pre--tree {
+      white-space: pre;
+      overflow-x: auto;
+    }
+  }
+
+  /* Comments drop before the tree could ever become a horizontal scroll
+     region - a scrollable pre is keyboard-unreachable (axe
+     scrollable-region-focusable; B2 review). The names always fit. */
+  @media (max-width: 429px) {
+    .scard__pre :global(.scard__comment) {
+      display: none;
+    }
+  }
+</style>

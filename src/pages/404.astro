@@ -1,0 +1,65 @@
+---
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+---
+
+<MarketingLayout
+  page="not-found"
+  title="Page not found - Jinn"
+  description="Page not found - Jinn"
+  indexable={false}
+>
+  <main class="marketing-main not-found">
+    <div class="not-found__content">
+      <h1>Nothing here<span>.</span></h1>
+      <p>The page you're looking for doesn't exist.</p>
+      <a class="not-found__link" href="/">Back home →</a>
+    </div>
+  </main>
+</MarketingLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    place-items: center;
+    padding: calc(var(--site-nav-height) + var(--space-16))
+      var(--site-page-gutter) var(--space-12);
+  }
+
+  .not-found__content {
+    width: min(100%, var(--site-content-copy));
+    text-align: center;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: var(--site-display-lg);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  p {
+    margin: var(--space-5) 0 0;
+    color: var(--text-secondary);
+  }
+
+  .not-found__link {
+    display: inline-flex;
+    min-height: calc(var(--space-10) + var(--space-1));
+    align-items: center;
+    justify-content: center;
+    margin-top: var(--space-8);
+    padding-inline: var(--space-5);
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--inset-shine), var(--shadow-key);
+    font-size: var(--text-subheadline);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+/**
+ * §08 Dashboard - the page's one deliberate rest between the vignettes and
+ * the closing statics (STORYBOARD-FEATURES §4.9). Pure type, centered, with
+ * the surface chip row; no window - the section's proof is the page itself.
+ */
+import { DASHBOARD_CHIPS, FEATURES_SECTIONS } from "../../lib/scenes/features";
+import ChipRow from "./ChipRow.astro";
+import FactRail from "./FactRail.astro";
+
+const copy = FEATURES_SECTIONS.dashboard;
+---
+
+<section class="rest" id={copy.id} aria-label={copy.title}>
+  <p class="rest__kicker">{copy.kicker}</p>
+  <h2 class="rest__title">{copy.title}</h2>
+  <p class="rest__body">{copy.body}</p>
+
+  <div class="rest__chips">
+    <ChipRow chips={DASHBOARD_CHIPS} mono centered />
+  </div>
+
+  <div class="rest__rail">
+    <FactRail rows={copy.rail} />
+  </div>
+</section>
+
+<style>
+  .rest {
+    padding: var(--site-section-space-theatrical) var(--site-page-gutter);
+    text-align: center;
+  }
+
+  .rest__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .rest__title {
+    margin: var(--space-5) 0 0;
+    font-size: var(--site-display-lg);
+    font-weight: 640;
+    font-variation-settings: "wght" 640;
+    letter-spacing: -0.042em;
+    line-height: 1.06;
+    color: var(--text-primary);
+    text-wrap: balance;
+  }
+
+  .rest__body {
+    max-width: 40rem;
+    margin: var(--space-6) auto 0;
+    font-size: clamp(0.98rem, 1.35vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .rest__chips {
+    display: flex;
+    justify-content: center;
+    max-width: 40rem;
+    margin: var(--space-2) auto 0;
+  }
+
+  .rest__rail {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-10);
+  }
+
+  .rest__rail :global(.fact-rail) {
+    text-align: left;
+  }
+
+  @media (max-width: 640px) {
+    .rest__title {
+      font-size: clamp(2.125rem, 9.5vw, 2.375rem);
+    }
+  }
+</style>

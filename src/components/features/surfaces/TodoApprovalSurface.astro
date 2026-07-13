@@ -1,0 +1,607 @@
+---
+/**
+ * §03 todo-approval surface - the shipped todos-pane anatomy (surfaces/
+ * TodosSurface.astro: state-glyph discs, emoji owner chips, segmented tabs)
+ * with the app's real segments (Active · Needs you · People) and the
+ * needs-you approval row (routes/todos/needs-you-view.tsx: green-tint
+ * Approve pill + check, quiet Send back pill).
+ *
+ * Two views share the pane: `view-active` (the ledger) and `view-needs`
+ * (the approval row). The scene's highlight beat moves `data-active` between
+ * them - the same one-owner selection idiom as the landing's panes. No-JS
+ * and reduced motion present the RESOLVED needs-you view via the
+ * motion/static CSS split (the NightFeed amber-wash pattern).
+ *
+ * State glyphs mirror the app's state-glyph.tsx: in-review = purple search
+ * disc; executing = spinner; assigned = neutral user disc.
+ */
+import { TODO_APPROVAL_PANE } from "../../../lib/scenes/features";
+
+const discIcon: Record<string, string> = {
+  "in-review": "i-search",
+  executing: "i-loader",
+  assigned: "i-user",
+};
+---
+
+<div class="tap" data-surface="todo-approval">
+  <header class="tap__head">
+    <span class="tap__title" data-field="header">
+      {TODO_APPROVAL_PANE.header}
+    </span>
+    <span class="tap__segments">
+      {
+        TODO_APPROVAL_PANE.segments.map((segment) => (
+          <span
+            class:list={["tap__seg", `tap__seg--${segment.target.slice(4)}`]}
+            data-target={segment.target}
+            data-state={segment.target === "tab-needs" ? "quiet" : undefined}
+          >
+            <span data-field="segment">{segment.label}</span>
+            {segment.count && (
+              <span class="tap__seg-count" data-field="count">
+                {segment.count}
+              </span>
+            )}
+            {segment.target === "tab-needs" && (
+              <i class="tap__seg-dot" aria-hidden="true" />
+            )}
+          </span>
+        ))
+      }
+    </span>
+  </header>
+
+  <div
+    class="tap__view tap__view--active"
+    data-target="view-active"
+    data-active
+  >
+    {
+      TODO_APPROVAL_PANE.cards.map((card) => (
+        <article
+          class="tap__card"
+          data-target={card.target}
+          data-state={
+            card.target === "card-refund" ? "approval-requested" : card.status
+          }
+        >
+          <div class="tap__row">
+            <span class="tap__disc" data-disc={card.status}>
+              <svg class="tap__icon">
+                <use href={`#${discIcon[card.status]}`} />
+              </svg>
+            </span>
+            <span class="tap__card-title" data-field="title">
+              {card.title}
+            </span>
+            {card.target === "card-refund" && (
+              <span class="tap__badge" data-field="badge">
+                <svg class="tap__icon">
+                  <use href="#i-bell" />
+                </svg>
+                {TODO_APPROVAL_PANE.badge}
+              </span>
+            )}
+          </div>
+          <div class="tap__meta">
+            <span class="tap__owner">
+              <i>{card.emoji}</i>
+              <span data-field="owner">{card.owner}</span>
+            </span>
+            <span class="tap__spring" aria-hidden="true" />
+            <span class="tap__state" data-field="state">
+              {card.statusLabel}
+            </span>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <div class="tap__view tap__view--needs" data-target="view-needs">
+    <article
+      class="tap__approval"
+      data-target="row-refund"
+      data-state="decided"
+    >
+      <div class="tap__arow">
+        <span class="tap__adisc" aria-hidden="true">
+          <svg class="tap__icon tap__icon--bell">
+            <use href="#i-bell"></use>
+          </svg>
+          <svg class="tap__icon tap__icon--check">
+            <use href="#i-check"></use>
+          </svg>
+        </span>
+        <p class="tap__request" data-field="request">
+          {TODO_APPROVAL_PANE.request}
+        </p>
+      </div>
+      <div class="tap__actions">
+        <span class="tap__approve" data-target="row-approve">
+          <svg class="tap__icon"><use href="#i-check"></use></svg>
+          {TODO_APPROVAL_PANE.approveLabel}
+        </span>
+        <span class="tap__sendback">{TODO_APPROVAL_PANE.sendBackLabel}</span>
+      </div>
+      <div class="tap__status">
+        <span class="tap__status-motion" data-target="row-status"></span>
+        <span class="tap__status-static" data-field="status">
+          {TODO_APPROVAL_PANE.decidedStatus}
+        </span>
+      </div>
+    </article>
+  </div>
+</div>
+
+<style>
+  .tap {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  .tap__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .tap__title {
+    color: var(--text-primary);
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .tap__segments {
+    display: flex;
+    margin-left: auto;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--fill-quaternary);
+  }
+
+  /* AA note (B2 review finding 8): every small in-window text keeps
+     secondary ink - tertiary fails 4.5:1 at these sizes on the light page. */
+  .tap__seg {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .tap__seg-count {
+    font-size: 10.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+
+  /* Needs-you count + alert dot exist only once the approval routes there. */
+  .tap__seg--needs .tap__seg-count,
+  .tap__seg-dot {
+    display: none;
+  }
+
+  .tap__seg--needs[data-state="alert"] .tap__seg-count {
+    display: inline;
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+  }
+
+  .tap__seg--needs[data-state="alert"] .tap__seg-dot {
+    display: block;
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Selected segment DERIVES from the view the machinery activated - one
+     state owner, no second selection state machine (HANDOFF-A05 §10). */
+  .tap:has([data-target="view-active"][data-active]) .tap__seg--active,
+  .tap:has([data-target="view-needs"][data-active]) .tap__seg--needs {
+    background: var(--bg-tertiary);
+    box-shadow: var(--shadow-subtle);
+    color: var(--text-primary);
+  }
+
+  :global(html:not([data-motion="ok"])) .tap__seg--active,
+  :global(html:not([data-motion="ok"]))
+    .tap:has([data-target="view-active"][data-active])
+    .tap__seg--active {
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-secondary);
+  }
+
+  :global(html:not([data-motion="ok"])) .tap__seg--needs {
+    background: var(--bg-tertiary);
+    box-shadow: var(--shadow-subtle);
+    color: var(--text-primary);
+  }
+
+  /* Views - one visible owner, moved by the scene's highlight beat. No-JS
+     and reduced motion present the resolved needs-you view statically. */
+  .tap__view {
+    display: none;
+    width: 100%;
+    max-width: 520px;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0 auto;
+    padding-top: var(--space-6);
+  }
+
+  .tap__view[data-active] {
+    display: flex;
+  }
+
+  :global(html:not([data-motion="ok"])) .tap__view--active,
+  :global(html:not([data-motion="ok"])) .tap__view--active[data-active] {
+    display: none;
+  }
+
+  :global(html:not([data-motion="ok"])) .tap__view--needs {
+    display: flex;
+  }
+
+  .tap__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+    text-align: left;
+    transition: background-color 300ms var(--ease-smooth);
+  }
+
+  /* The highlight lift - a soft fill that decays as the approval-requested
+     state commits (one-shot transitions on player-committed attributes). */
+  .tap__card[data-active]:not([data-state="approval-requested"]) {
+    background: var(--bg-tertiary);
+  }
+
+  .tap__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .tap__disc {
+    position: relative;
+    display: grid;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-tertiary);
+    color: var(--text-tertiary);
+  }
+
+  /* State-glyph parity (state-glyph.tsx): in-review purple search,
+     executing blue spinner (the storyboard's honest live-work blue),
+     assigned neutral user. */
+  .tap__disc[data-disc="in-review"] {
+    background: color-mix(in srgb, var(--system-purple) 18%, transparent);
+    color: var(--system-purple);
+  }
+
+  .tap__disc[data-disc="executing"] {
+    background: color-mix(in srgb, var(--system-blue) 16%, transparent);
+    color: var(--system-blue);
+  }
+
+  .tap__disc[data-disc="executing"] .tap__icon {
+    animation: tap-spin 1s linear infinite;
+  }
+
+  /* Motion governance: the spinner runs only while this window's player is
+     playing (HANDOFF-A05 §10 CSS animation governance). */
+  :global([data-scene-window]:not([data-scene-player-state="playing"]))
+    .tap__disc[data-disc="executing"]
+    .tap__icon {
+    animation-play-state: paused;
+  }
+
+  .tap__icon {
+    display: block;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .tap__card-title {
+    min-width: 0;
+    flex: 1;
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: var(--weight-semibold);
+    line-height: 1.32;
+    text-wrap: pretty;
+  }
+
+  /* Approval-requested badge - waiting-on-you is the accent's honest job.
+     It exists only once the state commits; the un-requested card is quiet. */
+  .tap__badge {
+    display: none;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--accent-fill);
+    color: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .tap__badge .tap__icon {
+    width: 9px;
+    height: 9px;
+  }
+
+  .tap__card[data-state="approval-requested"] .tap__badge {
+    display: inline-flex;
+  }
+
+  .tap__meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 36px;
+    color: var(--text-secondary);
+    font-size: 11px;
+  }
+
+  .tap__spring {
+    flex: 1;
+  }
+
+  /* The deck's card state label (In review / Executing / Assigned) -
+     serialized text, the app's own vocabulary (Addendum B2-1.7). */
+  .tap__state {
+    flex: none;
+    color: var(--text-primary);
+  }
+
+  .tap__owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+  }
+
+  .tap__owner i {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  /* ── The approval row (needs-you-view parity) ────────────────────────── */
+
+  .tap__approval {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: 14px 16px;
+    border-radius: var(--radius-xl);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .tap__arow {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .tap__adisc {
+    position: relative;
+    display: grid;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--accent-fill);
+    color: var(--accent);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .tap__approval[data-state="decided"] .tap__adisc {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .tap__adisc .tap__icon {
+    position: absolute;
+  }
+
+  .tap__adisc .tap__icon--check,
+  .tap__approval[data-state="decided"] .tap__adisc .tap__icon--bell {
+    opacity: 0;
+    transition: opacity 250ms var(--ease-smooth);
+  }
+
+  .tap__approval[data-state="decided"] .tap__adisc .tap__icon--check {
+    opacity: 1;
+  }
+
+  .tap__request {
+    margin: 0;
+    min-width: 0;
+    flex: 1;
+    padding-top: 3px;
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: var(--weight-medium);
+    line-height: 1.45;
+  }
+
+  /* Approve / Send back - the app's real controls (needs-you-view.tsx):
+     green-tint pill + check, quiet fill pill. Decorative here (inside the
+     aria-hidden frame), so spans, not buttons. They resolve out when the
+     decision commits. */
+  .tap__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-height: 36px;
+    padding-left: 36px;
+    opacity: 1;
+    transition:
+      max-height 300ms var(--ease-smooth),
+      margin-top 300ms var(--ease-smooth),
+      opacity 250ms var(--ease-smooth);
+  }
+
+  .tap__approval[data-state="decided"] .tap__actions {
+    max-height: 0;
+    margin-top: calc(-1 * var(--space-3));
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  .tap__approve,
+  .tap__sendback {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 15px;
+    border-radius: 999px;
+    font-size: 12.5px;
+  }
+
+  .tap__approve {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    box-shadow: var(--inset-shine);
+    color: color-mix(in srgb, var(--system-green) 65%, var(--text-primary));
+    font-weight: var(--weight-semibold);
+  }
+
+  .tap__approve .tap__icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.4;
+  }
+
+  .tap__sendback {
+    background: var(--fill-secondary);
+    color: var(--text-secondary);
+    font-weight: var(--weight-medium);
+  }
+
+  /* Decision status line - grows open with its replace-text beat (the
+     card-relnotes exec idiom); static span carries the resolved record. */
+  .tap__status {
+    display: flex;
+    align-items: center;
+    padding-left: 36px;
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tap__status-motion,
+  :global(html[data-motion="ok"]) .tap__status-static {
+    display: none;
+  }
+
+  :global(html[data-motion="ok"]) .tap__status-motion {
+    display: inline;
+  }
+
+  .tap__status:has(.tap__status-motion:empty) {
+    max-height: 0;
+    margin-top: calc(-1 * var(--space-3));
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  :global(html:not([data-motion="ok"]))
+    .tap__status:has(.tap__status-motion:empty) {
+    max-height: none;
+    margin-top: 0;
+    opacity: 1;
+    overflow: visible;
+  }
+
+  .tap__status {
+    transition:
+      max-height 300ms var(--ease-smooth),
+      margin-top 300ms var(--ease-smooth),
+      opacity 300ms var(--ease-smooth);
+    max-height: 20px;
+  }
+
+  @keyframes tap-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tap__disc .tap__icon {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .tap {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .tap__title {
+      font-size: var(--text-body);
+    }
+
+    .tap__seg {
+      padding-inline: 9px;
+      font-size: 10.5px;
+    }
+
+    .tap__view {
+      max-width: none;
+      padding-top: var(--space-4);
+    }
+
+    /* Approve / Send back stay real tap-target height on mobile (≥44px
+       visual weight comes from the row; the pills keep 36px minimum). */
+    .tap__approve,
+    .tap__sendback {
+      height: 36px;
+    }
+  }
+</style>

@@ -1,0 +1,152 @@
+/**
+ * GENERATED FILE - DO NOT EDIT.
+ * Source: ../jinn/packages/web/src/routes/globals.css
+ * Source commit: afd30bd0a370b6f4278dfefee224309a4adc47ed
+ * Content SHA-256: 3b6daec498eb4a431b6ae3cece149b0cbe1e32f0924c925b9e8232f11b8b9de5
+ * Run: pnpm tokens:sync
+ */
+
+:root {
+  --text-caption2: 11px;
+  --text-caption1: 12px;
+  --text-footnote: 13px;
+  --text-subheadline: 15px;
+  --text-body: 17px;
+  --text-title3: 20px;
+  --text-title2: 22px;
+  --text-title1: 28px;
+  --text-large-title: 34px;
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.47;
+  --leading-relaxed: 1.65;
+  --tracking-tight: -0.41px;
+  --tracking-normal: -0.24px;
+  --tracking-wide: 0.07em;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+[data-theme="dark"] {
+  --font-ui: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: "Hanken Grotesk", -apple-system, system-ui, sans-serif;
+  --font-code: "IBM Plex Mono", "SF Mono", Monaco, Menlo, monospace;
+  --bg: #14130F;
+  --bg-secondary: #1E1C16;
+  --bg-tertiary: #2A2720;
+  --material-regular: rgba(30,28,22,0.92);
+  --material-thick: rgba(20,18,15,0.96);
+  --material-thin: rgba(255,255,255,0.05);
+  --material-ultra-thin: rgba(255,255,255,0.03);
+  --fill-primary: rgba(255,255,255,0.10);
+  --fill-secondary: rgba(255,255,255,0.07);
+  --fill-tertiary: rgba(255,255,255,0.05);
+  --fill-quaternary: rgba(255,255,255,0.035);
+  --separator: rgba(255,255,255,0.09);
+  --separator-opaque: #38342B;
+  --text-primary: #E8E4D8;
+  --text-secondary: rgba(232,228,216,0.62);
+  --text-tertiary: rgba(232,228,216,0.38);
+  --text-quaternary: rgba(232,228,216,0.22);
+  --accent: #E0A33C;
+  --accent-fill: rgba(224,163,60,0.14);
+  --accent-contrast: #14130F;
+  --system-blue: #5B9BD5;
+  --system-green: #7DBE6A;
+  --system-red: #E0675A;
+  --system-orange: #E89B45;
+  --system-yellow: #E3C34C;
+  --system-purple: #B98AD6;
+  --inset-shine: inset 0 1px 0 rgba(255,255,255,0.06);
+  --shadow-subtle: 0 1px 2px rgba(0,0,0,0.30);
+  --shadow-ambient: 0 0 0 0.5px rgba(0,0,0,0.30);
+  --shadow-key: 0 4px 16px rgba(0,0,0,0.50);
+  --shadow-card: 0 0 0 0.5px rgba(0,0,0,0.30), 0 4px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  --shadow-overlay: 0 0 0 0.5px rgba(0,0,0,0.40), 0 16px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05);
+  --pill-bg: rgba(34,31,24,0.64);
+  --pill-border: rgba(255,255,255,0.14);
+  --code-bg: rgba(255,255,255,0.05);
+  --code-border: rgba(255,255,255,0.09);
+  --code-text: #E8E4D8;
+  --ribbon-bg: #232019;
+  --sidebar-bg: #1C1A14;
+  --sidebar-backdrop: blur(40px) saturate(160%);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+  --ease-snappy: cubic-bezier(0.2,0,0,1);
+}
+
+[data-theme="light"] {
+  --font-ui: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: "Hanken Grotesk", -apple-system, system-ui, sans-serif;
+  --font-code: "IBM Plex Mono", "SF Mono", Monaco, Menlo, monospace;
+  --bg: #F4F1E8;
+  --bg-secondary: #FBF9F2;
+  --bg-tertiary: #ECE8DC;
+  --material-regular: rgba(251,249,242,0.94);
+  --material-thick: rgba(244,241,232,0.97);
+  --material-thin: rgba(33,30,22,0.04);
+  --material-ultra-thin: rgba(33,30,22,0.02);
+  --fill-primary: rgba(33,30,22,0.08);
+  --fill-secondary: rgba(33,30,22,0.06);
+  --fill-tertiary: rgba(33,30,22,0.045);
+  --fill-quaternary: rgba(33,30,22,0.028);
+  --separator: rgba(33,30,22,0.14);
+  --separator-opaque: #DED8C7;
+  --text-primary: #211E16;
+  --text-secondary: rgba(33,30,22,0.66);
+  --text-tertiary: rgba(33,30,22,0.56);
+  --text-quaternary: rgba(33,30,22,0.30);
+  --accent: #926516;
+  --accent-fill: rgba(146,101,22,0.14);
+  --accent-contrast: #FBF9F2;
+  --system-blue: #2D6CB5;
+  --system-green: #597648;
+  --system-red: #B23B33;
+  --system-orange: #B5701A;
+  --system-yellow: #9C7A10;
+  --system-purple: #7A5A9E;
+  --inset-shine: inset 0 1px 0 rgba(255,255,255,0.70);
+  --shadow-subtle: 0 1px 2px rgba(40,34,20,0.06);
+  --shadow-ambient: 0 0 0 0.5px rgba(40,34,20,0.10);
+  --shadow-key: 0 2px 8px rgba(40,34,20,0.10), 0 8px 24px rgba(40,34,20,0.08);
+  --shadow-card: 0 0 0 0.5px rgba(40,34,20,0.08), 0 1px 3px rgba(40,34,20,0.07), 0 4px 12px rgba(40,34,20,0.06), inset 0 1px 0 rgba(255,255,255,0.70);
+  --shadow-overlay: 0 0 0 0.5px rgba(40,34,20,0.10), 0 4px 16px rgba(40,34,20,0.10), 0 16px 48px rgba(40,34,20,0.14), inset 0 1px 0 rgba(255,255,255,0.80);
+  --pill-bg: rgba(251,249,242,0.72);
+  --pill-border: rgba(33,30,22,0.10);
+  --code-bg: rgba(33,30,22,0.05);
+  --code-border: rgba(33,30,22,0.10);
+  --code-text: #4A4030;
+  --ribbon-bg: #E4DFD0;
+  --sidebar-bg: #ECE8DC;
+  --sidebar-backdrop: blur(20px) saturate(150%);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+  --ease-snappy: cubic-bezier(0.2,0,0,1);
+}

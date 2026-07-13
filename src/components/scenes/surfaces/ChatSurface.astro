@@ -1,0 +1,286 @@
+---
+/**
+ * Chat surface - the `delegation` scene rendered at its RESOLVED checkpoint
+ * from the canonical `delegationResolved` state (no hardcoded copy). This is
+ * the no-JS / reduced-motion truth.
+ *
+ * A-05 animates this exact markup: every thread item carries the same
+ * component-local `data-target` id the timeline uses (STORYBOARD §Section 1).
+ * The typing indicator ships `hidden` (resolved state has no typing); the
+ * player reveals it by removing the attribute.
+ *
+ * Real-app reference: packages/web chat thread + composer (22px radius card,
+ * full-width thread, no avatars/sender labels in rows).
+ */
+import { delegationResolved } from "../../../lib/scenes/dashboard";
+
+const { pill, thread, composerPlaceholder } = delegationResolved;
+---
+
+<div class="chat" data-surface="chat" data-scene="delegation">
+  <div class="chat__pill">
+    <span class="chat__pill-dot" aria-hidden="true"></span>
+    {pill.name}<span class="chat__pill-sub">{pill.meta}</span>
+  </div>
+
+  <div class="chat__thread">
+    {
+      thread.map((item) => {
+        if (item.kind === "typing") {
+          return (
+            <div
+              class="chat__typing"
+              data-target={item.target}
+              hidden={item.hidden}
+              aria-hidden="true"
+            >
+              <>
+                <i />
+                <i />
+                <i />
+              </>
+            </div>
+          );
+        }
+        if (item.kind === "chips") {
+          return (
+            <div class="chat__chips">
+              {item.chips.map((chip) => (
+                <span class="chat__chip" data-target={chip.target}>
+                  <span class="chat__chip-lead" aria-hidden="true">
+                    {chip.lead}
+                  </span>{" "}
+                  {chip.body.map((segment) =>
+                    segment.strong ? <b>{segment.text}</b> : segment.text,
+                  )}
+                </span>
+              ))}
+            </div>
+          );
+        }
+        return (
+          <p
+            class:list={[
+              "chat__msg",
+              item.role === "user" ? "chat__msg--user" : "chat__msg--ai",
+            ]}
+            data-target={item.target}
+          >
+            {item.body.map((segment) =>
+              segment.strong ? <b>{segment.text}</b> : segment.text,
+            )}
+          </p>
+        );
+      })
+    }
+  </div>
+
+  <div class="chat__composer">
+    <p class="chat__placeholder" data-target="composer-input">
+      {composerPlaceholder}
+    </p>
+    <div class="chat__composer-row" aria-hidden="true">
+      <span class="chat__cbtn">
+        <svg class="chat__ic"><use href="#i-plus"></use></svg>
+      </span>
+      <span class="chat__cspacer"></span>
+      <span class="chat__cbtn">
+        <svg class="chat__ic"><use href="#i-mic"></use></svg>
+      </span>
+      <span class="chat__csend">
+        <svg class="chat__ic"><use href="#i-up"></use></svg>
+      </span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .chat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: var(--bg);
+  }
+
+  .chat__pill {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-4);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 32px;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    background: var(--pill-bg);
+    box-shadow: var(--shadow-overlay);
+    backdrop-filter: blur(24px) saturate(160%);
+    font-size: var(--text-caption1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .chat__pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--system-green);
+  }
+
+  .chat__pill-sub {
+    margin-left: 4px;
+    color: var(--text-tertiary);
+    font-weight: var(--weight-medium);
+  }
+
+  /* Top-anchored like the real app's thread - a fresh conversation flows
+     top-down from under the header pill (chat-messages.tsx). Bottom-anchoring
+     left the hero's visible crop mostly empty and parked the payoff message
+     on the fold line, colliding with the scroll cue. */
+  .chat__thread {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: 60px var(--space-6) var(--space-2);
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+  }
+
+  .chat__msg {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .chat__msg--user {
+    align-self: flex-end;
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm)
+      var(--radius-lg);
+    background: var(--accent-fill);
+    font-weight: var(--weight-medium);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .chat__msg--ai {
+    max-width: 96%;
+    color: var(--text-primary);
+  }
+
+  .chat__msg b {
+    font-weight: var(--weight-semibold);
+  }
+
+  .chat__chips {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .chat__chip {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--fill-quaternary);
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--text-secondary);
+  }
+
+  .chat__chip-lead {
+    color: var(--text-tertiary);
+  }
+
+  .chat__chip b {
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+  }
+
+  /* Transient - hidden at the resolved checkpoint; A-05 reveals it between the
+     user message and the COO reply. The [hidden] attribute is the source of
+     truth, so the display rule must not override it. */
+  .chat__typing {
+    display: none;
+    gap: 4px;
+    padding: 6px 2px;
+  }
+
+  .chat__typing:not([hidden]) {
+    display: inline-flex;
+  }
+
+  .chat__typing i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+
+  .chat__composer {
+    margin: var(--space-2) var(--space-4) var(--space-4);
+    padding: 12px 14px 10px;
+    border-radius: 22px;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  .chat__placeholder {
+    margin: 0;
+    padding: 2px 4px 12px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+
+  .chat__composer-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .chat__cbtn,
+  .chat__csend {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border-radius: var(--radius-md);
+  }
+
+  .chat__cbtn {
+    color: var(--text-tertiary);
+  }
+
+  .chat__cspacer {
+    flex: 1;
+  }
+
+  .chat__csend {
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+
+  .chat__ic {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .chat__csend .chat__ic {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2.4;
+  }
+</style>

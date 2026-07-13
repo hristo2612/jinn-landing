@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jinn — Run your own AI company</title>
+<meta name="description" content="Jinn is an open-source, local-first platform for running your own AI company. Hire AI employees, keep a live work ledger, encode workflows, wake the company with triggers.">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,700,800,900,401,701&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ————————————————————————————— TOKENS ————————————————————————————— */
+:root{
+  --paper:#F5F0E4;
+  --paper-2:#EFE8D8;
+  --ink:#1D1810;
+  --ink-70:rgba(29,24,16,.7);
+  --ink-50:rgba(29,24,16,.5);
+  --ink-30:rgba(29,24,16,.3);
+  --ink-14:rgba(29,24,16,.14);
+  --ink-08:rgba(29,24,16,.08);
+  --blue:#2418E8;
+  --blue-bright:#4B40FF;
+  --blue-soft:rgba(36,24,232,.09);
+  --serif:'Zodiak',Georgia,serif;
+  --sans:'General Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --rule:1px solid var(--ink-14);
+  --rule-strong:1px solid var(--ink);
+  --gutter:clamp(20px,3.5vw,56px);
+  --maxw:1400px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--blue);color:var(--paper)}
+
+/* paper grain */
+.grain{position:fixed;inset:-50%;width:200%;height:200%;pointer-events:none;z-index:9999;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--gutter);padding-right:var(--gutter)}
+
+.mono{font-family:var(--mono)}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-50)}
+.label-ink{color:var(--ink)}
+.label-blue{color:var(--blue)}
+
+/* ————————————————————————————— MASTHEAD ————————————————————————————— */
+header{border-bottom:var(--rule-strong)}
+.masthead{display:flex;align-items:baseline;justify-content:space-between;padding-top:18px;padding-bottom:14px;gap:24px}
+.wordmark{font-family:var(--serif);font-weight:900;font-size:28px;letter-spacing:-.02em;line-height:1}
+.wordmark sup{font-family:var(--mono);font-weight:500;font-size:10px;letter-spacing:.1em;color:var(--blue);vertical-align:super;margin-left:4px}
+.masthead-mid{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-50);display:flex;gap:28px}
+.masthead nav{display:flex;gap:22px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.masthead nav a{border-bottom:1px solid transparent;padding-bottom:2px;transition:border-color .2s}
+.masthead nav a:hover{border-color:var(--ink)}
+
+/* ————————————————————————————— HERO ————————————————————————————— */
+.hero{padding-top:clamp(32px,4.5vw,64px);position:relative}
+.hero-kicker{display:flex;justify-content:space-between;align-items:center;margin-bottom:clamp(18px,2vw,30px)}
+.headline{
+  font-family:var(--serif);
+  font-weight:800;
+  font-size:clamp(46px,9.4vw,148px);
+  line-height:.94;
+  letter-spacing:-.035em;
+  text-wrap:balance;
+}
+.headline em{font-style:italic;font-weight:701;color:var(--blue)}
+.hero-sub{
+  margin-top:clamp(20px,2.2vw,34px);
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;
+  padding-bottom:clamp(22px,2.4vw,38px);
+}
+.hero-sub p{max-width:52ch;font-size:clamp(17px,1.35vw,20px);line-height:1.5;color:var(--ink-70)}
+.hero-sub p strong{color:var(--ink);font-weight:600}
+.install{
+  justify-self:end;
+  font-family:var(--mono);font-size:14px;
+  border:var(--rule-strong);
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;
+  background:var(--paper);
+  box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;user-select:all;
+  transition:transform .15s,box-shadow .15s;
+  white-space:nowrap;
+}
+.install:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.install .dollar{color:var(--blue)}
+
+/* ————————————————————————————— THE LIVING SHEET ————————————————————————————— */
+.sheet{
+  border:var(--rule-strong);
+  display:grid;grid-template-columns:1fr 380px;
+  margin-bottom:clamp(48px,6vw,96px);
+  background:var(--paper);
+}
+.sheet-chart{border-right:var(--rule-strong);padding:24px 28px 16px;position:relative}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);margin-right:8px;animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.orgsvg{width:100%;height:auto;display:block}
+
+/* ledger column */
+.sheet-ledger{display:flex;flex-direction:column;min-height:0}
+.ledger-head{padding:16px 20px;border-bottom:var(--rule);display:flex;justify-content:space-between;align-items:center}
+.ledger-feed{flex:1;overflow:hidden;position:relative;padding:8px 0}
+.ledger-row{
+  display:grid;grid-template-columns:64px 1fr;gap:12px;
+  padding:9px 20px;
+  font-family:var(--mono);font-size:12px;line-height:1.45;
+  border-bottom:1px dashed var(--ink-14);
+}
+.ledger-row .t{color:var(--ink-30)}
+.ledger-row .m{color:var(--ink-70)}
+.ledger-row .m b{color:var(--ink);font-weight:600}
+.ledger-row.is-blue .m b{color:var(--blue)}
+.ledger-foot{padding:14px 20px;border-top:var(--rule);font-family:var(--mono);font-size:11px;color:var(--ink-50);letter-spacing:.1em;text-transform:uppercase}
+
+/* svg diagram styles */
+.node-box{fill:var(--paper);stroke:var(--ink);stroke-width:1.5;transition:stroke .3s}
+.node-box.working{stroke:var(--blue);stroke-width:2}
+.node-label{font-family:var(--mono);font-size:13px;font-weight:600;fill:var(--ink);letter-spacing:.05em}
+.node-sub{font-family:var(--mono);font-size:10px;fill:var(--ink-50);letter-spacing:.08em}
+.edge{stroke:var(--ink-30);stroke-width:1.25;fill:none}
+.pulse-dot{fill:var(--blue)}
+.pulse-ticket{fill:var(--blue)}
+.wake-ring{stroke:var(--blue);fill:none;stroke-width:1.5;opacity:0}
+.status-dot{fill:var(--ink-30);transition:fill .3s}
+.status-dot.working{fill:var(--blue)}
+
+/* ————————————————————————————— TICKER ————————————————————————————— */
+.ticker{border-top:var(--rule-strong);border-bottom:var(--rule-strong);overflow:hidden;padding:12px 0;background:var(--ink);color:var(--paper)}
+.ticker-inner{display:flex;white-space:nowrap;width:max-content}
+.ticker span{font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;padding:0 32px}
+.ticker .sep{color:var(--blue-bright);font-style:normal}
+
+/* ————————————————————————————— CHAPTERS ————————————————————————————— */
+.chapters{padding-top:clamp(56px,7vw,110px)}
+.chapters-intro{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;margin-bottom:clamp(48px,5vw,80px)}
+.chapters-intro h2{font-family:var(--serif);font-weight:800;font-size:clamp(36px,4.4vw,64px);letter-spacing:-.03em;line-height:1.02;margin-top:16px}
+.toc{font-family:var(--mono);font-size:12px;line-height:2.1;color:var(--ink-50);letter-spacing:.06em;text-align:right}
+.toc b{color:var(--ink);font-weight:500}
+.toc .pg{color:var(--blue)}
+.chapter{
+  display:grid;grid-template-columns:180px 1fr 1.1fr;gap:clamp(24px,4vw,64px);
+  padding:clamp(36px,4.5vw,64px) 0;
+  border-top:var(--rule-strong);
+  align-items:center;
+}
+.chapter-num{font-family:var(--serif);font-weight:400;font-size:clamp(56px,6vw,96px);line-height:.8;color:var(--ink-30);font-variant-numeric:tabular-nums;align-self:start}
+.chapter-num .of{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-30);margin-top:10px}
+.chapter h3{font-family:var(--serif);font-weight:800;font-size:clamp(30px,3vw,44px);letter-spacing:-.02em;line-height:1;margin:8px 0 16px}
+.chapter p{color:var(--ink-70);max-width:44ch}
+.chapter p b{color:var(--ink);font-weight:600}
+.chapter-viz{border:var(--rule-strong);background:var(--paper);padding:28px 22px 22px;min-height:250px;position:relative;display:flex;align-items:center;justify-content:center}
+.viz-tag{position:absolute;top:-9px;left:16px;background:var(--paper);padding:0 8px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-50)}
+
+/* todo board viz */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;align-self:stretch}
+.board-col{display:flex;flex-direction:column;gap:8px}
+.board-col-head{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-50);padding-bottom:6px;border-bottom:var(--rule)}
+.board-slot{display:flex;flex-direction:column;gap:8px;min-height:120px}
+.ticket{border:1px solid var(--ink);padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:1.4;background:var(--paper)}
+.ticket .tid{color:var(--blue);font-weight:600}
+.ticket.done{color:var(--ink-30);border-color:var(--ink-30)}
+.ticket.done .tid{color:var(--ink-30)}
+.ticket.done .tt{text-decoration:line-through}
+
+/* workflow viz */
+.flow{display:flex;flex-direction:column;gap:16px;width:100%}
+.flow-steps{display:flex;align-items:center;gap:0}
+.flow-step{border:1.5px solid var(--ink);padding:12px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:var(--paper);position:relative;flex:1;text-align:center;transition:background .3s,color .3s,border-color .3s}
+.flow-conn{width:24px;height:1.5px;background:var(--ink);flex:none}
+.flow-step.active{background:var(--blue);color:var(--paper);border-color:var(--blue)}
+.flow-step.done-step{background:var(--paper);color:var(--ink-30);border-color:var(--ink-30)}
+.flow-note{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-50);text-align:center}
+.flow-note b{color:var(--blue);font-weight:500}
+
+/* trigger viz */
+.trig{display:flex;flex-direction:column;gap:18px;width:100%}
+.trig-row{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:11px}
+.trig-src{border:1px solid var(--ink);padding:8px 12px;min-width:140px;text-align:center}
+.trig-line{flex:1;height:1px;background:var(--ink-30);position:relative;overflow:visible}
+.trig-line .zap{position:absolute;top:-3px;left:0;width:7px;height:7px;background:var(--blue);border-radius:50%;box-shadow:-8px 0 0 -2px rgba(36,24,232,.35),-15px 0 0 -3px rgba(36,24,232,.15)}
+.trig-dst{color:var(--ink-50);letter-spacing:.08em;text-transform:uppercase;transition:color .25s}
+.trig-dst.hit{color:var(--blue)}
+
+/* employee viz — register of hires */
+.hires{width:100%;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
+.hires-row{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:14px;align-items:center;padding:12px 4px;border-bottom:1px dashed var(--ink-14)}
+.hires-row:last-child{border-bottom:none}
+.hires-head{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-50);border-bottom:var(--rule);padding-bottom:8px}
+.hr-eng{border:1px solid var(--ink);padding:8px 10px;text-align:center;background:var(--paper);white-space:nowrap}
+.hr-role{border:1px dashed var(--blue);color:var(--blue);padding:8px 10px;text-align:center;white-space:nowrap}
+.hr-res{border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);padding:8px 10px;text-align:center;white-space:nowrap;font-weight:500}
+
+/* hero right column: install */
+.hero-right{display:flex;flex-direction:column;align-items:flex-end;justify-self:end}
+.seal{position:absolute;top:clamp(48px,6vw,84px);right:var(--gutter);width:clamp(120px,11vw,160px);height:auto;opacity:.92;transform:rotate(8deg)}
+
+/* ————————————————————————————— MCP BAND ————————————————————————————— */
+.mcp{background:var(--ink);color:var(--paper);padding:clamp(64px,8vw,120px) 0;margin-top:clamp(56px,7vw,110px)}
+.mcp-grid{display:grid;grid-template-columns:1fr auto;gap:clamp(40px,6vw,100px);align-items:center}
+.mcp-svg{width:clamp(280px,26vw,380px);height:auto}
+.mcp .label{color:rgba(245,240,228,.5)}
+.mcp h2{font-family:var(--serif);font-weight:800;font-size:clamp(40px,5.5vw,84px);letter-spacing:-.03em;line-height:1;max-width:900px;margin-top:20px}
+.mcp h2 em{font-style:italic;color:var(--blue-bright);font-weight:701}
+.mcp p{color:rgba(245,240,228,.65);max-width:56ch;margin-top:24px;font-size:18px}
+
+/* ————————————————————————————— HOW / RECEIPT ————————————————————————————— */
+.how{padding:clamp(64px,8vw,120px) 0;display:grid;grid-template-columns:1fr 420px;gap:clamp(40px,6vw,100px);align-items:start}
+.how h2{font-family:var(--serif);font-weight:800;font-size:clamp(36px,4.4vw,64px);letter-spacing:-.03em;line-height:1.02;margin-top:16px}
+.how-steps{margin-top:40px;display:flex;flex-direction:column}
+.how-step{display:grid;grid-template-columns:56px 1fr;gap:20px;padding:24px 0;border-top:var(--rule)}
+.how-step .n{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--blue)}
+.how-step h4{font-family:var(--sans);font-weight:600;font-size:19px;margin-bottom:6px}
+.how-step p{color:var(--ink-70);font-size:16px;max-width:48ch}
+.receipt{
+  border:var(--rule-strong);background:var(--paper);
+  font-family:var(--mono);font-size:12.5px;line-height:1.7;
+  padding:24px;box-shadow:6px 6px 0 var(--ink-14);
+  margin-top:14px;transform:rotate(-.6deg);
+}
+.receipt .rc-head{text-align:center;border-bottom:1px dashed var(--ink-30);padding-bottom:12px;margin-bottom:12px}
+.receipt .rc-line{display:flex;justify-content:space-between;gap:12px}
+.receipt .rc-line .dots{flex:1;border-bottom:1px dotted var(--ink-30);margin-bottom:5px}
+.receipt .rc-total{border-top:1px dashed var(--ink-30);margin-top:12px;padding-top:12px;font-weight:600}
+.receipt .blue{color:var(--blue)}
+
+/* ————————————————————————————— FOOTER ————————————————————————————— */
+footer{border-top:var(--rule-strong);padding:40px 0 36px}
+.foot-grid{display:flex;justify-content:space-between;gap:32px;align-items:flex-end;flex-wrap:wrap}
+.foot-brand{font-family:var(--serif);font-weight:900;font-size:clamp(80px,14vw,220px);line-height:.85;letter-spacing:-.04em;user-select:none}
+.foot-meta{font-family:var(--mono);font-size:11px;line-height:2;color:var(--ink-50);letter-spacing:.06em;text-transform:uppercase;text-align:right}
+.foot-meta a{color:var(--ink);border-bottom:1px solid var(--ink-30)}
+.foot-meta a:hover{border-color:var(--ink)}
+.barcode{display:inline-flex;align-items:flex-end;gap:0;height:26px;margin-bottom:6px;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 7px,transparent 7px 8px,var(--ink) 8px 9px,transparent 9px 12px);
+  width:110px;}
+
+/* ————————————————————————————— RESPONSIVE ————————————————————————————— */
+@media(max-width:1000px){
+  .sheet{grid-template-columns:1fr}
+  .sheet-chart{border-right:none;border-bottom:var(--rule-strong)}
+  .sheet-ledger{max-height:400px}
+  .chapter{grid-template-columns:1fr;gap:20px}
+  .chapter-num{font-size:48px}
+  .chapter-num .of{display:inline;margin-left:8px}
+  .chapter-viz{min-height:200px}
+  .how{grid-template-columns:1fr}
+  .hero-sub{grid-template-columns:1fr;gap:24px}
+  .hero-right{align-items:flex-start}
+  .seal{display:none}
+  .install{white-space:normal;text-align:left}
+  .chapters-intro{grid-template-columns:1fr}
+  .toc{text-align:left}
+  .mcp-grid{grid-template-columns:1fr}
+  .mcp-svg{margin:0 auto}
+  .hires-row{grid-template-columns:1fr;gap:6px;justify-items:stretch}
+  .hires-head{display:none}
+}
+@media(max-width:600px){
+  .masthead-mid{display:none}
+  .foot-meta{text-align:left}
+  .install{font-size:12.5px;gap:10px;padding:12px 14px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<!-- ————————— MASTHEAD ————————— -->
+<header>
+  <div class="wrap masthead">
+    <div class="wordmark">Jinn<sup>®</sup></div>
+    <div class="masthead-mid">
+      <span>The AI Company Ledger</span>
+      <span>Vol. 1 — Open Source</span>
+      <span>Local-first</span>
+    </div>
+    <nav>
+      <a href="https://github.com/jinn-run/jinn">GitHub</a>
+      <a href="https://www.npmjs.com/package/jinn-cli">npm</a>
+      <a href="#how">Docs</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ————————— HERO ————————— -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-kicker">
+      <span class="label label-ink">№ 001 — The Founding Document</span>
+    </div>
+    <h1 class="headline">Run your own<br><em>AI&nbsp;company</em>.</h1>
+    <svg class="seal" id="seal" viewBox="0 0 170 170" aria-hidden="true">
+          <defs><path id="sealcirc" d="M85,85 m-62,0 a62,62 0 1,1 124,0 a62,62 0 1,1 -124,0"/></defs>
+          <circle cx="85" cy="85" r="76" stroke="var(--blue)" stroke-width="1.5" fill="none"/>
+          <circle cx="85" cy="85" r="48" stroke="var(--blue)" stroke-width="1" fill="none" opacity=".5"/>
+          <g id="seal-text">
+            <text font-family="IBM Plex Mono" font-size="11.5" letter-spacing="2.5" fill="var(--blue)">
+              <textPath href="#sealcirc">OPEN SOURCE · LOCAL-FIRST · YOUR KEYS · YOUR DATA ·&#160;</textPath>
+            </text>
+          </g>
+          <text x="85" y="82" text-anchor="middle" font-family="Zodiak" font-style="italic" font-weight="701" font-size="24" fill="var(--blue)">Jinn</text>
+          <text x="85" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="7.5" letter-spacing="1.5" fill="var(--blue)">EST. ON YOUR MACHINE</text>
+    </svg>
+    <div class="hero-sub">
+      <p>Jinn is an open-source platform where you <strong>hire AI employees</strong>, hand them a live work ledger, encode how work gets done — and the company runs itself. On <strong>your machine</strong>, your keys, your data.</p>
+      <div class="hero-right">
+        <button class="install" id="install" title="Copy">
+          <span><span class="dollar">$</span> npm install -g jinn-cli && jinn start</span>
+          <span class="label label-blue" id="copy-hint">copy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- THE LIVING SHEET -->
+    <div class="sheet">
+      <div class="sheet-chart">
+        <div class="sheet-head">
+          <span class="label label-ink"><span class="live-dot"></span>Fig. 1 — The Org, Live</span>
+          <span class="label" id="clock">09:41:02</span>
+        </div>
+        <svg class="orgsvg" id="orgsvg" viewBox="0 0 860 470" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g id="edges"></g>
+          <g id="nodes"></g>
+          <g id="pulses"></g>
+        </svg>
+      </div>
+      <aside class="sheet-ledger">
+        <div class="ledger-head">
+          <span class="label label-ink">Fig. 2 — Event Ledger</span>
+          <span class="label label-blue">live</span>
+        </div>
+        <div class="ledger-feed" id="ledger"></div>
+        <div class="ledger-foot">All events · reviewed by the COO · you see what matters</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ————————— TICKER ————————— -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker">
+    <span>Employees <i class="sep">·</i> Todos <i class="sep">·</i> Workflows <i class="sep">·</i> Triggers <i class="sep">·</i> MCP is the hands <i class="sep">·</i></span>
+  </div>
+</div>
+
+<!-- ————————— CHAPTERS ————————— -->
+<section class="chapters">
+  <div class="wrap">
+    <div class="chapters-intro">
+      <div>
+        <span class="label label-ink">Contents — Four Primitives</span>
+        <h2>A whole company,<br>four moving parts.</h2>
+      </div>
+      <div class="toc">
+        <div><b>01 — Employees</b> <span class="pg">who works here</span></div>
+        <div><b>02 — Todos</b> <span class="pg">what needs doing</span></div>
+        <div><b>03 — Workflows</b> <span class="pg">how we do things</span></div>
+        <div><b>04 — Triggers</b> <span class="pg">when it wakes</span></div>
+      </div>
+    </div>
+
+    <article class="chapter">
+      <div class="chapter-num">01<span class="of">of 04</span></div>
+      <div>
+        <span class="label label-blue">Who works here</span>
+        <h3>Employees</h3>
+        <p>An <b>engine wearing a role</b>. Claude Code, Codex, or any engine you plug in — given a persona, a rank, and a seat in the org chart. They talk to each other. They delegate. They escalate to you only when it matters.</p>
+      </div>
+      <div class="chapter-viz">
+        <span class="viz-tag">Fig. 3 — Register of hires</span>
+        <div class="hires" id="hires">
+          <div class="hires-row hires-head"><span>Engine</span><span>+ Role</span><span>= Employee</span></div>
+          <div class="hires-row"><span class="hr-eng">CLAUDE CODE</span><span class="hr-role">RESEARCHER</span><span class="hr-res">VEGA · SR · GROWTH</span></div>
+          <div class="hires-row"><span class="hr-eng">CODEX</span><span class="hr-role">ENGINEER</span><span class="hr-res">JUNO · SR · ENG</span></div>
+          <div class="hires-row"><span class="hr-eng">CLAUDE CODE</span><span class="hr-role">SUPPORT</span><span class="hr-res">OTTO · JR · SUPPORT</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter">
+      <div class="chapter-num">02<span class="of">of 04</span></div>
+      <div>
+        <span class="label label-blue">What needs doing</span>
+        <h3>Todos</h3>
+        <p>The <b>live work ledger</b> — the company's shared memory. Every task moves through backlog, in&nbsp;progress, blocked, needs&#8209;you. Nothing gets lost between sessions or between employees.</p>
+      </div>
+      <div class="chapter-viz">
+        <span class="viz-tag">Fig. 4 — The ledger in motion</span>
+        <div class="board" id="board">
+          <div class="board-col"><div class="board-col-head">Backlog</div><div class="board-slot" data-col="0"></div></div>
+          <div class="board-col"><div class="board-col-head">In progress</div><div class="board-slot" data-col="1"></div></div>
+          <div class="board-col"><div class="board-col-head">Done</div><div class="board-slot" data-col="2"></div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter">
+      <div class="chapter-num">03<span class="of">of 04</span></div>
+      <div>
+        <span class="label label-blue">How we do things</span>
+        <h3>Workflows</h3>
+        <p><b>Reusable SOPs.</b> "Here's how we do X" — written once, run forever. A run spawns Todos, hands work from employee to employee, and parks at approval gates for a human decision.</p>
+      </div>
+      <div class="chapter-viz">
+        <span class="viz-tag">Fig. 5 — A run in flight</span>
+        <div class="flow">
+          <div class="flow-steps" id="flow">
+            <div class="flow-step">RESEARCH</div>
+            <div class="flow-conn"></div>
+            <div class="flow-step">DRAFT</div>
+            <div class="flow-conn"></div>
+            <div class="flow-step">REVIEW</div>
+            <div class="flow-conn"></div>
+            <div class="flow-step">SHIP</div>
+          </div>
+          <div class="flow-note" id="flow-note">RUN #12 · WEEKLY-REPORT</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter">
+      <div class="chapter-num">04<span class="of">of 04</span></div>
+      <div>
+        <span class="label label-blue">When it wakes</span>
+        <h3>Triggers</h3>
+        <p>How the company <b>wakes up</b>. Cron schedules, todo status changes, webhooks from the outside world. Work starts while you sleep; the COO reviews it before it reaches you.</p>
+      </div>
+      <div class="chapter-viz">
+        <span class="viz-tag">Fig. 6 — Three ways to wake</span>
+        <div class="trig">
+          <div class="trig-row"><div class="trig-src">CRON 0 9 * * *</div><div class="trig-line"><div class="zap"></div></div><div class="trig-dst">→ company wakes</div></div>
+          <div class="trig-row"><div class="trig-src">TODO → BLOCKED</div><div class="trig-line"><div class="zap"></div></div><div class="trig-dst">→ manager steps in</div></div>
+          <div class="trig-row"><div class="trig-src">WEBHOOK /events</div><div class="trig-line"><div class="zap"></div></div><div class="trig-dst">→ workflow runs</div></div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ————————— MCP BAND ————————— -->
+<section class="mcp">
+  <div class="wrap mcp-grid">
+    <div>
+      <span class="label">One interface</span>
+      <h2>MCP is <em>the hands</em>.</h2>
+      <p>Every employee operates the whole company through one tool interface — reading the org, moving Todos, running Workflows, waking each other. A COO agent orchestrates, reviews, and gates approvals, so the human operator only sees what matters.</p>
+    </div>
+    <svg class="mcp-svg" id="mcpsvg" viewBox="0 0 380 380" aria-hidden="true">
+      <g id="mcp-spokes"></g>
+      <rect x="152" y="164" width="76" height="52" fill="var(--blue-bright)"/>
+      <text x="190" y="195" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="16" letter-spacing="2" fill="var(--paper)">MCP</text>
+      <g id="mcp-pulses"></g>
+    </svg>
+  </div>
+</section>
+
+<!-- ————————— HOW ————————— -->
+<section class="how wrap" id="how">
+  <div>
+    <span class="label label-ink">Proceedings</span>
+    <h2>Install. Hire.<br>It runs.</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="n">i.</div>
+        <div><h4>Install the gateway</h4><p><span class="mono">npm install -g jinn-cli && jinn start</span> — one local-first daemon. Your machine, your API keys, your data.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="n">ii.</div>
+        <div><h4>Hire your employees</h4><p>Pick engines, write personas, set ranks and departments. The company metaphor is the API: hire, delegate, escalate, approve.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="n">iii.</div>
+        <div><h4>Watch it work</h4><p>A web dashboard for chat, org chart, todos, workflows and sessions — plus a Slack connector. Triggers keep it running around the clock.</p></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="receipt">
+      <div class="rc-head">JINN — DAILY CLOSE<br>★ ★ ★</div>
+      <div class="rc-line"><span>TODOS COMPLETED</span><span class="dots"></span><span class="rc-n" data-n="14">14</span></div>
+      <div class="rc-line"><span>WORKFLOW RUNS</span><span class="dots"></span><span class="rc-n" data-n="3">3</span></div>
+      <div class="rc-line"><span>DELEGATIONS</span><span class="dots"></span><span class="rc-n" data-n="22">22</span></div>
+      <div class="rc-line"><span>ESCALATED TO YOU</span><span class="dots"></span><span class="blue rc-n" data-n="1">1</span></div>
+      <div class="rc-line"><span>APPROVALS GATED</span><span class="dots"></span><span class="rc-n" data-n="2">2</span></div>
+      <div class="rc-total"><div class="rc-line"><span>YOUR ATTENTION SPENT</span><span class="dots"></span><span class="blue"><span class="rc-n" data-n="4">4</span> MIN</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ————————— FOOTER ————————— -->
+<footer>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">jinn run</div>
+    <div class="foot-meta">
+      <div class="barcode"></div>
+      <div><a href="https://github.com/jinn-run/jinn">github.com/jinn-run</a> · <a href="https://www.npmjs.com/package/jinn-cli">npm: jinn-cli</a></div>
+      <div>Open source · Local-first · Multi-engine</div>
+      <div>Set in Zodiak &amp; General Sans · Printed on your machine</div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/MotionPathPlugin.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+
+/* ————— ORG CHART (responsive: two layouts) ————— */
+const svg = document.getElementById('orgsvg');
+const edgesG = document.getElementById('edges');
+const nodesG = document.getElementById('nodes');
+
+function desktopLayout(){
+  return {
+    viewBox:'0 0 860 470',
+    nodes:[
+      {id:'op',  x:430, y:36,  w:170, h:28, label:'YOU — OPERATOR', small:true},
+      {id:'coo', x:430, y:130, w:190, h:66, label:'JIMBO', sub:'COO · ORCHESTRATES'},
+      {id:'eng', x:150, y:258, w:154, h:62, label:'ENGINEERING', sub:'DEPT'},
+      {id:'gro', x:430, y:258, w:154, h:62, label:'GROWTH', sub:'DEPT'},
+      {id:'sup', x:710, y:258, w:154, h:62, label:'SUPPORT', sub:'DEPT'},
+      {id:'e1',  x:80,  y:392, w:132, h:62, label:'MILES', sub:'CLAUDE · SR'},
+      {id:'e2',  x:222, y:392, w:132, h:62, label:'JUNO', sub:'CODEX · SR'},
+      {id:'g1',  x:360, y:392, w:132, h:62, label:'VEGA', sub:'CLAUDE · SR'},
+      {id:'g2',  x:502, y:392, w:132, h:62, label:'IRIS', sub:'CODEX · JR'},
+      {id:'s1',  x:640, y:392, w:132, h:62, label:'OTTO', sub:'CLAUDE · JR'},
+      {id:'s2',  x:782, y:392, w:132, h:62, label:'NOVA', sub:'CODEX · JR'},
+    ],
+    edges:[
+      {id:'e-op-coo',    d:'M430 50 V 97'},
+      {id:'e-coo-eng',   d:'M430 163 V 196 H 150 V 227'},
+      {id:'e-coo-growth',d:'M430 163 V 227'},
+      {id:'e-coo-supp',  d:'M430 163 V 196 H 710 V 227'},
+      {id:'e-eng-1',     d:'M150 289 V 324 H 80 V 361'},
+      {id:'e-eng-2',     d:'M150 289 V 324 H 222 V 361'},
+      {id:'e-growth-1',  d:'M430 289 V 324 H 360 V 361'},
+      {id:'e-growth-2',  d:'M430 289 V 324 H 502 V 361'},
+      {id:'e-supp-1',    d:'M710 289 V 324 H 640 V 361'},
+      {id:'e-supp-2',    d:'M710 289 V 324 H 782 V 361'},
+    ]
+  };
+}
+function mobileLayout(){
+  return {
+    viewBox:'0 0 420 720',
+    nodes:[
+      {id:'op',  x:210, y:26,  w:170, h:28, label:'YOU — OPERATOR', small:true},
+      {id:'coo', x:210, y:110, w:180, h:64, label:'JIMBO', sub:'COO · ORCHESTRATES'},
+      {id:'eng', x:105, y:242, w:150, h:58, label:'ENGINEERING', sub:'DEPT'},
+      {id:'gro', x:105, y:432, w:150, h:58, label:'GROWTH', sub:'DEPT'},
+      {id:'sup', x:105, y:622, w:150, h:58, label:'SUPPORT', sub:'DEPT'},
+      {id:'e1',  x:322, y:212, w:150, h:58, label:'MILES', sub:'CLAUDE · SR'},
+      {id:'e2',  x:322, y:288, w:150, h:58, label:'JUNO', sub:'CODEX · SR'},
+      {id:'g1',  x:322, y:402, w:150, h:58, label:'VEGA', sub:'CLAUDE · SR'},
+      {id:'g2',  x:322, y:478, w:150, h:58, label:'IRIS', sub:'CODEX · JR'},
+      {id:'s1',  x:322, y:592, w:150, h:58, label:'OTTO', sub:'CLAUDE · JR'},
+      {id:'s2',  x:322, y:668, w:150, h:58, label:'NOVA', sub:'CODEX · JR'},
+    ],
+    edges:[
+      {id:'e-op-coo',    d:'M210 40 V 78'},
+      {id:'e-coo-eng',   d:'M210 142 V 180 H 105 V 213'},
+      {id:'e-coo-growth',d:'M210 142 V 180 H 40 V 432 H 30'},
+      {id:'e-coo-supp',  d:'M210 142 V 180 H 40 V 622 H 30'},
+      {id:'e-eng-1',     d:'M180 242 H 210 V 212 H 247'},
+      {id:'e-eng-2',     d:'M180 242 H 210 V 288 H 247'},
+      {id:'e-growth-1',  d:'M180 432 H 210 V 402 H 247'},
+      {id:'e-growth-2',  d:'M180 432 H 210 V 478 H 247'},
+      {id:'e-supp-1',    d:'M180 622 H 210 V 592 H 247'},
+      {id:'e-supp-2',    d:'M180 622 H 210 V 668 H 247'},
+    ]
+  };
+}
+
+let currentMode = null;
+function buildOrg(){
+  const mobile = innerWidth <= 700;
+  const mode = mobile ? 'm' : 'd';
+  if(mode === currentMode) return;
+  currentMode = mode;
+  const L = mobile ? mobileLayout() : desktopLayout();
+  svg.setAttribute('viewBox', L.viewBox);
+  edgesG.innerHTML = ''; nodesG.innerHTML = '';
+  document.getElementById('pulses').innerHTML = '';
+  L.edges.forEach(e=>{
+    const p = document.createElementNS(NS,'path');
+    p.setAttribute('class','edge'); p.setAttribute('id',e.id); p.setAttribute('d',e.d);
+    edgesG.appendChild(p);
+  });
+  L.nodes.forEach(n=>{
+    const g = document.createElementNS(NS,'g');
+    const r = document.createElementNS(NS,'rect');
+    r.setAttribute('x',n.x-n.w/2); r.setAttribute('y',n.y-n.h/2);
+    r.setAttribute('width',n.w); r.setAttribute('height',n.h);
+    r.setAttribute('class','node-box'); r.setAttribute('id','box-'+n.id);
+    if(n.small){r.setAttribute('stroke-dasharray','3 3');r.setAttribute('stroke-width','1')}
+    g.appendChild(r);
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('x',n.x); t.setAttribute('y', n.sub? n.y-1 : n.y+4.5);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('class','node-label');
+    t.textContent = n.label;
+    g.appendChild(t);
+    if(n.sub){
+      const s = document.createElementNS(NS,'text');
+      s.setAttribute('x',n.x); s.setAttribute('y',n.y+16);
+      s.setAttribute('text-anchor','middle'); s.setAttribute('class','node-sub');
+      s.textContent = n.sub;
+      g.appendChild(s);
+      const d = document.createElementNS(NS,'circle');
+      d.setAttribute('cx',n.x-n.w/2+11); d.setAttribute('cy',n.y-n.h/2+11);
+      d.setAttribute('r',3); d.setAttribute('class','status-dot'); d.setAttribute('id','dot-'+n.id);
+      g.appendChild(d);
+      const ring = document.createElementNS(NS,'rect');
+      ring.setAttribute('x',n.x-n.w/2-5); ring.setAttribute('y',n.y-n.h/2-5);
+      ring.setAttribute('width',n.w+10); ring.setAttribute('height',n.h+10);
+      ring.setAttribute('class','wake-ring'); ring.setAttribute('id','ring-'+n.id);
+      g.appendChild(ring);
+    }
+    nodesG.appendChild(g);
+  });
+  if(!reduced){
+    document.querySelectorAll('.edge').forEach((p,i)=>{
+      const len = p.getTotalLength();
+      gsap.fromTo(p,{strokeDasharray:len,strokeDashoffset:len},{strokeDashoffset:0,duration:.7,delay:.1+i*.06,ease:'power2.out'});
+    });
+  }
+}
+buildOrg();
+let rto; addEventListener('resize',()=>{clearTimeout(rto); rto=setTimeout(buildOrg,200)});
+
+function wake(id, ms=3000){
+  const ring = document.getElementById('ring-'+id);
+  const dot = document.getElementById('dot-'+id);
+  const box = document.getElementById('box-'+id);
+  if(dot) dot.classList.add('working');
+  if(box) box.classList.add('working');
+  if(ring) gsap.fromTo(ring,{opacity:.9,scale:1,transformOrigin:'center'},{opacity:0,scale:1.1,duration:.9,ease:'power2.out'});
+  setTimeout(()=>{ if(dot) dot.classList.remove('working'); if(box) box.classList.remove('working'); }, ms);
+}
+
+function firePulse(edgeId, {dur=1.1, reverse=false, ticket=false}={}){
+  const path = document.getElementById(edgeId);
+  if(!path) return;
+  let el;
+  if(ticket){
+    el = document.createElementNS(NS,'rect');
+    el.setAttribute('width',12); el.setAttribute('height',8);
+    el.setAttribute('x',-6); el.setAttribute('y',-4);
+    el.setAttribute('class','pulse-ticket');
+  } else {
+    el = document.createElementNS(NS,'circle');
+    el.setAttribute('r',4.5); el.setAttribute('class','pulse-dot');
+  }
+  document.getElementById('pulses').appendChild(el);
+  gsap.to(el,{motionPath:{path:path, start:reverse?1:0, end:reverse?0:1}, duration:dur, ease:'power1.inOut',
+    onComplete:()=>el.remove()});
+}
+
+/* ————— LEDGER + synced clock ————— */
+const ledger = document.getElementById('ledger');
+const clockEl = document.getElementById('clock');
+const SCRIPT = [
+  {t:'09:41:02', m:'<b>TRIGGER</b> cron “daily-digest” fired', blue:true, act:()=>{}},
+  {t:'09:41:04', m:'<b>JIMBO</b> woke — reviewing the ledger', act:()=>{wake('coo'); firePulse('e-op-coo')}},
+  {t:'09:41:09', m:'<b>DELEGATE</b> research → VEGA (growth)', act:()=>{firePulse('e-coo-growth',{ticket:true}); setTimeout(()=>firePulse('e-growth-1',{ticket:true}),1000); setTimeout(()=>wake('g1',5000),2000)}},
+  {t:'09:41:12', m:'<b>TODO #218</b> “competitor scan” → in progress', act:()=>{}},
+  {t:'09:41:26', m:'<b>DELEGATE</b> fix CI → MILES (eng)', act:()=>{firePulse('e-coo-eng',{ticket:true}); setTimeout(()=>firePulse('e-eng-1',{ticket:true}),1000); setTimeout(()=>wake('e1',5000),2000)}},
+  {t:'09:41:40', m:'<b>WORKFLOW</b> “weekly-report” run started', blue:true, act:()=>{firePulse('e-coo-supp',{ticket:true}); setTimeout(()=>firePulse('e-supp-1',{ticket:true}),1000); setTimeout(()=>wake('s1',5000),2000)}},
+  {t:'09:41:58', m:'<b>TODO #218</b> done ✓ — awaiting review', act:()=>{firePulse('e-growth-1',{reverse:true}); setTimeout(()=>firePulse('e-coo-growth',{reverse:true}),1000); setTimeout(()=>wake('coo'),2000)}},
+  {t:'09:42:03', m:'<b>JIMBO</b> reviewed — approved &amp; merged', act:()=>{wake('coo')}},
+  {t:'09:42:07', m:'<b>ESCALATE</b> 1 decision → YOU', blue:true, act:()=>{firePulse('e-op-coo',{reverse:true})}},
+];
+const HISTORY = [
+  {t:'09:38:44', m:'<b>HIRE</b> NOVA joined support (codex · jr)'},
+  {t:'09:39:02', m:'<b>TODO #214</b> “ship changelog” done ✓'},
+  {t:'09:39:31', m:'<b>WORKFLOW</b> “inbox-triage” run complete'},
+  {t:'09:40:10', m:'<b>TODO #215</b> “fix flaky test” → in progress'},
+  {t:'09:40:38', m:'<b>APPROVE</b> release v0.4 — gated, waiting', blue:true},
+  {t:'09:40:55', m:'<b>MILES</b> idle — awaiting delegation'},
+];
+function toSec(t){const [h,m,s]=t.split(':').map(Number);return h*3600+m*60+s}
+function toClock(sec){const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return [h,m,s].map(v=>String(v).padStart(2,'0')).join(':')}
+let clockSec = toSec(SCRIPT[0].t);
+let li = 0;
+// static history so the ledger reads established at first paint
+HISTORY.forEach(e=>{
+  const row = document.createElement('div');
+  row.className = 'ledger-row'+(e.blue?' is-blue':'');
+  row.innerHTML = `<span class="t">${e.t}</span><span class="m">${e.m}</span>`;
+  ledger.prepend(row);
+});
+function addLedgerRow(){
+  const e = SCRIPT[li % SCRIPT.length];
+  const row = document.createElement('div');
+  row.className = 'ledger-row'+(e.blue?' is-blue':'');
+  row.innerHTML = `<span class="t">${e.t}</span><span class="m">${e.m}</span>`;
+  ledger.prepend(row);
+  gsap.fromTo(row,{opacity:0,y:-8},{opacity:1,y:0,duration:.4,ease:'power2.out'});
+  e.act();
+  clockSec = toSec(e.t);
+  while(ledger.children.length > 12) ledger.lastChild.remove();
+  li++;
+}
+if(!reduced){
+  addLedgerRow(); setTimeout(addLedgerRow,600); setTimeout(addLedgerRow,1200);
+  setInterval(addLedgerRow, 3000);
+  setInterval(()=>{ clockSec++; clockEl.textContent = toClock(clockSec); },1000);
+} else {
+  SCRIPT.slice(0,8).forEach(e=>{ const row=document.createElement('div'); row.className='ledger-row'+(e.blue?' is-blue':''); row.innerHTML=`<span class="t">${e.t}</span><span class="m">${e.m}</span>`; ledger.appendChild(row); });
+}
+
+/* ————— TICKER ————— */
+const tickerInner = document.getElementById('ticker');
+tickerInner.innerHTML = tickerInner.innerHTML.repeat(6);
+if(!reduced) gsap.to(tickerInner,{xPercent:-50,duration:40,repeat:-1,ease:'none'});
+
+/* ————— TODO BOARD ————— */
+const TICKETS = [
+  {id:'#214', t:'ship changelog'},
+  {id:'#215', t:'fix flaky test'},
+  {id:'#218', t:'competitor scan'},
+  {id:'#219', t:'draft blog post'},
+];
+const slots = document.querySelectorAll('.board-slot');
+TICKETS.forEach((tk,i)=>{
+  const el = document.createElement('div');
+  el.className='ticket'; el.id='tk-'+i;
+  el.innerHTML = `<span class="tid">${tk.id}</span> <span class="tt">${tk.t}</span>`;
+  slots[0].appendChild(el);
+});
+function moveTicket(i,col){
+  const el = document.getElementById('tk-'+i);
+  if(!el) return;
+  gsap.to(el,{opacity:0,x:14,duration:.25,onComplete:()=>{
+    slots[col].appendChild(el);
+    if(col===2) el.classList.add('done');
+    gsap.fromTo(el,{opacity:0,x:-14},{opacity:1,x:0,duration:.3});
+  }});
+}
+if(!reduced){
+  const tl = gsap.timeline({repeat:-1,repeatDelay:2, scrollTrigger:{trigger:'#board',start:'top 80%'}});
+  TICKETS.forEach((tk,i)=>{
+    tl.add(()=>{ moveTicket(i,1); }, i*2.2);
+    tl.add(()=>{ moveTicket(i,2); }, i*2.2+4.2);
+  });
+  tl.add(()=>{}, TICKETS.length*2.2+5.5);
+  tl.add(()=>{
+    document.querySelectorAll('.ticket').forEach((el)=>{el.classList.remove('done'); slots[0].appendChild(el); gsap.fromTo(el,{opacity:0},{opacity:1,duration:.3});});
+  });
+} else {
+  // static distribution for reduced motion
+  moveTicket(2,1); moveTicket(0,2);
+}
+
+/* ————— WORKFLOW RUN ————— */
+const steps = document.querySelectorAll('#flow .flow-step');
+const flowNote = document.getElementById('flow-note');
+const NOTES = ['STEP 1/4 · VEGA RESEARCHING','STEP 2/4 · JUNO DRAFTING','STEP 3/4 · GATE: AWAITING APPROVAL','STEP 4/4 · SHIPPED ✓'];
+if(!reduced && steps.length){
+  const ftl = gsap.timeline({repeat:-1,repeatDelay:1.6, scrollTrigger:{trigger:'#flow',start:'top 85%'}});
+  steps.forEach((s,i)=>{
+    ftl.add(()=>{
+      steps.forEach((x,j)=>{x.classList.toggle('active',j===i);x.classList.toggle('done-step',j<i)});
+      flowNote.innerHTML = NOTES[i].includes('GATE')? NOTES[i].replace('GATE:','<b>GATE:</b>') : NOTES[i];
+    }, i*1.4);
+  });
+  ftl.add(()=>{steps.forEach(x=>{x.classList.remove('active');x.classList.add('done-step')}); flowNote.textContent='RUN #12 COMPLETE · NEXT: MONDAY 09:00';}, steps.length*1.4+.6);
+}
+
+/* ————— TRIGGERS ————— */
+document.querySelectorAll('.trig-row').forEach((row,i)=>{
+  const zap = row.querySelector('.zap');
+  const dst = row.querySelector('.trig-dst');
+  if(!reduced) gsap.fromTo(zap,{left:'0%'},{left:'100%',duration:1.3,repeat:-1,repeatDelay:2.6,delay:i*.9,ease:'power1.in',
+    onRepeat:()=>{dst.classList.remove('hit')},
+    onComplete:()=>{},
+    onUpdate:function(){ if(this.progress()>.96) dst.classList.add('hit'); }});
+});
+
+/* ————— SCROLL REVEALS ————— */
+if(!reduced){
+  gsap.utils.toArray('.chapter, .chapters-intro, .mcp h2, .mcp p, .how-step, .receipt').forEach(el=>{
+    gsap.from(el,{opacity:0,y:28,duration:.7,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 88%'}});
+  });
+}
+
+/* ————— HERO SEAL ————— */
+if(!reduced){
+  gsap.to('#seal-text',{rotation:360,transformOrigin:'85px 85px',duration:36,repeat:-1,ease:'none'});
+}
+
+/* ————— MCP RADIAL DIAGRAM ————— */
+(function(){
+  const spokes = document.getElementById('mcp-spokes');
+  if(!spokes) return;
+  const CX=190, CY=190, R1=44, R2=138;
+  const HANDS = ['ORG','TODOS','WORKFLOWS','SESSIONS','TRIGGERS','FILES'];
+  const paths = [];
+  HANDS.forEach((h,i)=>{
+    const a = (i/HANDS.length)*Math.PI*2 - Math.PI/2;
+    const x1=CX+Math.cos(a)*R1, y1=CY+Math.sin(a)*R1;
+    const x2=CX+Math.cos(a)*R2, y2=CY+Math.sin(a)*R2;
+    const p = document.createElementNS(NS,'path');
+    p.setAttribute('d',`M${x1} ${y1} L${x2} ${y2}`);
+    p.setAttribute('stroke','rgba(245,240,228,.35)'); p.setAttribute('stroke-width','1.25');
+    spokes.appendChild(p); paths.push(p);
+    const tx=CX+Math.cos(a)*(R2+22), ty=CY+Math.sin(a)*(R2+22);
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('x',tx); t.setAttribute('y',ty+4);
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-family','IBM Plex Mono'); t.setAttribute('font-size','11');
+    t.setAttribute('letter-spacing','1.5'); t.setAttribute('fill','rgba(245,240,228,.75)');
+    t.textContent = h;
+    spokes.appendChild(t);
+  });
+  if(!reduced){
+    setInterval(()=>{
+      const p = paths[Math.floor(Math.random()*paths.length)];
+      const dot = document.createElementNS(NS,'circle');
+      dot.setAttribute('r',3.5); dot.setAttribute('fill','var(--blue-bright)');
+      document.getElementById('mcp-pulses').appendChild(dot);
+      const out = Math.random()>.35;
+      gsap.to(dot,{motionPath:{path:p,start:out?0:1,end:out?1:0},duration:1,ease:'power1.inOut',onComplete:()=>dot.remove()});
+    },700);
+  }
+})();
+
+/* ————— HIRES STAMP ————— */
+(function(){
+  const results = document.querySelectorAll('#hires .hr-res');
+  if(!results.length) return;
+  const tilts = [-1.4, .9, -.8];
+  results.forEach((r,i)=>r.style.transform=`rotate(${tilts[i]}deg)`);
+  if(reduced) return;
+  const tl = gsap.timeline({repeat:-1,repeatDelay:2.6, scrollTrigger:{trigger:'#hires',start:'top 85%'}});
+  results.forEach((r,i)=>{
+    tl.fromTo(r,{scale:1.7,opacity:0,rotation:tilts[i]-7},{scale:1,opacity:1,rotation:tilts[i],duration:.32,ease:'power3.in'}, .4+i*1.1);
+  });
+  tl.to(results,{opacity:0,duration:.4}, '+=2.4');
+})();
+
+/* ————— RECEIPT COUNT-UP ————— */
+if(!reduced){
+  document.querySelectorAll('.rc-n').forEach(el=>{
+    const n = +el.dataset.n;
+    const o = {v:0};
+    gsap.to(o,{v:n,duration:1.1,ease:'power2.out',snap:{v:1},
+      scrollTrigger:{trigger:'.receipt',start:'top 85%'},
+      onUpdate:()=>{el.textContent = Math.round(o.v)}});
+  });
+}
+
+/* ————— INSTALL COPY ————— */
+document.getElementById('install').addEventListener('click',()=>{
+  navigator.clipboard?.writeText('npm install -g jinn-cli && jinn start');
+  const h = document.getElementById('copy-hint');
+  h.textContent = 'copied';
+  setTimeout(()=>h.textContent='copy',1400);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<!-- The product's own mark: the platform's 🧞 emoji glyph, rendered by the
+     visitor's emoji font - matching the app's emoji favicon behavior. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <text y="0.9em" font-size="90">🧞</text>
+</svg>

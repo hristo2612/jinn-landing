@@ -1,0 +1,358 @@
+---
+/**
+ * Browser-only ScenePlayer contract fixture. It is unlinked, noindexed, and
+ * intentionally minimal so target scoping/API behavior can be tested without
+ * adding placeholder story sections to the landing page.
+ */
+import "../../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-motion="ok">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>ScenePlayer fixture</title>
+  </head>
+  <body>
+    <main>
+      <figure data-scene-window data-scene-id="fixture">
+        <div data-scene-frame aria-hidden="true">
+          <p data-target="copy">Resolved</p>
+          <p data-target="entered">Entered</p>
+          <p data-target="departing" hidden>Departing</p>
+          <p data-target="status" data-state="done">Done</p>
+          <span
+            data-target="progress"
+            data-progress="0.6666666666666666"
+            style="--scene-progress: 0.6666666666666666"></span>
+          <span data-target="ribbon-chat" data-active>Chat</span>
+          <span data-target="ribbon-org">Org</span>
+          <span data-target="theme">Theme</span>
+        </div>
+        <div data-scene-controls></div>
+      </figure>
+
+      <!-- Deliberate duplicate outside the root: local lookup must ignore it. -->
+      <p data-target="copy">Outside root</p>
+    </main>
+
+    <script>
+      import { ScenePlayer } from "../../lib/scenes/scene-player";
+      import {
+        resolveSceneCheckpoint,
+        resolveSceneEndState,
+      } from "../../lib/scenes/scene-reducer";
+      import type { SceneDefinition } from "../../lib/scenes/types";
+
+      const fixtureDefinition = {
+        id: "fixture",
+        title: "ScenePlayer fixture",
+        surface: "chat",
+        claim: "Exercise the player contract.",
+        transcript: "A test-only scene player fixture.",
+        initialState: {
+          pane: "chat",
+          pill: { name: "COO", meta: "· COO · engine", presence: "active" },
+          thread: [],
+          composerPlaceholder: "Resolved",
+          progress: { progress: 1 / 3 },
+        },
+        targets: [
+          { id: "copy", kind: "text" },
+          { id: "entered", kind: "element" },
+          { id: "departing", kind: "element" },
+          {
+            id: "status",
+            kind: "state",
+            initialState: "queued",
+            transitions: [{ from: "queued", to: "done" }],
+          },
+          { id: "progress", kind: "progress" },
+          { id: "ribbon-org", kind: "pane" },
+          { id: "theme", kind: "theme" },
+        ],
+        playback: { mode: "once", entry: "play", offscreen: "pause" },
+        beats: [
+          {
+            at: 0,
+            duration: 1000,
+            target: "copy",
+            action: { type: "type-text", text: "Animated" },
+            easing: "smooth",
+          },
+          {
+            at: 100,
+            duration: 100,
+            target: "entered",
+            action: { type: "enter" },
+            easing: "smooth",
+          },
+          {
+            at: 300,
+            duration: 100,
+            target: "departing",
+            action: { type: "exit" },
+            easing: "smooth",
+          },
+          {
+            at: 500,
+            duration: 100,
+            target: "status",
+            action: { type: "set-state", from: "queued", to: "done" },
+            easing: "smooth",
+          },
+          {
+            at: 700,
+            duration: 100,
+            target: "ribbon-org",
+            action: { type: "highlight" },
+            easing: "snappy",
+          },
+          {
+            at: 400,
+            duration: 400,
+            target: "progress",
+            action: { type: "set-progress", value: 2 / 3 },
+            easing: "smooth",
+          },
+          {
+            at: 800,
+            target: "theme",
+            action: { type: "theme", theme: "light" },
+            easing: "smooth",
+          },
+        ],
+        checkpoints: [
+          { name: "initial", at: 0 },
+          { name: "resolved", at: 1000 },
+        ],
+      } satisfies SceneDefinition;
+
+      const overlappingStateDefinition = {
+        ...fixtureDefinition,
+        id: "overlapping-state",
+        initialState: {
+          ...fixtureDefinition.initialState,
+          targetStates: { status: "queued" },
+        },
+        targets: fixtureDefinition.targets.map((target) =>
+          target.id === "status"
+            ? {
+                ...target,
+                initialState: "queued",
+                transitions: [
+                  { from: "queued", to: "executing" },
+                  { from: "executing", to: "done" },
+                ],
+              }
+            : target,
+        ),
+        beats: [
+          {
+            at: 0,
+            duration: 1000,
+            target: "status",
+            action: {
+              type: "set-state",
+              from: "queued",
+              to: "executing",
+            },
+            easing: "smooth",
+          },
+          {
+            at: 500,
+            duration: 100,
+            target: "status",
+            action: {
+              type: "set-state",
+              from: "executing",
+              to: "done",
+            },
+            easing: "smooth",
+          },
+        ],
+      } satisfies SceneDefinition;
+
+      const noThemeDefinition = {
+        ...fixtureDefinition,
+        id: "no-theme",
+        beats: fixtureDefinition.beats.filter(
+          ({ action }) => action.type !== "theme",
+        ),
+      } satisfies SceneDefinition;
+
+      const initialThemeOnlyDefinition = {
+        ...noThemeDefinition,
+        id: "initial-theme-only",
+        initialState: {
+          ...noThemeDefinition.initialState,
+          theme: "dark" as const,
+        },
+      } satisfies SceneDefinition;
+
+      const themeAtZeroDefinition = {
+        ...fixtureDefinition,
+        id: "theme-at-zero",
+        initialState: {
+          ...fixtureDefinition.initialState,
+          theme: "dark" as const,
+        },
+        beats: fixtureDefinition.beats.map((beat) =>
+          beat.action.type === "theme" ? { ...beat, at: 0 } : beat,
+        ),
+      } satisfies SceneDefinition;
+
+      const loopDefinition = {
+        ...noThemeDefinition,
+        id: "fixture-loop",
+        title: "Swapped loop fixture",
+        targets: noThemeDefinition.targets.filter(({ id }) =>
+          ["copy", "status"].includes(id),
+        ),
+        playback: {
+          mode: "loop",
+          entry: "play",
+          offscreen: "pause",
+          dwellMs: 400,
+          quietResetMs: 200,
+        },
+        beats: [
+          {
+            at: 0,
+            duration: 200,
+            target: "copy",
+            action: { type: "replace-text", text: "Looping" },
+            easing: "smooth",
+          },
+          {
+            at: 0,
+            duration: 400,
+            target: "status",
+            action: { type: "pulse", cycles: 1 },
+            easing: "smooth",
+          },
+        ],
+        checkpoints: [
+          { name: "initial", at: 0 },
+          { name: "resolved", at: 400 },
+        ],
+      } satisfies SceneDefinition;
+
+      const restartDefinition = {
+        ...noThemeDefinition,
+        id: "fixture-restart",
+        title: "Swapped restart fixture",
+        playback: {
+          ...noThemeDefinition.playback,
+          entry: "restart-on-enter",
+        },
+      } satisfies SceneDefinition;
+
+      const invalidLoopDefinition = {
+        ...loopDefinition,
+        id: "fixture-invalid-loop",
+        playback: { ...loopDefinition.playback, dwellMs: 0 },
+      } satisfies SceneDefinition;
+
+      const missingTargetDefinition = {
+        ...noThemeDefinition,
+        id: "fixture-missing-target",
+        targets: [{ id: "absent", kind: "text" }],
+        beats: [],
+      } satisfies SceneDefinition;
+
+      const definitionRegistry = new Map(
+        [
+          fixtureDefinition,
+          noThemeDefinition,
+          loopDefinition,
+          restartDefinition,
+          invalidLoopDefinition,
+          missingTargetDefinition,
+        ].map((scene) => [scene.id, scene]),
+      );
+
+      const root = document.querySelector<HTMLElement>("[data-scene-window]")!;
+      const frame = root.querySelector<HTMLElement>("[data-scene-frame]")!;
+      const target = frame.querySelector<HTMLElement>("[data-target='copy']")!;
+      const mode = new URLSearchParams(window.location.search).get("mode");
+      const definition =
+        mode === "overlapping-state"
+          ? overlappingStateDefinition
+          : mode === "no-theme"
+            ? noThemeDefinition
+            : mode === "initial-theme-only"
+              ? initialThemeOnlyDefinition
+              : mode === "theme-at-zero"
+                ? themeAtZeroDefinition
+                : fixtureDefinition;
+
+      if (mode === "missing") target.remove();
+      if (mode === "duplicate") frame.append(target.cloneNode(true));
+
+      try {
+        const lifecycle = {
+          visibilityAdds: 0,
+          visibilityRemoves: 0,
+          pagehideAdds: 0,
+          pagehideRemoves: 0,
+          observers: 0,
+          observerDisconnects: 0,
+        };
+        const addDocumentListener = document.addEventListener.bind(document);
+        const removeDocumentListener =
+          document.removeEventListener.bind(document);
+        document.addEventListener = ((type: string, ...args: unknown[]) => {
+          if (type === "visibilitychange") lifecycle.visibilityAdds += 1;
+          return addDocumentListener(type, ...(args as [EventListener]));
+        }) as typeof document.addEventListener;
+        document.removeEventListener = ((type: string, ...args: unknown[]) => {
+          if (type === "visibilitychange") lifecycle.visibilityRemoves += 1;
+          return removeDocumentListener(type, ...(args as [EventListener]));
+        }) as typeof document.removeEventListener;
+        const addWindowListener = window.addEventListener.bind(window);
+        const removeWindowListener = window.removeEventListener.bind(window);
+        window.addEventListener = ((type: string, ...args: unknown[]) => {
+          if (type === "pagehide") lifecycle.pagehideAdds += 1;
+          return addWindowListener(type, ...(args as [EventListener]));
+        }) as typeof window.addEventListener;
+        window.removeEventListener = ((type: string, ...args: unknown[]) => {
+          if (type === "pagehide") lifecycle.pagehideRemoves += 1;
+          return removeWindowListener(type, ...(args as [EventListener]));
+        }) as typeof window.removeEventListener;
+        const NativeObserver = window.IntersectionObserver;
+        window.IntersectionObserver = class extends NativeObserver {
+          constructor(
+            callback: IntersectionObserverCallback,
+            options?: IntersectionObserverInit,
+          ) {
+            super(callback, options);
+            lifecycle.observers += 1;
+          }
+          override disconnect(): void {
+            lifecycle.observerDisconnects += 1;
+            super.disconnect();
+          }
+        };
+
+        const player = new ScenePlayer(root, definition, {
+          definitions: definitionRegistry,
+        });
+        Object.assign(window, {
+          __sceneFixturePlayer: player,
+          __sceneFixtureLifecycle: lifecycle,
+          __sceneFixtureInitialState: resolveSceneCheckpoint(
+            definition,
+            "initial",
+          ),
+          __sceneFixtureResolvedState: resolveSceneEndState(definition),
+        });
+      } catch (error) {
+        document.documentElement.dataset.fixtureError =
+          error instanceof Error ? error.message : String(error);
+      }
+    </script>
+  </body>
+</html>

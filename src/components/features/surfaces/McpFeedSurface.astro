@@ -1,0 +1,218 @@
+---
+/**
+ * §06 mcp-hands surface - the landing's overnight-feed card anatomy
+ * (surfaces/NightFeedSurface.astro: one bg-secondary card, mono rows)
+ * carrying tool-call canonical data. Each row is a call (mono) whose result
+ * lands a beat later - the honest async texture.
+ *
+ * The routed-approval highlight is a transient amber wash (an animation that
+ * decays within ~1.5s per the amber-salary law); the resolved static state
+ * is the DECAYED card, so no-JS and reduced motion need no wash at all.
+ */
+import { MCP_HANDS_CARD } from "../../../lib/scenes/features";
+---
+
+<div class="mfeed" data-surface="mcp-feed" data-target="feed-card">
+  <header class="mfeed__head" data-field="header">
+    {MCP_HANDS_CARD.header}
+  </header>
+
+  <div class="mfeed__rows">
+    {
+      MCP_HANDS_CARD.rows.map((row) => (
+        <div
+          class="mfeed__row"
+          data-target={row.target}
+          data-state={row.status}
+        >
+          <span class="mfeed__disc" aria-hidden="true">
+            <svg class="mfeed__glyph mfeed__glyph--pending">
+              <use href="#i-loader" />
+            </svg>
+            <svg class="mfeed__glyph mfeed__glyph--ok">
+              <use href="#i-check" />
+            </svg>
+          </span>
+          <span class="mfeed__call" data-field="call">
+            {row.call}
+          </span>
+          {row.result && (
+            <span class="mfeed__result" data-field="result">
+              {row.result}
+            </span>
+          )}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .mfeed {
+    width: min(33rem, calc(100% - 2 * var(--space-5)));
+    margin: var(--space-6) auto 0;
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* AA (B2 review finding 8): small in-window text keeps secondary ink. */
+  .mfeed__head {
+    padding: 0 var(--space-3) var(--space-3);
+    font-family: var(--font-code);
+    font-size: var(--text-caption2);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .mfeed__rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mfeed__row {
+    display: grid;
+    grid-template-columns: 16px 1fr auto;
+    column-gap: var(--space-3);
+    align-items: center;
+    padding: 9px var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .mfeed__disc {
+    position: relative;
+    display: grid;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    color: var(--text-quaternary);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .mfeed__row[data-state="ok"] .mfeed__disc {
+    background: color-mix(in srgb, var(--system-green) 16%, transparent);
+    color: var(--system-green);
+  }
+
+  .mfeed__glyph {
+    position: absolute;
+    inset: 0;
+    width: 9px;
+    height: 9px;
+    margin: auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transition: opacity 200ms var(--ease-smooth);
+  }
+
+  .mfeed__row[data-state="pending"] .mfeed__glyph--pending,
+  .mfeed__row[data-state="ok"] .mfeed__glyph--ok {
+    opacity: 1;
+  }
+
+  .mfeed__row[data-state="pending"] .mfeed__glyph--pending {
+    animation: mfeed-spin 1s linear infinite;
+  }
+
+  /* Motion governance: pending spinners freeze with the player. */
+  :global([data-scene-window]:not([data-scene-player-state="playing"]))
+    .mfeed__row[data-state="pending"]
+    .mfeed__glyph--pending {
+    animation-play-state: paused;
+  }
+
+  .mfeed__call {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-family: var(--font-code);
+    font-size: 11.5px;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The result lands with the ok state - a beat after its call. */
+  .mfeed__result {
+    color: var(--text-secondary);
+    font-family: var(--font-code);
+    font-size: 10.5px;
+    opacity: 0;
+    transition: opacity 250ms var(--ease-smooth);
+  }
+
+  .mfeed__row[data-state="ok"] .mfeed__result {
+    opacity: 1;
+    color: var(--text-secondary);
+  }
+
+  /* The routed approval - one transient wash, decayed by resolve (the amber
+     salary: transient accent decays within ~1.5s). Governed by the player
+     clock (B2 review finding 4): it runs ONLY while this window's player is
+     playing - channel loss, user pause, offscreen, reduced motion, and no-JS
+     all settle it instantly to the decayed base. A resume while data-active
+     is still set replays the bounded acknowledgment once, which is the
+     honest presentation of the beat under the machinery's restore rules. */
+  :global([data-scene-window][data-scene-player-state="playing"])
+    .mfeed__row[data-active] {
+    animation: mfeed-wash 1200ms var(--ease-smooth) both;
+  }
+
+  @keyframes mfeed-wash {
+    0% {
+      background-color: transparent;
+    }
+    25% {
+      background-color: var(--accent-fill);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes mfeed-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mfeed__glyph--pending,
+    .mfeed__row[data-active] {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .mfeed {
+      width: calc(100% - 2 * var(--space-4));
+      padding: var(--space-4) var(--space-3) var(--space-3);
+    }
+
+    /* Wrapped calls keep a hanging indent - the disc column stays a column;
+       the result tucks under the call (STORYBOARD-FEATURES §6). */
+    .mfeed__row {
+      grid-template-columns: 16px 1fr;
+      row-gap: 2px;
+    }
+
+    .mfeed__call {
+      white-space: normal;
+    }
+
+    .mfeed__result {
+      grid-column: 2;
+    }
+  }
+</style>

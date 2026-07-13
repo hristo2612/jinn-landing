@@ -1,0 +1,268 @@
+---
+/**
+ * Trigger bindings surface - semantic binding states rendered from
+ * TRIGGERS_PANE. Real-app references mirrored:
+ * packages/web/src/routes/workflow/edit.tsx
+ * packages/web/src/routes/cron/page.tsx
+ */
+import { TRIGGERS_PANE } from "../../../lib/scenes/dashboard";
+
+const iconForKind = {
+  cron: "i-clock",
+  "todo-status": "i-list",
+  webhook: "i-plug",
+} as const;
+---
+
+<div class="triggers" data-surface="triggers">
+  <header class="triggers__head" data-field="header">
+    {TRIGGERS_PANE.header}
+  </header>
+
+  <div class="triggers__list">
+    {
+      TRIGGERS_PANE.bindings.map((binding, index) => (
+        <div class="triggers__binding-wrap">
+          <article
+            class="triggers__binding"
+            data-target={binding.target}
+            data-state={binding.status}
+          >
+            <span class="triggers__disc" aria-hidden="true">
+              <svg class="triggers__icon">
+                <use href={`#${iconForKind[binding.kind]}`} />
+              </svg>
+            </span>
+            <span class="triggers__meta">
+              <span class="triggers__name" data-field="title">
+                {binding.title}
+              </span>
+              <span class="triggers__detail" data-field="detail">
+                {binding.detail}
+              </span>
+            </span>
+            <span class="triggers__kind" data-field="kind">
+              {binding.kind}
+            </span>
+            {binding.fired && (
+              <span class="triggers__fired" data-field="fired">
+                {binding.fired}
+              </span>
+            )}
+          </article>
+          {index === 0 && (
+            <div class="triggers__run" data-target="run-row">
+              <span class="triggers__run-dot" aria-hidden="true" />
+              {TRIGGERS_PANE.run}
+            </div>
+          )}
+          {index === 2 && (
+            <div class="triggers__run" data-target="run-row-refund" hidden>
+              <span class="triggers__run-dot" aria-hidden="true" />
+              {TRIGGERS_PANE.runRefund}
+            </div>
+          )}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .triggers {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg);
+  }
+
+  .triggers__head {
+    color: var(--text-primary);
+    font-size: var(--text-headline);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* Content top-anchors under the pane header (the app's list layout) so
+     every pane swap presents its proof in the same optical band. */
+  .triggers__list {
+    display: flex;
+    width: 100%;
+    max-width: 560px;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0 auto;
+    padding-top: var(--space-6);
+  }
+
+  .triggers__binding-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .triggers__binding {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    overflow: hidden;
+    padding: 13px 15px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* At rest a binding is quiet (the app's cron rows: accent only when the
+     binding is lit) - so the fired beat's "disc goes amber" actually reads.
+     Per-kind color tints were decoration, not state. */
+  .triggers__disc {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-secondary);
+    color: var(--text-tertiary);
+    transition-property: background-color, color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .triggers__binding[data-state="fired"] .triggers__disc {
+    background: var(--accent-fill);
+    color: var(--accent);
+  }
+
+  .triggers__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .triggers__meta {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .triggers__name,
+  .triggers__detail {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .triggers__name {
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .triggers__detail {
+    margin-top: 1px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+
+  .triggers__kind,
+  .triggers__fired {
+    flex: none;
+    font-family: var(--font-code);
+    font-size: 10.5px;
+  }
+
+  .triggers__kind {
+    color: var(--text-tertiary);
+  }
+
+  .triggers__fired {
+    display: none;
+    color: var(--accent);
+    font-weight: var(--weight-medium);
+  }
+
+  .triggers__binding[data-state="fired"] .triggers__kind {
+    display: none;
+  }
+
+  .triggers__binding[data-state="fired"] .triggers__fired {
+    display: block;
+  }
+
+  .triggers__run {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-1);
+    color: var(--text-tertiary);
+    font-size: 11.5px;
+  }
+
+  /* A started run is live work - blue by the honest-state law (green would
+     claim it already completed). */
+  .triggers__run-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--system-blue);
+  }
+
+  /* Ambient payoff row - collapsed while hidden so its reveal GROWS the list
+     (one calm gesture) instead of snapping the centered layout. Fade/rise is
+     the player's; the surface only presents the space. */
+  .triggers__run[data-target="run-row-refund"] {
+    max-height: 32px;
+    transition:
+      max-height 300ms var(--ease-smooth),
+      margin-top 300ms var(--ease-smooth);
+  }
+
+  .triggers__run[data-target="run-row-refund"][hidden] {
+    display: flex;
+    max-height: 0;
+    margin-top: calc(-1 * var(--space-2));
+    overflow: hidden;
+  }
+
+  @media (max-width: 899px) {
+    .triggers {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .triggers__head {
+      font-size: var(--text-body);
+    }
+
+    .triggers__list {
+      justify-content: flex-start;
+      padding-top: var(--space-4);
+    }
+
+    .triggers__binding {
+      width: 100%;
+      padding-inline: 12px;
+    }
+
+    .triggers__kind,
+    .triggers__fired {
+      overflow: hidden;
+      font-size: 9.5px;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+</style>

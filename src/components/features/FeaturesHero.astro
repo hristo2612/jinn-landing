@@ -1,0 +1,221 @@
+---
+/**
+ * Features hero - pure type (STORYBOARD-FEATURES §4.1): the landing hero's
+ * type system at reduced scale, same thin/bold contrast, same masked
+ * line-rise entrance, NO weight bloom (the landing's one-time signature) and
+ * no window. ~70vh - this page's job is to get you to the parts quickly;
+ * §01's window peeks above the fold at 1440×900.
+ */
+import CommandPill from "../chrome/CommandPill.astro";
+import { FEATURES_HERO, FEATURES_LINKS } from "../../lib/scenes/features";
+---
+
+<section class="fhero" aria-label="All the moving parts">
+  <p class="fhero__eyebrow">{FEATURES_HERO.eyebrow}</p>
+
+  <h1 class="fhero__headline">
+    <span class="fhero__line">
+      <span class="fhero__line-inner fhero__line-inner--thin"
+        >{FEATURES_HERO.h1Thin}</span
+      >
+    </span>
+    <span class="fhero__line">
+      <span class="fhero__line-inner fhero__line-inner--bold"
+        >{FEATURES_HERO.h1Bold}<span class="fhero__period">.</span></span
+      >
+    </span>
+  </h1>
+
+  <p class="fhero__sub">{FEATURES_HERO.sub}</p>
+
+  <div class="fhero__cta">
+    <CommandPill copy={FEATURES_HERO.command} />
+    <a class="fhero__ghost" href={FEATURES_LINKS.github}>
+      {FEATURES_HERO.ghost}
+      <span class="fhero__arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .fhero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 62svh;
+    padding: calc(var(--site-nav-height) + var(--safe-top) + var(--space-10))
+      var(--site-page-gutter) var(--space-6);
+    text-align: center;
+  }
+
+  .fhero__eyebrow {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 12px;
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .fhero__headline {
+    margin: var(--space-5) 0 0;
+    font-size: clamp(2.375rem, 5vw, 4.5rem);
+    line-height: 1.04;
+  }
+
+  .fhero__line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+  }
+
+  .fhero__line-inner {
+    display: block;
+  }
+
+  .fhero__line-inner--thin {
+    font-weight: 250;
+    font-variation-settings: "wght" 250;
+    letter-spacing: -0.012em;
+    color: var(--text-primary);
+  }
+
+  .fhero__line-inner--bold {
+    font-weight: 640;
+    font-variation-settings: "wght" 640;
+    letter-spacing: -0.042em;
+    color: var(--text-primary);
+  }
+
+  .fhero__period {
+    color: var(--accent);
+  }
+
+  .fhero__sub {
+    max-width: 38rem;
+    margin: var(--space-5) auto 0;
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .fhero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+  }
+
+  .fhero__ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    font-size: var(--text-footnote);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 160ms var(--ease-smooth);
+  }
+
+  .fhero__ghost:hover {
+    color: var(--text-primary);
+  }
+
+  .fhero__arrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-spring);
+  }
+
+  .fhero__ghost:hover .fhero__arrow {
+    transform: translateX(3px);
+  }
+
+  /* Entrance - one-time, on load, keyed on html[data-motion="ok"]; no-JS and
+     reduced motion keep the settled state. No weight bloom on this page. */
+  :global(html[data-motion="ok"]) .fhero__eyebrow {
+    animation: fhero-fade 250ms var(--ease-smooth) 0ms both;
+  }
+
+  :global(html[data-motion="ok"]) .fhero__line-inner--thin {
+    animation: fhero-line-rise 600ms var(--ease-smooth) 150ms both;
+  }
+
+  :global(html[data-motion="ok"]) .fhero__line-inner--bold {
+    animation: fhero-line-rise 600ms var(--ease-smooth) 240ms both;
+  }
+
+  :global(html[data-motion="ok"]) .fhero__sub {
+    animation: fhero-rise 400ms var(--ease-smooth) 560ms both;
+  }
+
+  :global(html[data-motion="ok"]) .fhero__cta {
+    animation: fhero-rise 400ms var(--ease-smooth) 680ms both;
+  }
+
+  @keyframes fhero-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fhero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes fhero-line-rise {
+    from {
+      transform: translateY(110%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fhero {
+      min-height: 56svh;
+      padding-top: calc(
+        var(--site-nav-height) + var(--safe-top) + var(--space-8)
+      );
+    }
+
+    .fhero__eyebrow {
+      font-size: 11px;
+    }
+
+    .fhero__headline {
+      font-size: clamp(2.375rem, 11vw, 2.625rem);
+    }
+
+    .fhero__sub {
+      font-size: 1rem;
+    }
+
+    .fhero__cta {
+      flex-direction: column;
+      gap: var(--space-4);
+      width: 100%;
+    }
+
+    .fhero__cta :global(.command-pill) {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>

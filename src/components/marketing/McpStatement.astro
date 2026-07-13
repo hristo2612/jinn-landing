@@ -1,0 +1,90 @@
+---
+/**
+ * Section 8 - MCP statement (STORYBOARD §Section 8). A breath after the
+ * theatre: no window, big centered type with the quiet-ember weight
+ * contrast (thin/bold), one mono tool row beneath. Light theme.
+ */
+---
+
+<section class="mcp" aria-label="MCP is the hands">
+  <p class="mcp__kicker">MCP is the hands</p>
+  <h2 class="mcp__title">
+    <span class="mcp__line mcp__line--thin">One tool interface.</span>
+    <span class="mcp__line mcp__line--bold">The whole company.</span>
+  </h2>
+  <p class="mcp__body">
+    Every employee operates Jinn through the same MCP surface - org, todos,
+    workflows, sessions. A COO orchestrates, reviews, and gates approvals, so
+    you only see what matters.
+  </p>
+  <p class="mcp__tools">
+    create_work_item · delegate_task · start_workflow_run · decide_approval
+  </p>
+</section>
+
+<style>
+  .mcp {
+    padding: var(--site-section-space-theatrical) var(--site-page-gutter);
+    text-align: center;
+  }
+
+  .mcp__kicker {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .mcp__title {
+    margin: var(--space-5) 0 0;
+    font-size: var(--site-display-lg);
+    line-height: 1.06;
+    color: var(--text-primary);
+  }
+
+  .mcp__line {
+    display: block;
+  }
+
+  .mcp__line--thin {
+    font-weight: 250;
+    font-variation-settings: "wght" 250;
+    letter-spacing: -0.012em;
+  }
+
+  .mcp__line--bold {
+    font-weight: 640;
+    font-variation-settings: "wght" 640;
+    letter-spacing: -0.042em;
+  }
+
+  .mcp__body {
+    max-width: 36rem;
+    margin: var(--space-6) auto 0;
+    font-size: clamp(0.98rem, 1.35vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .mcp__tools {
+    margin: var(--space-8) auto 0;
+    font-family: var(--font-code);
+    font-size: var(--text-caption1);
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .mcp__title {
+      font-size: clamp(2.125rem, 9.5vw, 2.375rem);
+    }
+
+    .mcp__tools {
+      max-width: 18rem;
+      line-height: 1.7;
+    }
+  }
+</style>

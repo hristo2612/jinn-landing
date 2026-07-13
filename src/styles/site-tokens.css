@@ -1,0 +1,17 @@
+:root {
+  --site-display-xl: clamp(2.625rem, 6vw, 5.5rem);
+  --site-display-lg: clamp(2.125rem, 4.5vw, 4.5rem);
+  --site-display-md: clamp(2rem, 3.5vw, 3.5rem);
+  --site-section-space: clamp(6rem, 11vw, 10rem);
+  --site-section-space-theatrical: clamp(8rem, 14vw, 13rem);
+  --site-page-gutter: clamp(1rem, 4vw, 3rem);
+  --site-content-wide: 73.75rem;
+  --site-content-copy: 35rem;
+  --site-content-reading: 45rem;
+  --site-nav-height: 3.5rem;
+  --site-theme-duration: 900ms;
+  --site-hero-copy-max: 61.25rem;
+  --site-window-max: 73.75rem;
+  --site-window-height: min(40rem, calc(100svh - 17rem));
+  --site-window-height-mobile: 55svh;
+}

@@ -1,0 +1,104 @@
+---
+/**
+ * Section 11 - Footer (STORYBOARD §Section 11 + AMENDMENT §3). Single row:
+ * the 🧞 glyph brand mark + wordmark, the local-first note, spring, links.
+ * No separator line above - whitespace does the job.
+ *
+ * Deviation (A-04 precedent): the storyboard asks for `--text-quaternary`;
+ * at footer sizes that fails the AA contrast gate the axe audit enforces,
+ * so the note and links use `--text-secondary`.
+ */
+const githubUrl = "https://github.com/hristo2612/jinn";
+const npmUrl = "https://www.npmjs.com/package/jinn-cli";
+---
+
+<footer class="footer" aria-label="jinn">
+  <a class="footer__brand" href="/" aria-label="jinn">
+    <span class="footer__mark" aria-hidden="true">🧞</span>
+    <span>jinn</span>
+  </a>
+  <p class="footer__note">
+    Open source · local-first · your keys, your machine
+  </p>
+  <div class="footer__links">
+    <a class="footer__link" href="/features/">Features</a>
+    <a class="footer__link" href="/docs/">Docs</a>
+    <a class="footer__link" href={githubUrl}>GitHub</a>
+    <a class="footer__link" href={npmUrl}>npm</a>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    width: min(var(--site-content-wide), 100%);
+    margin: 0 auto;
+    padding: var(--space-10) var(--site-page-gutter)
+      calc(var(--space-10) + var(--safe-bottom));
+  }
+
+  .footer__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  /* The product's own mark, typographic - platform emoji, no plate
+     (AMENDMENT §3). Optical baseline nudge beside the wordmark. */
+  .footer__mark {
+    font-size: 18px;
+    line-height: 1;
+    transform: translateY(1px);
+  }
+
+  .footer__note {
+    flex: 1;
+    margin: 0;
+    font-size: var(--text-caption1);
+    color: var(--text-secondary);
+  }
+
+  .footer__links {
+    display: flex;
+    gap: var(--space-5);
+  }
+
+  .footer__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--text-footnote);
+    font-weight: var(--weight-medium);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 160ms var(--ease-smooth);
+  }
+
+  .footer__link:hover {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    /* Two rows: brand + note, then links (STORYBOARD §5). */
+    .footer {
+      flex-wrap: wrap;
+      row-gap: 0;
+      padding-top: var(--space-8);
+    }
+
+    .footer__note {
+      flex: 1 1 auto;
+    }
+
+    .footer__links {
+      flex-basis: 100%;
+    }
+  }
+</style>

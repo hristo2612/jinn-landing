@@ -1,0 +1,95 @@
+---
+/**
+ * Section 10 - Final CTA (STORYBOARD §Section 10). The quiet close:
+ * nothing else competes, the command is the object.
+ */
+import CommandPill from "../chrome/CommandPill.astro";
+
+const githubUrl = "https://github.com/hristo2612/jinn";
+const npmUrl = "https://www.npmjs.com/package/jinn-cli";
+---
+
+<section class="cta" aria-label="Your company is one command away">
+  <h2 class="cta__title">
+    <span class="cta__line">Your company is</span>
+    <span class="cta__line"
+      >one command away<span class="cta__period">.</span></span
+    >
+  </h2>
+
+  <div class="cta__pill">
+    <CommandPill copy="npm install -g jinn-cli" />
+  </div>
+
+  <p class="cta__links">
+    <a class="cta__link" href={githubUrl}>
+      GitHub <span aria-hidden="true">→</span>
+    </a>
+    <a class="cta__link" href={npmUrl}>
+      npm <span aria-hidden="true">→</span>
+    </a>
+  </p>
+</section>
+
+<style>
+  .cta {
+    padding: var(--site-section-space) var(--site-page-gutter);
+    text-align: center;
+  }
+
+  .cta__title {
+    margin: 0;
+    font-size: var(--site-display-lg);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+
+  .cta__line {
+    display: block;
+  }
+
+  .cta__period {
+    color: var(--accent);
+  }
+
+  .cta__pill {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-8);
+  }
+
+  .cta__links {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-6);
+    margin: var(--space-6) 0 0;
+  }
+
+  .cta__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    font-size: var(--text-footnote);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 160ms var(--ease-smooth);
+  }
+
+  .cta__link:hover {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .cta__title {
+      font-size: clamp(2.125rem, 9.5vw, 2.375rem);
+    }
+
+    .cta__pill :global(.command-pill) {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>
