@@ -39,6 +39,30 @@ jobs:
         working-directory: site
         run: pnpm install --frozen-lockfile
 
-      - name: Run public release checks
+      - name: Validate Ledger snapshot
         working-directory: site
-        run: pnpm check:public
+        run: pnpm tokens:validate
+
+      - name: Typecheck
+        working-directory: site
+        run: pnpm typecheck
+
+      - name: Lint and format
+        working-directory: site
+        run: pnpm lint
+
+      - name: Unit tests
+        working-directory: site
+        run: pnpm test
+
+      - name: Build
+        working-directory: site
+        run: pnpm build
+
+      - name: Public safety
+        working-directory: site
+        run: pnpm safety:check
+
+      - name: Internal links
+        working-directory: site
+        run: pnpm test:links:built
