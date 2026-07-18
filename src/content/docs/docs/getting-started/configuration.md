@@ -7,6 +7,7 @@ source:
   - packages/jinn/src/shared/types.ts
   - packages/jinn/src/cli/setup.ts
   - packages/jinn/src/gateway/server.ts
+  - packages/jinn/src/workflows/index.ts
 audience: [operator, contributor]
 generated: false
 ---
@@ -22,6 +23,7 @@ jinn:
 gateway:
   port: 7777
   host: "127.0.0.1"
+  notesEnabled: false
 
 engines:
   default: claude
@@ -45,15 +47,19 @@ logging:
 ## Top-level blocks
 
 - `jinn.version` is the instance migration marker. Change it through `jinn migrate`, not as an upgrade shortcut.
-- `gateway` requires `port` and `host`. Optional fields include `streaming`, file-operation safety switches, authentication switches, and `userHeader` for a trusted auth proxy.
-- `engines` requires `default` and a `claude` mapping. Claude and Codex accept `bin`, `model`, optional `effortLevel`, and optional child-effort overrides. Antigravity, Grok, Pi, and Hermes are optional engine mappings.
+- `gateway` takes `port` and `host`. Optional fields include `streaming`, `notesEnabled` (opt-in editable Notes, off by default), file-operation safety switches (`allowFileCustomPaths`, `allowFileOpen`), authentication switches, and `userHeader` for a trusted auth proxy.
+- `engines` requires `default` and a `claude` mapping. There are six supported engines: `claude`, `codex`, `antigravity`, `grok`, `pi`, and `hermes`. Claude and Codex accept `bin`, `model`, optional `effortLevel`, and optional child-effort overrides. Antigravity, Grok, Pi, and Hermes are optional mappings; Hermes takes only `bin`/`model` (no effort).
 - `models` is an optional registry used by selectors and validation. Each engine entry can declare a default, effort mechanism, hidden models, and model capability records.
 - `connectors` can contain Slack, Telegram, Discord, WhatsApp, or `instances` for multiple named connectors.
 - `logging` selects file/stdout output and the log level.
-- `mcp` configures built-in browser/search/fetch entries, the Jinn company toolset, and custom stdio or URL servers.
+- `mcp` configures built-in browser/search/fetch entries, the built-in Jinn company toolset (`mcp.gateway`), and custom stdio or URL servers. `mcp.gateway.enabled` is the master switch for the company toolset (`false` is a global kill switch); `mcp.gateway.engines` sets per-engine opt-outs.
 - `sessions` supports `interruptOnNewMessage`, lateral relay hop limits, and Claude rate-limit strategy. The schema also contains `maxDurationMinutes` and `maxCostUsd`, but current runtime code does not enforce those two fields; do not rely on them as caps.
 - `cron` configures default delivery and slow/failure alert routing. Jobs themselves live in `cron/jobs.json`.
 - `portal`, `context`, `stt`, `talk`, `notifications`, and `remotes` hold UI identity, prompt budget, local speech recognition, Talk voice settings, admin delivery, and remote gateway entries.
+
+## Workflow evidence root
+
+Workflows are on by default and need no config key. Their evidence root resolves automatically to `<JINN_HOME>/workflow-evidence` (created lazily, with a `workflows/` subdirectory). There is no `workflows:` block or evidence-root key in `config.yaml`; do not add one. To store evidence outside the instance folder, set the `JINN_WORKFLOW_EVIDENCE_ROOT` environment variable to an existing writable directory. A set-but-invalid override is a hard config error rather than a silent fallback.
 
 ## Authentication safety
 

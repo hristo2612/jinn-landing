@@ -4,9 +4,9 @@ route: /agents.md
 generated: false
 ---
 
-# Jinn gateway protocol for agents - 0.26.0 upcoming
+# Jinn gateway protocol for agents - 0.26.0
 
-This file is the compact, machine-readable contract for an agent or operator tool talking to the pinned upcoming Jinn `0.26.0` gateway. Jinn is local-first: the gateway, company files, session registry, Todo ledger, Workflow evidence, and managed uploads live on the operator's machine.
+This file is the compact, machine-readable contract for an agent or operator tool talking to the pinned Jinn `0.26.0` gateway. Jinn is local-first: the gateway, company files, session registry, Todo ledger, Workflow evidence, and managed uploads live on the operator's machine.
 
 ## 1. Discover the gateway
 
@@ -41,7 +41,7 @@ The bearer token is operator-grade. Never print, persist in a work product, send
 
 Do not remove MCP identity headers or retry a refused employee action with the raw operator bearer token. A lost/invalid tool identity fails closed with 403.
 
-Remote browsers do not receive the bearer token. Mint a single-use five-minute code from an already authenticated browser in Settings; gateway bearer tokens are deliberately refused by `POST /api/auth/pairing-codes`. The remote browser exchanges `{ "code": "…" }` at `POST /api/auth/pair` and receives device-scoped HttpOnly cookies. At this source pin, `jinn pair` follows the refused bearer path; use the authenticated browser flow.
+Remote browsers do not receive the bearer token. Mint a single-use five-minute code from an already authenticated browser in Settings, or run `jinn pair` (`jinn -i <instance> pair` for a named instance), which proves local `JINN_HOME` ownership through a filesystem challenge instead of sending the bearer; gateway bearer tokens are deliberately refused by `POST /api/auth/pairing-codes`. The remote browser exchanges `{ "code": "…" }` at `POST /api/auth/pair` and receives device-scoped HttpOnly cookies. Those cookies are namespaced per instance (`jinn_auth`/`jinn_device` for the default home, `jinn_auth_<name>`/`jinn_device_<name>` under `~/.<name>`), so co-hosted gateways do not clobber each other. `GET /api/auth/state` reports the resolved `instance` name for the pairing hint.
 
 `GET /api/engines` returns `{default,engines}`. `GET /api/engine-limits` returns `{generatedAt,default,engines}`. `GET /api/org` returns `{departments,employees,hierarchy}`. Discover these before overriding employee defaults.
 
@@ -204,7 +204,7 @@ POST /api/work-items/:id/status
 { "status": "in_review", "note": "Verification evidence attached." }
 ```
 
-Blocked/escalated require a note. Agents cannot cancel or self-review into done. `POST /api/work-items/:id/assign` takes `{ "assignee": "employee-name" }`. `GET /api/work-items/:id` returns `{workItem,spendUsd,workflowRun,events}`; `/sessions` returns linked attempts. Archive returns `{workItem,archived}` and is non-deleting: the Todo enters terminal `cancelled` state while its history remains.
+Blocked/escalated require a note. Agents cannot cancel or self-review into done. `POST /api/work-items/:id/assign` takes `{ "assignee": "employee-name" }`. `GET /api/work-items/:id` returns `{workItem,spendUsd,events}`; `/sessions` returns linked attempts. Archive returns `{workItem,archived}` and is non-deleting: the Todo enters terminal `cancelled` state while its history remains.
 
 ## 7. Approval boundaries
 
@@ -229,7 +229,7 @@ POST /api/work-items/:id/approval
 { "decision": "approve", "note": "Checks reviewed." }
 ```
 
-Only the routed manager/root authority may decide through a session capability. The authenticated operator can decide where the approval authority explicitly exposes that path. Native approval of reviewed work can complete the Todo; a mirrored Workflow approval resolves the parked run gate. A decision cannot undo an external side effect already performed: place gates before public, financial, irreversible, legal, or security-sensitive actions.
+Only the routed manager/root authority may decide through a session capability; an owner cannot decide their own approval. The authenticated operator can decide only when the approval is routed to the root/COO target or has been escalated to the operator/aCEO path. The routed authority opens that path with `POST /api/work-items/:id/approval/escalate` (optional `{reason}`). Native approval of reviewed work can complete the Todo; a mirrored Workflow approval resolves the parked run gate. A decision cannot undo an external side effect already performed: place gates before public, financial, irreversible, legal, or security-sensitive actions.
 
 Operator-only control-plane actions are not ordinary approval requests. Employee sessions cannot mutate gateway config, auth devices, cron schedules, org files, connector reloads, skill deletion, destructive session state, or operator file reads merely because their prompt asks.
 

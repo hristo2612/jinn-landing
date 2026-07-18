@@ -33,7 +33,7 @@ Stops the selected instance after verifying ownership. The optional port targets
 
 ## `jinn restart [--take-port]`
 
-Performs a detached safe restart and can be invoked from inside a session. Prefer it over `stop` followed by `start`; the helper preserves the handoff and port ownership.
+Performs a safe restart and can be invoked from inside a session. When a gateway is already running it asks that gateway to restart itself; otherwise it forks a detached helper that does stop then start out of band. Either path returns immediately and the gateway resumes the interrupted session. Prefer it over `stop` followed by `start`; it preserves the handoff and verifies port ownership, with `--take-port` to override another Jinn instance's claim.
 
 ## `jinn status`
 

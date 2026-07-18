@@ -13,7 +13,12 @@ generated: false
 
 ## `jinn pair [--json]`
 
-This command is present but unusable at the pinned source commit: it authenticates with the gateway bearer, while the gateway correctly restricts pairing-code minting to an authenticated browser session and returns HTTP 403. Use the Settings pairing panel in an authenticated browser. `--json` does not bypass the authority check.
+Mints a single-use pairing code for the running gateway. It first requests a pairing challenge, writes the returned nonce to a proof file inside the instance home — proving local disk access to that home — then exchanges the challenge for a code, so no authenticated browser bearer is required and the earlier HTTP 403 limitation is gone. The printed instructions name the instance and port, show the code and its expiry (single-use, default five minutes), and explain entering it on the other device. On the default `jinn` instance, when other instances exist, it nudges you to target one explicitly with `jinn -i <instance> pair`. `--json` prints the raw code payload plus the instance name. You can still create a code from Settings > Pairing in an authenticated browser.
+
+```sh
+jinn pair
+jinn -i studio pair --json
+```
 
 ## `jinn unpair [deviceId] [--json]`
 

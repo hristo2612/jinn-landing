@@ -1,9 +1,7 @@
 {
-  "version": "0.25.0",
-  "releasedAt": "2026-07-07",
+  "version": "0.26.0",
+  "releasedAt": "2026-07-18",
   "stable": true,
   "changelogPath": "/docs/changelog/0.26.0/",
-  "upcomingVersion": "0.26.0",
-  "sourcePin": "b534e88de17b66f3e2c089cde8fcf8763ca3e069",
-  "contractTarget": "source"
+  "contractTarget": "npm"
 }

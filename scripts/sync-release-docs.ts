@@ -9,6 +9,17 @@ const OWNED_RELEASE_PATH = "src/data/release.json";
 const OWNED_IMPACT_PATH = "src/data/release-impact.json";
 const LEDGER_TOKEN_SOURCE = "packages/web/src/routes/globals.css";
 
+// Capture CLI help from the selected jinn source via this repo's tsx binary.
+// tsx resolves TypeScript's ".js"-specifier imports to their ".ts" sources
+// (e.g. bin/jinn.ts -> ../src/shared/runtime-guard.js), which raw
+// `node --experimental-strip-types` cannot, and which 0.26's bin/jinn.ts needs.
+const TSX_BINARY = path.join(
+  path.dirname(path.dirname(fileURLToPath(import.meta.url))),
+  "node_modules",
+  ".bin",
+  "tsx",
+);
+
 const DOC_AREA_ORDER = [
   "src/content/docs/docs/getting-started/configuration.md",
   "src/content/docs/docs/getting-started/update-and-migrate.md",
@@ -147,15 +158,11 @@ export function capturePublicCliHelp(
   }
   const runSource = (args: string[]): string =>
     normalizeText(
-      execFileSync(
-        nodeBinary,
-        ["--experimental-strip-types", sourcePath, ...args],
-        {
-          cwd: jinnRoot,
-          encoding: "utf8",
-          env: { ...process.env, NO_UPDATE_NOTIFIER: "1" },
-        },
-      ),
+      execFileSync(TSX_BINARY, [sourcePath, ...args], {
+        cwd: jinnRoot,
+        encoding: "utf8",
+        env: { ...process.env, NO_UPDATE_NOTIFIER: "1" },
+      }),
     );
   const reportedVersion = runSource(["--version"]).trim();
   if (reportedVersion !== expectedVersion) {
