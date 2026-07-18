@@ -20,7 +20,7 @@ npm install -g jinn-cli@latest
 jinn migrate
 ```
 
-The package and `~/.jinn/` have different ownership. Updating npm replaces the shipped code and template; it does not overwrite your customized instance files — `CLAUDE.md`/`AGENTS.md`, `org/`, `secrets/`, `cron/`, config values, and skills are all preserved. The migration merges new keys, docs, and skills into your files rather than replacing them. On start, Jinn compares the installed package version with `jinn.version` in `config.yaml` and prints a migration reminder when the instance is behind.
+The package and `~/.jinn/` have different ownership. Updating npm replaces the shipped code and template; it does not overwrite your customized instance files: `CLAUDE.md`/`AGENTS.md`, `org/`, `secrets/`, `cron/`, config values, and skills are all preserved. The migration merges new keys, docs, and skills into your files rather than replacing them. On start, Jinn compares the installed package version with `jinn.version` in `config.yaml` and prints a migration reminder when the instance is behind.
 
 ## Preview first
 
@@ -32,7 +32,7 @@ Review the prompt and your working copy before applying it. Migration instructio
 
 There is no auto-apply flag. `jinn migrate --apply` is deprecated: it no longer launches an engine and never advances the marker on engine exit. It just prints the same composed prompt with a deprecation warning.
 
-The composed prompt is meant to be handed to your COO (or the configured engine) — either through the web migration handoff, which opens a COO session automatically, or by pasting the prompt into a session yourself. The agent merges the new keys, docs, and skills while preserving your customizations, then writes a completion receipt beside a verified migration snapshot that accounts for every manifest path.
+The composed prompt is meant to be handed to your COO (or the configured engine), either through the web migration handoff, which opens a COO session automatically, or by pasting the prompt into a session yourself. The agent merges the new keys, docs, and skills while preserving your customizations, then writes a completion receipt beside a verified migration snapshot that accounts for every manifest path.
 
 Only after that verified receipt exists does the agent run the exact key-gated command supplied verbatim in the prompt:
 
@@ -44,7 +44,7 @@ jinn migrate --mark-done 0.26.0 --migration-key <migrationKey>
 
 ## Hermes engine rebuild
 
-The 0.26.0 migration changes no instance files for engines, but if this instance runs the Hermes engine, its native binary/bridge may need a rebuild after the package upgrade. This is an operator action, not a file edit — rebuild Hermes if you use it.
+The 0.26.0 migration changes no instance files for engines, but if this instance runs the Hermes engine, its native binary/bridge may need a rebuild after the package upgrade. This is an operator action, not a file edit: rebuild Hermes if you use it.
 
 ## Restart safely
 

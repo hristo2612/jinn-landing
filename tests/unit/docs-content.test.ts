@@ -38,6 +38,7 @@ const expectedPages = [
   "reference/cli/pairing-and-limits.md",
   "reference/cli/skills.md",
   "reference/cli/migrations.md",
+  "reference/cli/workflow.md",
   "changelog/index.md",
   "changelog/0.25.0.md",
   "changelog/0.26.0.md",
@@ -78,13 +79,11 @@ describe("documentation content contract", () => {
     ) as {
       version: string;
       stable: boolean;
-      upcomingVersion: string;
-      sourcePin: string;
       contractTarget: string;
     };
     expect(release.stable).toBe(true);
-    expect(release.contractTarget).toBe("source");
-    expect(release.sourcePin).toMatch(/^[0-9a-f]{40}$/u);
+    expect(release.contractTarget).toBe("npm");
+    expect(release.version).toMatch(/^\d+\.\d+\.\d+$/u);
 
     const authoredPages = fs
       .readdirSync(docsRoot, { recursive: true })
@@ -114,13 +113,13 @@ describe("documentation content contract", () => {
         `${relative} is missing a parseable since version`,
       ).toBeDefined();
       expect(
-        compareSemver(since!, release.upcomingVersion),
-        `${relative} cannot postdate upcoming ${release.upcomingVersion}`,
+        compareSemver(since!, release.version),
+        `${relative} cannot postdate released ${release.version}`,
       ).toBeLessThanOrEqual(0);
     }
   });
 
-  it("ships the pinned upcoming machine contract", () => {
+  it("ships the released machine contract", () => {
     const agents = fs.readFileSync("src/content/machine/agents.md", "utf8");
     expect(agents.length).toBeGreaterThan(4_000);
     expect(agents).toContain("POST /api/sessions");
@@ -137,13 +136,12 @@ describe("documentation content contract", () => {
       fs.readFileSync("src/data/release.json", "utf8"),
     );
     expect(release).toMatchObject({
-      version: "0.25.0",
-      upcomingVersion: "0.26.0",
-      contractTarget: "source",
+      version: "0.26.0",
+      contractTarget: "npm",
     });
   });
 
-  it("uses executable source-pinned migration guidance and the current marker", () => {
+  it("uses executable migration guidance and the current marker", () => {
     const migrationPages = [
       "getting-started/configuration.md",
       "getting-started/update-and-migrate.md",
@@ -158,7 +156,7 @@ describe("documentation content contract", () => {
     );
     expect(migrationPages[0]).toContain('version: "0.26.0"');
     expect(migrationPages[3]).toContain("`jinn migrate`");
-    expect(migrationPages[3]).toContain("`jinn migrate --apply`");
+    expect(migrationPages[3]).toContain("`--apply` is deprecated");
   });
 
   it("documents external attachments with multipart bytes and managed IDs", () => {

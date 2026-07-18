@@ -26,7 +26,7 @@ Deprecated. It no longer launches an engine and no longer advances the marker. I
 
 ## `jinn migrate --mark-done [version] --migration-key <key>`
 
-Advances only `jinn.version`, and only with proof. It requires `--migration-key` — the key from the canonical migration prompt/handoff — plus a verified completion receipt and snapshot; without the key it refuses. With no version value it uses the package version. The version must be plain `X.Y.Z`. The format-preserving YAML editor refuses invalid YAML, a non-mapping `jinn`, serialization errors, or a failed parse-back check.
+Advances only `jinn.version`, and only with proof. It requires `--migration-key`, the key from the canonical migration prompt/handoff, plus a verified completion receipt and snapshot; without the key it refuses. With no version value it uses the package version. The version must be plain `X.Y.Z`. The format-preserving YAML editor refuses invalid YAML, a non-mapping `jinn`, serialization errors, or a failed parse-back check.
 
 `--migration-key <key>` supplies the expected key from the canonical automatic migration handoff. It is only meaningful together with `--mark-done`.
 

@@ -12,7 +12,7 @@ Commands:
   setup [options]              Initialize Jinn and install dependencies
   start [options]              Start the gateway daemon
   stop [options]               Stop the gateway daemon
-  restart [options]            Restart the gateway (detached — safe to run from
+  restart [options]            Restart the gateway (detached, safe to run from
                                inside a session)
   status                       Show gateway status
   pair [options]               Create a one-time code for pairing another
@@ -65,7 +65,7 @@ Options:
 $ jinn restart --help
 Usage: jinn restart [options]
 
-Restart the gateway (detached — safe to run from inside a session)
+Restart the gateway (detached, safe to run from inside a session)
 
 Options:
   --take-port  Take over a port owned by another Jinn instance
