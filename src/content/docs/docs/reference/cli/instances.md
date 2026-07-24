@@ -1,6 +1,6 @@
 ---
 title: Instances CLI
-description: Create and select isolated Jinn homes and ports, unregister them safely, or permanently delete one.
+description: Create, start, select, unregister, or permanently delete isolated Jinn workspaces.
 since: "0.1.0"
 source:
   - packages/jinn/bin/jinn.ts
@@ -12,20 +12,20 @@ audience: [operator]
 generated: false
 ---
 
-An instance has its own home, config, sessions, employees, skills, files, and gateway port. The default `jinn` instance is special and cannot be removed or nuked through the instance commands.
+Each workspace has its own home, config, token, sessions, employees, skills, files, and gateway port. The default `jinn` workspace is special and cannot be removed or nuked through the instance commands. The dashboard launcher can also discover, create, start, and open registered workspaces.
 
 ## `jinn create <name> [-p, --port <port>]`
 
-Names start with a lowercase letter and contain lowercase letters, numbers, or hyphens. Creation runs setup in a fresh subprocess, verifies `config.yaml` exists, assigns the requested or next available port starting at 7777, sets a display name, then registers the instance.
+The name is normalized to a lowercase slug and must begin with a Latin letter. `Studio Ops`, for example, becomes registry name `jinn-studio-ops` with home `~/.jinn-studio-ops`. Creation runs setup, assigns the requested or next available port starting at 7777, writes an owner-only gateway token before startup, registers the workspace, and starts it.
 
 ```sh
-jinn create studio --port 7780
-jinn -i studio start --daemon
+jinn create "Studio Ops" --port 7780
+jinn -i jinn-studio-ops status
 ```
 
 ## `jinn list`
 
-Lists registered instances. The registry is separate from the instance homes.
+Lists registered workspaces. The registry is separate from the workspace homes and can retain an offline workspace.
 
 ## `jinn remove <name> [--force]`
 

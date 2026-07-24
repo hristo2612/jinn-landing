@@ -25,7 +25,7 @@ Use the bearer scheme exactly. Invalid/missing auth returns JSON with 401 or 403
 
 ## Auth policy
 
-`GET /api/status` and `GET /api/auth/state` are public. The pairing and bootstrap routes (`/api/auth/pairing-challenges`, `/api/auth/pairing-codes`, `/api/auth/pair`, `/api/auth/logout`, plus the internal local-bootstrap handshake) and `POST /api/workflow-events` perform route-local auth. Other API and WebSocket routes require gateway authentication when configured or network-exposed. Command-line mutations should always send the bearer token, including on loopback.
+`GET /api/status` and `GET /api/auth/state` are public. Pairing and bootstrap routes (`/api/auth/pairing-challenges`, `/api/auth/pairing-codes`, `/api/auth/pair`, `/api/auth/logout`, plus the internal local-bootstrap handshake) perform route-local auth. Other API and WebSocket routes, including `POST /api/workflows/events/:eventName`, require gateway authentication when configured. Fresh v0.28 instances enable that policy even on loopback. Command-line mutations should always send the bearer token.
 
 Bearer auth is operator authority. Built-in MCP tools add a session identity and capability so the gateway can enforce descendant, Todo, approval, and control-plane boundaries. Do not teach an employee to strip those headers or fall back to an operator bearer call when a typed tool refuses it.
 

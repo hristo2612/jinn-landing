@@ -20,7 +20,7 @@ export const webhookFireScene = {
   title: "Webhook fire",
   surface: "triggers",
   claim:
-    "The outside world can start real work - token-authenticated, filtered, and on the record.",
+    "The outside world can start real work - authenticated, idempotent, and on the record.",
   transcript: FEATURES_CAPTIONS["webhook-fire"],
   initialState,
   targets: [

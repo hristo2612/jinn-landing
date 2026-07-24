@@ -1,0 +1,394 @@
+$ jinn --help
+Usage: jinn [options] [command]
+
+Lightweight AI gateway daemon
+
+Options:
+  -V, --version                output the version number
+  -i, --instance <name>        Target a specific instance (default: jinn)
+  -h, --help                   display help for command
+
+Commands:
+  setup [options]              Initialize Jinn and install dependencies
+  start [options]              Start the gateway daemon
+  stop [options]               Stop the gateway daemon
+  restart [options]            Restart the gateway (detached — safe to run from
+                               inside a session)
+  status                       Show gateway status
+  pair [options]               Create a one-time code for pairing another
+                               browser
+  unpair [options] [deviceId]  List paired browsers or unpair one by id
+  limits [options]             Show engine rate limits, quota windows, and model
+                               capabilities
+  create [options] <name>      Create a new Jinn instance
+  list                         List all Jinn instances
+  remove [options] <name>      Remove a Jinn instance from the registry
+  nuke [name]                  Permanently delete a Jinn instance and all its
+                               data
+  migrate [options]            Print the canonical pending instance-migration
+                               prompt or complete a verified migration
+  workflow                     Operate workflow definitions and runs
+  skills                       Manage skills from the skills.sh registry
+  help [command]               display help for command
+
+$ jinn setup --help
+Usage: jinn setup [options]
+
+Initialize Jinn and install dependencies
+
+Options:
+  --force     Delete existing home dir and reinitialize from scratch
+  -h, --help  display help for command
+
+$ jinn start --help
+Usage: jinn start [options]
+
+Start the gateway daemon
+
+Options:
+  --daemon           Run in background
+  -p, --port <port>  Override the gateway port from config
+  --take-port        Take over a port owned by another Jinn instance
+  -h, --help         display help for command
+
+$ jinn stop --help
+Usage: jinn stop [options]
+
+Stop the gateway daemon
+
+Options:
+  -p, --port <port>  Port to kill the process on (default: from config or 7777)
+  --take-port        Stop a process on the target port even when it belongs to
+                     another Jinn instance
+  -h, --help         display help for command
+
+$ jinn restart --help
+Usage: jinn restart [options]
+
+Restart the gateway (detached — safe to run from inside a session)
+
+Options:
+  --take-port  Take over a port owned by another Jinn instance
+  -h, --help   display help for command
+
+$ jinn status --help
+Usage: jinn status [options]
+
+Show gateway status
+
+Options:
+  -h, --help  display help for command
+
+$ jinn pair --help
+Usage: jinn pair [options]
+
+Create a one-time code for pairing another browser
+
+Options:
+  --json      Print raw JSON
+  -h, --help  display help for command
+
+$ jinn unpair --help
+Usage: jinn unpair [options] [deviceId]
+
+List paired browsers or unpair one by id
+
+Options:
+  --json      Print raw JSON
+  -h, --help  display help for command
+
+$ jinn limits --help
+Usage: jinn limits [options]
+
+Show engine rate limits, quota windows, and model capabilities
+
+Options:
+  -e, --engine <name>  Only show one engine
+  --json               Print raw JSON
+  -h, --help           display help for command
+
+$ jinn create --help
+Usage: jinn create [options] <name>
+
+Create a new Jinn instance
+
+Options:
+  -p, --port <port>  Set gateway port (auto-assigned if omitted)
+  -h, --help         display help for command
+
+$ jinn list --help
+Usage: jinn list [options]
+
+List all Jinn instances
+
+Options:
+  -h, --help  display help for command
+
+$ jinn remove --help
+Usage: jinn remove [options] <name>
+
+Remove a Jinn instance from the registry
+
+Options:
+  --force     Also delete the instance home directory
+  -h, --help  display help for command
+
+$ jinn nuke --help
+Usage: jinn nuke [options] [name]
+
+Permanently delete a Jinn instance and all its data
+
+Options:
+  -h, --help  display help for command
+
+$ jinn migrate --help
+Usage: jinn migrate [options]
+
+Print the canonical pending instance-migration prompt or complete a verified
+migration
+
+Options:
+  --apply                Deprecated: print the canonical prompt without
+                         launching an agent or advancing the marker
+  --mark-done [version]  Advance the marker only with a verified snapshot,
+                         receipt, and migration key
+  --migration-key <key>  Expected key from the canonical automatic migration
+                         handoff
+  -h, --help             display help for command
+
+$ jinn workflow --help
+Usage: jinn workflow [options] [command]
+
+Operate workflow definitions and runs
+
+Options:
+  -h, --help                                       display help for command
+
+Commands:
+  list [options]
+  get [options] <workflowId>
+  create [options]
+  update [options] <workflowId>
+  duplicate [options] <sourceId>
+  retire [options] <workflowId>
+  enable [options] <workflowId>
+  disable [options] <workflowId>
+  run [options] <workflowId>
+  runs [options] <workflowId>
+  show-run [options] <workflowId> <runId>
+  cancel [options] <workflowId> <runId>
+  rerun [options] <workflowId> <runId>
+  approve [options] <workflowId> <runId> <nodeId>
+  reject [options] <workflowId> <runId> <nodeId>
+  retry [options] <workflowId> <runId> <nodeId>
+  event [options] <eventName>
+  help [command]                                   display help for command
+
+$ jinn skills --help
+Usage: jinn skills [options] [command]
+
+Manage skills from the skills.sh registry
+
+Options:
+  -h, --help      display help for command
+
+Commands:
+  find [query]    Search the skills.sh registry
+  add <package>   Install a skill from skills.sh
+  remove <name>   Remove a skill from this instance
+  list            List installed skills
+  update          Re-install all skills to get latest versions
+  restore         Install all skills listed in skills.json
+  help [command]  display help for command
+
+$ jinn workflow list --help
+Usage: jinn workflow list [options]
+
+Options:
+  --cursor <cursor>
+  --limit <number>
+  --json             Print raw JSON
+  -h, --help         display help for command
+
+$ jinn workflow get --help
+Usage: jinn workflow get [options] <workflowId>
+
+Options:
+  --json      Print raw JSON
+  -h, --help  display help for command
+
+$ jinn workflow create --help
+Usage: jinn workflow create [options]
+
+Options:
+  --file <jsonFile>
+  --json             Print raw JSON
+  -h, --help         display help for command
+
+$ jinn workflow update --help
+Usage: jinn workflow update [options] <workflowId>
+
+Options:
+  --file <jsonFile>
+  --expected-revision <number>
+  --json                        Print raw JSON
+  -h, --help                    display help for command
+
+$ jinn workflow duplicate --help
+Usage: jinn workflow duplicate [options] <sourceId>
+
+Options:
+  --id <targetId>
+  --title <title>
+  --json           Print raw JSON
+  -h, --help       display help for command
+
+$ jinn workflow retire --help
+Usage: jinn workflow retire [options] <workflowId>
+
+Options:
+  --expected-revision <number>
+  --json                        Print raw JSON
+  -h, --help                    display help for command
+
+$ jinn workflow enable --help
+Usage: jinn workflow enable [options] <workflowId>
+
+Options:
+  --expected-revision <number>
+  --json                        Print raw JSON
+  -h, --help                    display help for command
+
+$ jinn workflow disable --help
+Usage: jinn workflow disable [options] <workflowId>
+
+Options:
+  --expected-revision <number>
+  --json                        Print raw JSON
+  -h, --help                    display help for command
+
+$ jinn workflow run --help
+Usage: jinn workflow run [options] <workflowId>
+
+Options:
+  --input <json>
+  --idempotency-key <key>
+  --json                   Print raw JSON
+  -h, --help               display help for command
+
+$ jinn workflow runs --help
+Usage: jinn workflow runs [options] <workflowId>
+
+Options:
+  --cursor <cursor>
+  --limit <number>
+  --status <status>
+  --json             Print raw JSON
+  -h, --help         display help for command
+
+$ jinn workflow show-run --help
+Usage: jinn workflow show-run [options] <workflowId> <runId>
+
+Options:
+  --json      Print raw JSON
+  -h, --help  display help for command
+
+$ jinn workflow cancel --help
+Usage: jinn workflow cancel [options] <workflowId> <runId>
+
+Options:
+  --reason <reason>
+  --json             Print raw JSON
+  -h, --help         display help for command
+
+$ jinn workflow rerun --help
+Usage: jinn workflow rerun [options] <workflowId> <runId>
+
+Options:
+  --definition <original|current>
+  --idempotency-key <key>
+  --json                           Print raw JSON
+  -h, --help                       display help for command
+
+$ jinn workflow approve --help
+Usage: jinn workflow approve [options] <workflowId> <runId> <nodeId>
+
+Options:
+  --expected-revision <number>
+  --reason <reason>
+  --json                        Print raw JSON
+  -h, --help                    display help for command
+
+$ jinn workflow reject --help
+Usage: jinn workflow reject [options] <workflowId> <runId> <nodeId>
+
+Options:
+  --expected-revision <number>
+  --reason <reason>
+  --json                        Print raw JSON
+  -h, --help                    display help for command
+
+$ jinn workflow retry --help
+Usage: jinn workflow retry [options] <workflowId> <runId> <nodeId>
+
+Options:
+  --idempotency-key <key>
+  --json                   Print raw JSON
+  -h, --help               display help for command
+
+$ jinn workflow event --help
+Usage: jinn workflow event [options] <eventName>
+
+Options:
+  --fire-id <id>
+  --payload <json>
+  --json            Print raw JSON
+  -h, --help        display help for command
+
+$ jinn skills find --help
+Usage: jinn skills find [options] [query]
+
+Search the skills.sh registry
+
+Options:
+  -h, --help  display help for command
+
+$ jinn skills add --help
+Usage: jinn skills add [options] <package>
+
+Install a skill from skills.sh
+
+Options:
+  -h, --help  display help for command
+
+$ jinn skills remove --help
+Usage: jinn skills remove [options] <name>
+
+Remove a skill from this instance
+
+Options:
+  -h, --help  display help for command
+
+$ jinn skills list --help
+Usage: jinn skills list [options]
+
+List installed skills
+
+Options:
+  -h, --help  display help for command
+
+$ jinn skills update --help
+Usage: jinn skills update [options]
+
+Re-install all skills to get latest versions
+
+Options:
+  -h, --help  display help for command
+
+$ jinn skills restore --help
+Usage: jinn skills restore [options]
+
+Install all skills listed in skills.json
+
+Options:
+  -h, --help  display help for command

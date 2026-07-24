@@ -274,7 +274,7 @@ test.describe("windows render the canonical resolved data (DOM == data)", () => 
     ).toHaveAttribute("data-progress", "1");
   });
 
-  test("webhook-fire: four bindings, token chip, fired label, run row", async ({
+  test("webhook-fire: four trigger nodes, fired label, run row", async ({
     page,
   }) => {
     const root = sceneWindow(page, "webhook-fire");
@@ -290,11 +290,6 @@ test.describe("windows render the canonical resolved data (DOM == data)", () => 
         binding.detail,
       );
       await expect(el.locator("[data-field='kind']")).toHaveText(binding.kind);
-      if ("token" in binding && binding.token) {
-        await expect(el.locator("[data-field='token']")).toHaveText(
-          binding.token,
-        );
-      }
       if ("fired" in binding && binding.fired) {
         await expect(el.locator("[data-field='fired']")).toHaveText(
           binding.fired,

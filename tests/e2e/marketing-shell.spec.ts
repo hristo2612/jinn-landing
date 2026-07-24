@@ -319,6 +319,8 @@ test("publishes only public routes in the production sitemap", async ({
     "https://jinn.run/docs/changelog/",
     "https://jinn.run/docs/changelog/0.25.0/",
     "https://jinn.run/docs/changelog/0.26.0/",
+    "https://jinn.run/docs/changelog/0.28.1/",
+    "https://jinn.run/docs/changelog/0.28.2/",
     ...[
       "approvals",
       "employees",
@@ -346,12 +348,14 @@ test("publishes only public routes in the production sitemap", async ({
       "migrations",
       "pairing-and-limits",
       "skills",
+      "workflow",
     ].map((page) => `https://jinn.run/docs/reference/cli/${page}/`),
     ...[
       "authentication",
       "cron-and-connectors",
       "engines-and-limits",
       "files-and-media",
+      "instances",
       "org-skills-and-knowledge",
       "sessions-and-delegation",
       "todos",

@@ -13,4 +13,4 @@ Jinn turns installed agent CLIs into a local, file-backed AI company. These docs
 
 Start with [Install Jinn](/docs/getting-started/install/), then build [your first company](/docs/getting-started/first-company/). Agents integrating directly with a gateway should read the compact [`/agents.md`](/agents.md) protocol and the detailed [Gateway API reference](/docs/reference/gateway-api/authentication/).
 
-Documentation currently tracks the pinned `0.26.0` upcoming source contract. The site deploy waits for that exact release to become npm latest. Older behavior remains in the [changelog](/docs/changelog/); the full tree is not duplicated per pre-1.0 release.
+Documentation currently tracks stable `jinn-cli 0.28.2`, the version published under npm's `latest` tag. Older behavior remains in the [changelog](/docs/changelog/); the full tree is not duplicated per pre-1.0 release.

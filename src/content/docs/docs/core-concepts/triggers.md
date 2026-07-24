@@ -1,36 +1,40 @@
 ---
 title: Triggers
-description: Start Workflows manually, on schedules, from Todo changes, authenticated webhooks, or polling bindings.
+description: Start v2 Workflows manually, on schedules, from Todo changes, authenticated events, or another Workflow.
 since: "0.26.0"
 source:
-  - packages/jinn/src/workflows/custom-triggers.ts
-  - packages/jinn/src/workflows/cron-sync.ts
-  - packages/jinn/src/workflows/todo-status-trigger.ts
-  - packages/jinn/src/gateway/api.ts
+  - packages/jinn/src/workflows/model.ts
+  - packages/jinn/src/workflows/trigger-service.ts
+  - packages/jinn/src/gateway/workflow-api.ts
 audience: [operator, agent, contributor]
 generated: false
 ---
 
-Triggers convert an external or local event into a uniform Workflow run request. Jinn supports manual starts, Workflow-owned cron schedules, Todo-status bindings, webhook event bindings, and polling bindings.
+Triggers convert an external or local event into a durable Workflow run. v2 supports manual, schedule, event, Todo-status, and Workflow-call trigger nodes.
 
-Bindings are stored separately from the Workflow definition. This keeps one Workflow reusable with different event sources and lets trigger credentials be managed without embedding them in the graph.
+Trigger configuration is part of the versioned definition. Enabling a definition activates its triggers; disabling or retiring it prevents new runs while preserving history.
 
 ## Webhook ingress
 
 The only public event ingress is:
 
 ```text
-POST /api/workflow-events
+POST /api/workflows/events/:eventName
 ```
 
-It accepts gateway bearer auth or a binding token in `x-jinn-workflow-event-token` (an Authorization bearer token is also accepted by the route). The mechanism is shared-secret authentication, not payload signing: Jinn does not verify an HMAC, timestamp, or body digest.
+It requires normal gateway authentication. The JSON body contains a required stable `fireId` and an object `payload`. Every enabled event trigger whose `eventName` matches starts a run; a successful request returns HTTP 202 with an array of run records, which can be empty when nothing matches.
 
-Webhook binding secrets use a `jinn_wh_…` shape. Jinn stores a SHA-256 hash and a first-four/last-four preview, verifies hashes with timing-safe comparison, and returns the full generated secret only when the binding is created.
+```sh
+jinn workflow event ticket.created \
+  --fire-id ticket-1042 \
+  --payload '{"priority":"high"}' \
+  --json
+```
 
-The JSON body requires `event`; optional `payload` must be an object, and `fireRef` can identify a fire for deduplication. Matching filters decide which bindings start. An authenticated event with no matching binding returns 404; a valid accepted event returns 202 with outcomes.
+The event name is part of the URL and must match the definition exactly. The fire ID provides replay protection; reuse it when retrying the same producer event.
 
-## Schedule, Todo, and poll limits
+## Schedule, Todo, and Workflow-call limits
 
-Workflow cron jobs are managed desired state. Manual edits to their generated cron entries may be overwritten on the next definition sync. Todo triggers observe guarded status transitions. Poll triggers depend on their configured source and retained artifacts; they are not a general arbitrary-code scheduler.
+Schedule triggers use a cron expression and timezone. Todo-status triggers observe the durable Todo event stream. Workflow-call triggers accept only a validated caller identity and idempotency key from another running Workflow.
 
-Trigger acceptance means the event was routed, not that every downstream step succeeded. Follow the returned run IDs and inspect run evidence.
+Trigger acceptance means a run was created, not that every downstream node succeeded. Follow the returned run IDs and inspect run evidence.

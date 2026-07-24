@@ -18,11 +18,12 @@ This minimal public-safe example follows the seeded schema:
 
 ```yaml
 jinn:
-  version: "0.26.0"
+  version: "0.28.2"
 
 gateway:
   port: 7777
   host: "127.0.0.1"
+  authRequired: true
   notesEnabled: false
 
 engines:
@@ -63,7 +64,7 @@ Workflows are on by default and need no config key. Their evidence root resolves
 
 ## Authentication safety
 
-Loopback is the default. Binding a network address enables authentication unless explicitly overridden. Jinn refuses `authDisabled: true` on a network bind unless `insecureAllowUnauthenticatedNetwork: true` is also set.
+Fresh v0.28 instances require authentication even on loopback. Local browser bootstrap still pairs automatically. Binding a network address also requires authentication unless explicitly overridden, and Jinn refuses `authDisabled: true` on a network bind unless `insecureAllowUnauthenticatedNetwork: true` is also set.
 
 ```yaml
 gateway:

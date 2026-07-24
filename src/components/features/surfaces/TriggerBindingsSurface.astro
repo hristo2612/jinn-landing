@@ -2,8 +2,7 @@
 /**
  * §05 webhook-fire surface - the shipped triggers-pane row anatomy
  * (surfaces/TriggersSurface.astro) with the storyboard's canonical-data
- * extensions: a 4th row, the `poll` kind label, a mono token chip on the
- * webhook row, and the run row parked under the webhook binding
+ * extensions: a 4th Workflow-call row and the run row parked under the event
  * (STORYBOARD-FEATURES §4.6 - data-level delta, same row anatomy).
  *
  * This surface lives inside the page's one dark-scoped window; every color
@@ -15,7 +14,7 @@ const iconForKind = {
   cron: "i-clock",
   "todo-status": "i-list",
   webhook: "i-plug",
-  poll: "i-search",
+  "workflow-call": "i-flow",
 } as const;
 ---
 
@@ -46,11 +45,6 @@ const iconForKind = {
                 {binding.detail}
               </span>
             </span>
-            {binding.token && (
-              <span class="wtrig__token" data-field="token">
-                {binding.token}
-              </span>
-            )}
             <span class="wtrig__kind" data-field="kind">
               {binding.kind}
             </span>

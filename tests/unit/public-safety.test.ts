@@ -73,6 +73,24 @@ describe("public safety guard", () => {
     ).toEqual([]);
   });
 
+  it("preserves byte-exact generated CLI help while keeping safety checks active", () => {
+    const emDash = String.fromCodePoint(0x2014);
+    expect(
+      findPublicSafetyViolations(
+        `Restart the gateway ${emDash} safely`,
+        "src/data/cli-help/0.28.1.txt",
+      ),
+    ).toEqual([]);
+
+    const unsafe = [
+      `Restart the gateway ${emDash} safely`,
+      ["person", "@", "example.com"].join(""),
+    ].join("\n");
+    expect(
+      findPublicSafetyViolations(unsafe, "src/data/cli-help/0.28.1.txt"),
+    ).toEqual([expect.objectContaining({ rule: "email" })]);
+  });
+
   it("scans first-party bundles while excluding only documented vendor output", () => {
     expect(isGeneratedArtifactInScope("dist/_astro/page.ABC123.js")).toBe(true);
     expect(isGeneratedArtifactInScope("dist/_astro/ui-core.ABC123.js")).toBe(

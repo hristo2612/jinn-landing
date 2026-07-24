@@ -38,7 +38,6 @@ const enginesAndLimits = fs.readFileSync(
 const migrationDocs = [
   "getting-started/update-and-migrate.md",
   "reference/cli/migrations.md",
-  "changelog/0.26.0.md",
 ]
   .map((page) => fs.readFileSync(path.join(docsRoot, page), "utf8"))
   .join("\n");
@@ -117,11 +116,11 @@ function validateAuthoredContract(): void {
     .join("\n");
   assert(
     allDocs.includes("/api/work-items"),
-    "upcoming docs must include Todos",
+    "released docs must include Todos",
   );
   assert(
-    allDocs.includes("/api/workflow-events"),
-    "upcoming docs must include Workflow events",
+    allDocs.includes("/api/workflows/events/:eventName"),
+    "released docs must include Workflow events",
   );
   assert(
     machine.includes(target.version),
@@ -129,7 +128,7 @@ function validateAuthoredContract(): void {
   );
   assert(
     llms.includes("durable Todos") && llms.includes("typed MCP tools"),
-    "llms.txt summary must name the upcoming surface",
+    "llms.txt summary must name the released surface",
   );
 }
 
@@ -367,10 +366,17 @@ async function main(): Promise<void> {
     const configPath = path.join(home, "config.yaml");
     let config = fs.readFileSync(configPath, "utf8");
     config = config.replace(/port:\s*7777/u, `port: ${port}`);
-    config = config.replace(
-      /host:\s*"127\.0\.0\.1"/u,
-      'host: "127.0.0.1"\n  authRequired: true',
-    );
+    if (/^ {2}authRequired:\s*(?:true|false)\s*$/mu.test(config)) {
+      config = config.replace(
+        /^ {2}authRequired:\s*(?:true|false)\s*$/mu,
+        "  authRequired: true",
+      );
+    } else {
+      config = config.replace(
+        /host:\s*"127\.0\.0\.1"/u,
+        'host: "127.0.0.1"\n  authRequired: true',
+      );
+    }
     config = config.replace(/bin:\s*claude/u, "bin: /usr/bin/false");
     fs.writeFileSync(configPath, config);
     fs.writeFileSync(fixture, "stable contract fixture\n");
@@ -637,53 +643,56 @@ async function main(): Promise<void> {
       );
     });
     await check("Workflow definitions documented envelope", async () => {
-      const result = await request(base, "/api/workflow-definitions", {
+      const result = await request(base, "/api/workflows", {
         headers: auth,
       });
       assert.equal(result.status, 200);
       assertDocumentedInlineShape(
         machine,
-        "`GET /api/workflow-definitions` → ",
+        "`GET /api/workflows` → ",
         result.body,
       );
     });
-    await check("Workflow triggers documented envelope", async () => {
-      const result = await request(base, "/api/workflow-triggers", {
+    await check("unknown Workflow reports not found", async () => {
+      const result = await request(base, "/api/workflows/contract-missing", {
         headers: auth,
-      });
-      assert.equal(result.status, 200);
-      assertDocumentedInlineShape(
-        machine,
-        "`GET /api/workflow-triggers` → ",
-        result.body,
-      );
-    });
-    await check("Workflow event rejects missing auth", async () => {
-      const result = await request(base, "/api/workflow-events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event: "contract.probe", payload: {} }),
-      });
-      assert.equal(result.status, 401);
-      assert.deepEqual(result.body, {
-        error: "Workflow event authentication required",
-      });
-    });
-    await check("Workflow event reports no binding", async () => {
-      const result = await request(base, "/api/workflow-events", {
-        method: "POST",
-        headers: jsonHeaders,
-        body: JSON.stringify({
-          event: "contract.probe",
-          payload: {},
-          fireRef: "contract-1",
-        }),
       });
       assert.equal(result.status, 404);
       assert.deepEqual(result.body, {
-        error: "No matching workflow trigger binding",
-        outcomes: [],
+        code: "not-found",
+        message: "Workflow definition contract-missing was not found.",
       });
+    });
+    await check("Workflow event rejects missing auth", async () => {
+      const result = await request(
+        base,
+        "/api/workflows/events/contract.probe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fireId: "contract-1", payload: {} }),
+        },
+      );
+      assert.equal(result.status, 401);
+      assert.deepEqual(result.body, {
+        error: "Missing or invalid gateway auth token",
+      });
+    });
+    await check("Workflow event reports no matching definition", async () => {
+      const result = await request(
+        base,
+        "/api/workflows/events/contract.probe",
+        {
+          method: "POST",
+          headers: jsonHeaders,
+          body: JSON.stringify({
+            payload: {},
+            fireId: "contract-1",
+          }),
+        },
+      );
+      assert.equal(result.status, 202);
+      assert.deepEqual(result.body, []);
     });
     await check("sessions all bare array", async () => {
       const result = await request(base, "/api/sessions?limit=0", {
@@ -734,7 +743,7 @@ async function main(): Promise<void> {
       );
       directId = body.id;
     });
-    await check("company MCP tools/list upcoming surface", async () => {
+    await check("company MCP tools/list released surface", async () => {
       const names = await listMcpTools(
         path.join(packageRoot, "dist", "src", "mcp", "server-entry.js"),
         directId,
