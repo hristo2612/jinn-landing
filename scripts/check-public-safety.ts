@@ -83,10 +83,14 @@ export function findPublicSafetyViolations(
   );
 
   const normalizedPath = path.replaceAll("\\", "/");
+  const isGeneratedCliHelp = /^src\/data\/cli-help\/\d+\.\d+\.\d+\.txt$/u.test(
+    normalizedPath,
+  );
   if (
     (normalizedPath.startsWith("src/") ||
       normalizedPath.startsWith("public/") ||
       normalizedPath.startsWith("dist/")) &&
+    !isGeneratedCliHelp &&
     inspected.includes(String.fromCodePoint(0x2014))
   ) {
     addMatches(

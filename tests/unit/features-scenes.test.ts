@@ -20,20 +20,42 @@ import { validateSceneRegistry } from "../../src/lib/scenes/scene-validator";
 const scenes = Array.from(featuresSceneDefinitions.values());
 
 describe("features scene registry", () => {
-  test("describes webhook ingress as token-authenticated, never signed", () => {
+  test("every trigger binding icon exists in the shared scene sprite", () => {
+    const surface = fs.readFileSync(
+      "src/components/features/surfaces/TriggerBindingsSurface.astro",
+      "utf8",
+    );
+    const sprite = fs.readFileSync(
+      "src/components/scenes/SceneIconSprite.astro",
+      "utf8",
+    );
+    const iconIds = Array.from(
+      surface.matchAll(/:\s*"(i-[a-z-]+)"/gu),
+      (match) => match[1],
+    );
+
+    expect(iconIds).toHaveLength(4);
+    for (const iconId of iconIds) {
+      expect(sprite, iconId).toContain(`<symbol id="${iconId}"`);
+    }
+  });
+
+  test("describes v2 event ingress as gateway-authenticated and idempotent", () => {
     const authCopyFiles = [
       "src/lib/scenes/features.ts",
       "src/scenes/features/webhook-fire.scene.ts",
       "tests/e2e/fixtures/features-deck.ts",
-      "docs/STORYBOARD-FEATURES.md",
     ];
     const authCopy = authCopyFiles
       .map((file) => fs.readFileSync(file, "utf8"))
       .join("\n");
 
-    expect(authCopy).not.toMatch(/signed webhook|start real work - signed/iu);
-    expect(authCopy).toContain("token-authenticated webhook");
-    expect(authCopy).toMatch(/shared-secret token preview/iu);
+    expect(authCopy).not.toMatch(
+      /signed webhook|shared-secret token|token-authenticated/iu,
+    );
+    expect(authCopy).toContain("authenticated event");
+    expect(authCopy).toContain("/api/workflows/events/ticket.created");
+    expect(authCopy).toMatch(/stable fire ID|idempotent/iu);
   });
 
   test("registers exactly the storyboard's seven scenes", () => {

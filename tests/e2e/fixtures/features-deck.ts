@@ -118,27 +118,27 @@ export const DECK = {
       id: "workflows",
       kicker: "04 / Workflows",
       title: "Process you can see.",
-      body: "A workflow is a real graph - steps, branches, gates, waits - drawn on a canvas and run by the gateway. The Executions lens replays every run on the same geometry. When a gate needs a human, the run parks. Nothing polls you; nothing fakes done.",
+      body: "A workflow is a strict graph - employees, branches, approvals, merges, waits - drawn on a canvas and run by the gateway. The Executions lens replays every run on the same geometry. Employee work finishes only with validated output. Nothing fakes done.",
       rail: [
         {
           label: "nodes",
-          text: "Six node types: trigger, step, gate, switch, fail, wait.",
+          text: "Seven node types: trigger, employee, condition, merge, approval, wait, end.",
         },
         {
           label: "gates",
-          text: "Three gate kinds - artifact, flag, approval. An approval gate holds the run until a person decides.",
+          text: "Approval nodes hold the run until the routed authority approves or rejects.",
         },
         {
           label: "resilience",
-          text: "Per-step retries with named causes, timeouts that stop the spend, and error lanes that route failure instead of hiding it.",
+          text: "Bounded retries, timeouts, reminder ladders, and deadline extensions keep long work honest.",
         },
         {
           label: "sop",
-          text: "Or skip the canvas: write a plain SOP - steps and a wake-up - and Jinn compiles the graph.",
+          text: "Typed inputs and validated outputs carry evidence between nodes without prompt scraping.",
         },
         {
           label: "mid-run",
-          text: "Edit a pending step's prompt while the run is live; every edit is versioned on the run record.",
+          text: "Message an active attempt without cancelling it; every interaction remains attached to the run.",
         },
       ],
     },
@@ -146,23 +146,23 @@ export const DECK = {
       id: "triggers",
       kicker: "05 / Triggers",
       title: "Work starts without you.",
-      body: "Five ways a workflow wakes: a schedule, a todo changing status, a token-authenticated webhook from the outside world, a poll watching for changes - or you. Schedules become managed cron jobs with no model in the trigger path.",
+      body: "Five ways a workflow wakes: manually, on a schedule, from a Todo status, through an authenticated event, or from another Workflow. Every trigger is part of the versioned definition and starts a durable run.",
       rail: [
         {
-          label: "webhooks",
-          text: "Every webhook binding carries its own secret token - hashed at rest, verified timing-safe.",
+          label: "events",
+          text: "Authenticated event ingress uses a stable fire ID so producer retries do not double-start work.",
         },
         {
-          label: "filters",
-          text: "Event triggers filter on payload paths: equals, exists, match.",
+          label: "todos",
+          text: "Todo-status triggers consume durable ledger events and recover cleanly after restart.",
         },
         {
-          label: "polls",
-          text: "A poll trigger must be approved before it may ever fire.",
+          label: "calls",
+          text: "Workflow-call triggers accept only a validated parent-run identity and idempotency key.",
         },
         {
           label: "cron",
-          text: "Cron jobs hot-reload from a JSON file, keep run history, and alert you through a connector when they run slow or fail.",
+          text: "Schedule triggers bind a cron expression and timezone directly to the enabled definition.",
         },
       ],
     },
@@ -611,19 +611,18 @@ export const DECK = {
       },
       {
         target: "binding-webhook",
-        title: "POST /api/workflow-events",
+        title: "POST /api/workflows/events",
         detail: "starts Support triage",
         kind: "webhook",
         status: "fired",
         initialStatus: "idle",
         fired: "fired · 11:38 today",
-        token: "jinn...c9f2",
       },
       {
         target: "binding-poll",
-        title: "Poll · support inbox · 5m",
-        detail: "starts Support triage",
-        kind: "poll",
+        title: "Called by Inbox monitor",
+        detail: "workflow-to-workflow",
+        kind: "workflow-call",
         status: "idle",
         initialStatus: "idle",
       },
@@ -681,7 +680,7 @@ export const DECK = {
     "triage-run":
       "The Executions lens replays run #147 on the workflow's own canvas: the ticket event fires, triage completes, the switch routes down the refund lane - and the run parks at the approval gate, waiting for you. The refund step stays untouched until you say so.",
     "webhook-fire":
-      "Four bindings - a schedule, a todo watcher, a shared-secret webhook, a poll. The ticket system POSTs ticket.created to /api/workflow-events with the binding's token and run #148 starts. The token chip is a shared-secret token preview.",
+      "Four trigger nodes - a schedule, a Todo watcher, an authenticated event, and a Workflow call. The ticket system POSTs ticket.created to /api/workflows/events/ticket.created and run #148 starts.",
     "mcp-hands":
       "The support employee checks the refund policy, files the todo, moves it to review, and requests approval - four MCP calls. These are the same tools every employee gets.",
     "slack-approve":

@@ -3,29 +3,29 @@ title: Workflows
 description: Understand editable Workflow graphs, durable run evidence, node execution, gates, and honest run states.
 since: "0.26.0"
 source:
-  - packages/jinn/src/workflows/definition.ts
-  - packages/jinn/src/workflows/run-store.ts
-  - packages/jinn/src/workflows/advance.ts
-  - packages/jinn/src/workflows/run-reconciler.ts
+  - packages/jinn/src/workflows/model.ts
+  - packages/jinn/src/workflows/repository.ts
+  - packages/jinn/src/workflows/runner.ts
+  - packages/jinn/src/workflows/validation.ts
 audience: [operator, agent, contributor]
 generated: false
 ---
 
-A Workflow is a reusable graph describing how work should run. It is not a long prompt and not a Todo. Definitions live as validated JSON artifacts under the configured Workflow evidence root; runs produce durable receipts and linked sessions.
+A Workflow is a reusable graph describing how work should run. It is not a long prompt and not a Todo. v2 definitions and runs live in the Workflow repository under the evidence root; runs retain immutable definition snapshots, attempts, receipts, and linked sessions.
 
-The editable schema supports `trigger`, `step`, `gate`, `switch`, `fail`, and `wait` nodes connected by sequence, handoff, loop, conditional, and error-lane edges. Actor-bearing steps can target an employee or a raw engine. The validator rejects unknown or inert configuration instead of silently ignoring it.
+The strict schema supports `trigger`, `employee`, `condition`, `merge`, `approval`, `wait`, and `end` nodes. Edges connect named source ports to a node's single input. Inputs and prior node outputs flow through explicit bindings, and the validator rejects dangling references, cycles, invalid ports, unsafe paths, and unknown configuration.
 
 ## Execution
 
-A run activates ready nodes from a frozen definition version. Engine steps create or reuse sessions according to their session mode, collect a bounded handoff/output, and settle receipts. Independent ready steps may fan out up to the definition's concurrency limit, capped at eight.
+A run activates ready nodes from a frozen definition revision. Employee nodes start sessions and remain active until the employee submits schema-validated output with `workflow_submit_output`; ending a turn alone does not complete the node. An employee waiting on delegated child work may end the turn and continue after the callback.
 
-Step options include model/effort overrides, output mode, bounded retries, timeout, error behavior, and session mode. Options that cannot be honored together are rejected at authoring time. For example, follow-up session modes refuse per-step model overrides and fire-and-forget output.
+Employee nodes can bind employee, engine, model, and effort; declare bounded outputs; configure up to five retry attempts; and set a timeout. Active attempts receive escalating reminders and may request bounded deadline extensions. Independent ready branches run in parallel and merge nodes wait for all incoming branches.
 
-Runs can be `running`, parked at a gate, completed, or failed based on evidence. A gate never appears complete before its decision. Editing a definition does not rewrite historical run receipts.
+Runs can be pending, running, waiting, completed, failed, or cancelled based on durable evidence. An approval node never appears complete before its decision. Operators can inspect attempt transcripts, send a message into an active attempt, cancel, retry an eligible node, or rerun against the original or current definition without rewriting history.
 
 ## Evidence root
 
-Workflow APIs report `evidenceConfigured: false` or `503` where appropriate when the evidence root is absent. An existing route is not proof that a Workflow store is configured.
+The default evidence root is `<JINN_HOME>/workflow-evidence`. Startup creates the v2 repository there and imports only provably compatible v1 definitions as disabled drafts. Unsupported legacy definitions and historical runs stay untouched and are listed in `workflows/legacy-v1-import-report.json`.
 
 ## Limits
 

@@ -35,7 +35,7 @@ jinn migrate
 # --apply now only re-prints the prompt (deprecated):
 jinn migrate --apply
 # After a verified migration, stamp the marker with the handoff key:
-jinn migrate --mark-done 0.26.0 --migration-key <key>
+jinn migrate --mark-done 0.28.2 --migration-key <key>
 ```
 
 Marking done is an assertion, not an update mechanism. Never use it to suppress a migration you have not actually merged and verified.

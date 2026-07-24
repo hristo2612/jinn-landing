@@ -274,7 +274,7 @@ describe("syncReleaseDocs", () => {
         "utf8",
       ),
     ).toContain(
-      "## [0.26.0] - 2026-07-11\n\n### ✨ Features\n- **Tracked work.** Durable Todos now retain evidence.\n\n### 🐛 Fixes\n- A literal line stays exactly as authored -- no generated prose.\n",
+      "## [0.26.0] - 2026-07-11\n\n### ✨ Features\n\n- **Tracked work.** Durable Todos now retain evidence.\n\n### 🐛 Fixes\n\n- A literal line stays exactly as authored -- no generated prose.\n",
     );
     expect(
       fs.readFileSync(

@@ -9,6 +9,10 @@ source:
   - packages/jinn/src/migrations/completion.ts
   - packages/jinn/template/skills/migrate/SKILL.md
   - packages/jinn/template/migrations/0.26.0/MIGRATION.md
+  - packages/jinn/template/migrations/0.27.0/MIGRATION.md
+  - packages/jinn/template/migrations/0.28.0/MIGRATION.md
+  - packages/jinn/template/migrations/0.28.1/MIGRATION.md
+  - packages/jinn/template/migrations/0.28.2/MIGRATION.md
 audience: [operator]
 generated: false
 ---
@@ -24,7 +28,7 @@ The package and `~/.jinn/` have different ownership. Updating npm replaces the s
 
 ## Preview first
 
-Plain `jinn migrate` is read-only. It scans versioned `MIGRATION.md` files in the installed template for the range `(instance version, package version]` and prints one composed prompt in ascending order. A release without an instance-surface change has no migration prompt and is skipped.
+Plain `jinn migrate` is read-only. It scans versioned `MIGRATION.md` files in the installed template for the range `(instance version, package version]` and prints one composed prompt in ascending order. Releases without instance-surface changes carry explicit empty bridge bundles so the strict chain still reaches the installed package version without inventing file changes.
 
 Review the prompt and your working copy before applying it. Migration instructions are designed to merge new keys, docs, and skills while preserving local changes.
 
@@ -37,14 +41,16 @@ The composed prompt is meant to be handed to your COO (or the configured engine)
 Only after that verified receipt exists does the agent run the exact key-gated command supplied verbatim in the prompt:
 
 ```sh
-jinn migrate --mark-done 0.26.0 --migration-key <migrationKey>
+jinn migrate --mark-done 0.28.2 --migration-key <migrationKey>
 ```
 
 `--mark-done` requires the `--migration-key` from the canonical prompt and applies no files. It advances `jinn.version` only against a matching completion receipt and snapshot; the key must match the pending migration, and it refuses a malformed version or a `jinn` value that cannot hold `jinn.version`. A successful engine exit, on its own, never advances the marker.
 
-## Hermes engine rebuild
+## v0.28 Workflow upgrade
 
-The 0.26.0 migration changes no instance files for engines, but if this instance runs the Hermes engine, its native binary/bridge may need a rebuild after the package upgrade. This is an operator action, not a file edit: rebuild Hermes if you use it.
+Drain active v1 Workflow runs before upgrading. The v0.28 runtime does not resume them. Compatible v1 definitions import once as disabled v2 drafts; definitions with schedules, conditions, loops, gates, or other behavior that cannot be preserved exactly stay untouched. Review `<JINN_HOME>/workflows/legacy-v1-import-report.json` before enabling an imported draft. Legacy definitions and run evidence remain under `<JINN_HOME>/workflow-evidence`.
+
+The explicit empty v0.27, v0.28.1, and v0.28.2 migration bridges keep the strict chain valid. Both v0.26 and v0.27 instances can therefore apply the composed migration through v0.28.2 without inventing file changes.
 
 ## Restart safely
 

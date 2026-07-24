@@ -33,6 +33,7 @@ const expectedPages = [
   "reference/gateway-api/org-skills-and-knowledge.md",
   "reference/gateway-api/cron-and-connectors.md",
   "reference/gateway-api/files-and-media.md",
+  "reference/gateway-api/instances.md",
   "reference/cli/lifecycle.md",
   "reference/cli/instances.md",
   "reference/cli/pairing-and-limits.md",
@@ -42,6 +43,8 @@ const expectedPages = [
   "changelog/index.md",
   "changelog/0.25.0.md",
   "changelog/0.26.0.md",
+  "changelog/0.28.1.md",
+  "changelog/0.28.2.md",
 ] as const;
 
 function frontmatter(markdown: string): string {
@@ -129,14 +132,14 @@ describe("documentation content contract", () => {
     expect(agents).toContain("gateway.json");
     expect(agents).toContain("POST /api/delegations");
     expect(agents).toContain("GET /api/work-items");
-    expect(agents).toContain("POST /api/workflow-events");
+    expect(agents).toContain("POST /api/workflows/events/ticket.created");
     expect(agents).toContain("find_employees");
 
     const release = JSON.parse(
       fs.readFileSync("src/data/release.json", "utf8"),
     );
     expect(release).toMatchObject({
-      version: "0.26.0",
+      version: "0.28.2",
       contractTarget: "npm",
     });
   });
@@ -146,7 +149,6 @@ describe("documentation content contract", () => {
       "getting-started/configuration.md",
       "getting-started/update-and-migrate.md",
       "reference/cli/migrations.md",
-      "changelog/0.26.0.md",
     ].map((file) => fs.readFileSync(path.join(docsRoot, file), "utf8"));
     const migrationCorpus = migrationPages.join("\n");
 
@@ -154,9 +156,9 @@ describe("documentation content contract", () => {
     expect(migrationCorpus).not.toMatch(
       /(?:jinn\.version:\s*|jinn migrate --mark-done )"?0\.25\.0/u,
     );
-    expect(migrationPages[0]).toContain('version: "0.26.0"');
-    expect(migrationPages[3]).toContain("`jinn migrate`");
-    expect(migrationPages[3]).toContain("`--apply` is deprecated");
+    expect(migrationPages[0]).toContain('version: "0.28.2"');
+    expect(migrationPages[1]).toContain("`jinn migrate`");
+    expect(migrationPages[1]).toContain("`jinn migrate --apply` is deprecated");
   });
 
   it("documents external attachments with multipart bytes and managed IDs", () => {
@@ -223,7 +225,7 @@ describe("documentation content contract", () => {
     expect(runtimeContract).toContain("assert.equal(body.employee, null)");
   });
 
-  it("advertises the pinned upcoming four-block surface", () => {
+  it("advertises the released four-block surface", () => {
     const content = [
       ...fs
         .readdirSync(docsRoot, { recursive: true })
@@ -238,7 +240,7 @@ describe("documentation content contract", () => {
 
     expect(content).toContain("/api/delegations");
     expect(content).toContain("/api/work-items");
-    expect(content).toContain("/api/workflow-events");
+    expect(content).toContain("/api/workflows/events/:eventName");
     expect(content).toContain('since: "0.26.0"');
   });
 

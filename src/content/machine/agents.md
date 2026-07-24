@@ -4,9 +4,9 @@ route: /agents.md
 generated: false
 ---
 
-# Jinn gateway protocol for agents - 0.26.0
+# Jinn gateway protocol for agents - 0.28.2
 
-This file is the compact, machine-readable contract for an agent or operator tool talking to the pinned Jinn `0.26.0` gateway. Jinn is local-first: the gateway, company files, session registry, Todo ledger, Workflow evidence, and managed uploads live on the operator's machine.
+This file is the compact, machine-readable contract for an agent or operator tool talking to the stable Jinn `0.28.2` gateway. Jinn is local-first: the gateway, company files, session registry, Todo ledger, Workflow evidence, and managed uploads live on the operator's machine.
 
 ## 1. Discover the gateway
 
@@ -50,12 +50,12 @@ Remote browsers do not receive the bearer token. Mint a single-use five-minute c
 - JSON requests: `Content-Type: application/json`.
 - Success: 200; creation: 201; accepted asynchronous event: 202.
 - 400: missing/invalid input or illegal lifecycle edge.
-- 401: missing/invalid authentication, including Workflow event token. Missing/invalid required auth is HTTP 401 `{error:"Missing or invalid gateway auth token"}`.
+- 401: missing/invalid gateway authentication. Missing/invalid required auth is HTTP 401 `{error:"Missing or invalid gateway auth token"}`.
 - 403: authenticated caller lacks operation authority or an identified tool lost its capability.
-- 404: record/binding/route not found; authenticated Workflow event with no matching binding also returns 404.
+- 404: record, Workflow, run, or route not found.
 - 409: durable conflict, live attempt, terminal Todo, missing pending approval, or gate/run state mismatch.
 - 413: request/file body exceeds a route limit.
-- 429: Workflow event or agent-relay rate limit; inspect `resetAt` when returned and retry after it, with jitter.
+- 429: rate limit; inspect `resetAt` when returned and retry after it, with jitter.
 - 500: server/storage failure. A delegation error may include preserved IDs and a recovery hint.
 - 502: selected delegation engine unavailable; the minted backlog Todo remains.
 - 503: required Workflow evidence/authority substrate unavailable.
@@ -235,49 +235,47 @@ Operator-only control-plane actions are not ordinary approval requests. Employee
 
 ## 8. Run Workflows
 
-Run a canonical name:
+Run an enabled Workflow ID with a manual trigger:
 
 ```http
-POST /api/workflow-runs/by-name
+POST /api/workflows/release-review/runs
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "name": "release-review",
-  "input": { "candidate": "v1" },
-  "idempotencyKey": "release-review-v1"
+  "input": { "candidate": "v0.28.2" },
+  "idempotencyKey": "release-v0.28.2"
 }
 ```
 
-Response is the durable run record containing at least `runId`, `workflowId`, and `status`. Use `jinn workflow run <name> --input '<json>' --idempotency-key <key> --json` when shell access is available.
+Response is the durable run record containing at least `id`, `workflowId`, and `status`. Use `jinn workflow run <workflowId> --input '<json>' --idempotency-key <key> --json` when shell access is available.
 
-Inspect `GET /api/workflow-definitions/:id/runs/:runId`. A parked run needs an authorized gate decision; do not edit evidence artifacts. Workflow definitions are validated graphs. Prefer typed MCP tools or the dashboard editor to raw mutation APIs.
+Inspect `GET /api/workflows/:id/runs/:runId`. A parked approval node needs an authorized decision; do not edit evidence artifacts. Workflow definitions are strict validated graphs. Prefer typed MCP tools, the dashboard editor, or `jinn workflow` to raw mutation APIs.
 
-Discovery envelopes are `GET /api/workflow-definitions` → `{definitions,evidenceConfigured,evidenceReason?}` and `GET /api/workflow-triggers` → `{triggers,evidenceConfigured,evidenceReason?}`.
+`GET /api/workflows` → `{items,nextCursor}`. Definition triggers live inside each versioned definition; there is no separate trigger-binding collection.
+
+An employee node completes only after it calls `workflow_submit_output` with schema-valid fields. Ending a turn does not complete the node. If more time is genuinely needed after the reminder ladder, call `workflow_extend_deadline`. These attempt-only tools are exposed only to the bound running Workflow session.
 
 ## 9. Fire a Workflow event
 
-The only public webhook ingress is:
+The authenticated event ingress is:
 
 ```http
-POST /api/workflow-events
+POST /api/workflows/events/ticket.created
+Authorization: Bearer <token>
 Content-Type: application/json
-x-jinn-workflow-event-token: <binding secret>
 
 {
-  "event": "ticket.created",
   "payload": { "priority": "high" },
-  "fireRef": "ticket-1042"
+  "fireId": "ticket-1042"
 }
 ```
 
-The route also accepts the gateway bearer token. A binding token is a bearer-style shared secret, not a payload signature. Jinn does not verify HMAC, timestamp, or body digest. Generated secrets have a `jinn_wh_…` shape; storage retains only a SHA-256 hash and first-four/last-four preview. The full secret is returned once at binding creation.
-
-Accepted: HTTP 202 `{ "outcomes": [ … ] }`. No matching binding: 404. Missing/invalid token: 401. Rate limit: 429. `payload` must be an object. Use a stable `fireRef` when the producer can retry.
+Accepted: HTTP 202 with an array of durable run records. No matching enabled event trigger returns an empty array. Missing/invalid gateway auth: 401. Malformed event identity or body: 422. `payload` must be an object and `fireId` is required. Reuse a stable fire ID when the producer retries the same event.
 
 ## 10. Company MCP tools
 
-The built-in `jinn` MCP server is attached per session on MCP-capable engines when enabled. Its capability identifies the calling session and fails closed when identity is absent. Discover tools with MCP `tools/list`; the pinned server includes `find_employees`, `list_employees`, `get_employee`, `delegate_task`, Todo tools such as `list_work_items`, Workflow tools such as `start_workflow_run`, `decide_work_item_approval`, knowledge search/read tools, and reference search. Tool names are the contract; use each returned input schema rather than guessing arguments.
+The built-in `jinn` MCP server is attached per session on MCP-capable engines when enabled. Its capability identifies the calling session and fails closed when identity is absent. Discover tools with MCP `tools/list`; the pinned server includes `find_employees`, `list_employees`, `get_employee`, `delegate_task`, Todo tools such as `list_work_items`, Workflow tools such as `start_workflow_run`, `decide_work_item_approval`, knowledge search/read tools, and reference search. A running Workflow attempt additionally receives `workflow_submit_output` and `workflow_extend_deadline`. Tool names are the contract; use each returned input schema rather than guessing arguments.
 
 Operator cron acknowledgements retain these shapes: `POST /api/cron/:id/trigger` → `{triggered:true,jobId,name,employee?,message}` and `DELETE /api/cron/:id` → `{deleted,name}`.
 

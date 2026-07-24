@@ -344,7 +344,7 @@ test("machine routes expose the complete agent contract", async ({
   expect(agentBody).toContain("GET /api/engines");
   expect(agentBody).toContain("multipart/form-data");
   expect(agentBody).toContain("POST /api/delegations");
-  expect(agentBody).toContain("POST /api/workflow-events");
+  expect(agentBody).toContain("POST /api/workflows/events/ticket.created");
   expect(agentBody).toContain("decide_work_item_approval");
   expect(agentBody).not.toContain(
     "Jinn is an open-source, local-first gateway.\n",
@@ -353,8 +353,9 @@ test("machine routes expose the complete agent contract", async ({
   const llms = await request.get("/llms.txt");
   expect(llms.status()).toBe(200);
   const llmsBody = await llms.text();
-  expect(llmsBody).toContain("Current documented version: 0.26.0");
-  expect(llmsBody).toContain("Release status: upcoming; source pin:");
+  expect(llmsBody).toContain("Current documented version: 0.28.2");
+  expect(llmsBody).toContain("Release date: 2026-07-24");
+  expect(llmsBody).toContain("Documentation policy: latest stable release");
   expect(llmsBody).toContain("https://jinn.run/docs/getting-started/install/");
   expect(llmsBody).toContain("https://jinn.run/agents.md");
 });

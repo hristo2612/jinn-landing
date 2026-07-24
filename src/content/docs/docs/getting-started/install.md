@@ -11,10 +11,10 @@ audience: [operator]
 generated: false
 ---
 
-This site documents upcoming `0.26.0` source and must not deploy until that version is published. Once available, install the pinned version globally:
+These docs track the current stable release. Install it globally:
 
 ```sh
-npm install -g jinn-cli@0.26.0
+npm install -g jinn-cli@0.28.2
 ```
 
 Jinn requires Node.js 22 or newer; Node 22 or 24 LTS is recommended. Native SQLite/PTY dependencies may require Python plus a C/C++ toolchain when no matching prebuild exists. It does not include an AI engine; install and authenticate at least one supported CLI such as Claude Code, Codex, Grok, or Hermes first.
@@ -26,7 +26,7 @@ jinn setup
 jinn start
 ```
 
-`jinn setup` creates `~/.jinn/` without overwriting existing files. It checks the installed engines, writes `config.yaml`, initializes the SQLite session registry, seeds the default general-purpose employee and bundled skills, creates cron/log/knowledge directories, and links the shared skills into the native Claude and Codex skill directories. `jinn setup --force` deletes the existing instance first; treat it as destructive.
+`jinn setup` creates `~/.jinn/` without overwriting existing files. It checks the installed engines, writes an authenticated-by-default `config.yaml`, initializes the SQLite session registry, seeds the default general-purpose employee and bundled skills, creates cron/log/knowledge directories, and links the shared skills into the native Claude and Codex skill directories. `jinn setup --force` deletes the existing instance first; treat it as destructive.
 
 On an interactive first setup, the CLI asks what to call the assistant and which detected engine to use by default. Non-interactive setup uses `Jinn` and `claude` defaults.
 

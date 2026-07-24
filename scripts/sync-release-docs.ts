@@ -340,6 +340,10 @@ function renderChangelogPage(
   version: string,
   section: ChangelogSection,
 ): string {
+  const markdown = section.markdown.replace(
+    /^(#{1,6} .+)\n(?=[*-] )/gmu,
+    "$1\n\n",
+  );
   return `---
 title: jinn-cli ${version}
 description: Release notes for jinn-cli ${version}.
@@ -351,7 +355,7 @@ audience: [operator, contributor]
 generated: true
 ---
 
-${section.markdown}`;
+${markdown}`;
 }
 
 function readJson(absolutePath: string): Record<string, unknown> {

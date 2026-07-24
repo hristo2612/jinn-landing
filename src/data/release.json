@@ -1,7 +1,7 @@
 {
-  "version": "0.26.0",
-  "releasedAt": "2026-07-18",
+  "version": "0.28.2",
+  "releasedAt": "2026-07-24",
   "stable": true,
-  "changelogPath": "/docs/changelog/0.26.0/",
+  "changelogPath": "/docs/changelog/0.28.2/",
   "contractTarget": "npm"
 }
